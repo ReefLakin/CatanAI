@@ -1,17 +1,20 @@
 // TILE COLOURS (USED)
-FIELD_TILE_COLOUR = '#ECDF5B';
-MOUNTAIN_TILE_COLOUR = '#5B69EC';
-HILLS_TILE_COLOUR = '#EC835B';
-PASTURES_TILE_COLOUR = '#B3EC5B';
-FOREST_TILE_COLOUR = '#68EC5B';
-DESERT_TILE_COLOUR = '#ECC35B';
-WATER_TILE_COLOUR = '#5BCFEC';
+FIELD_TILE_COLOUR = '#f9c549'; // 0
+MOUNTAIN_TILE_COLOUR = '#534e5a'; // 1
+HILLS_TILE_COLOUR = '#be753b'; // 2
+PASTURES_TILE_COLOUR = '#84b54b'; // 3
+FOREST_TILE_COLOUR = '#3d4e26'; // 4
+DESERT_TILE_COLOUR = '#bf9b61'; // 5
+WATER_TILE_COLOUR = '#039cdd'; // 6
 
 // TILE COLOURS (UNSUSED)
-CTHULHU_TILE_COLOUR = '#E85BEC';
+CTHULHU_TILE_COLOUR = '#E85BEC'; // 7
 
 // BOARD DIMENSIONS
 BOARD_DIMS = [3, 4, 5, 4, 3];
+
+// TYPE MAP
+TYPE_MAP = [1, 3, 4, 0, 2, 3, 2, 0, 4, 5, 4, 1, 4, 1, 0, 3, 2, 0, 3];
 
 // Setup function
 function setup() { 
@@ -33,6 +36,7 @@ function draw() {
 // Function to draw the Catan grid, using maths
 function drawCatanGrid(centreXFirstPoint, centreYFirstPoint, radius) {
 
+    let typeMapIndex = 0
     let x = centreXFirstPoint;
     let y = centreYFirstPoint;
     // Loops through each row of the board according to the BOARD_DIMS array
@@ -43,6 +47,9 @@ function drawCatanGrid(centreXFirstPoint, centreYFirstPoint, radius) {
         x = centreXFirstPoint - (e * (Math.sqrt(3) * radius / 2));
         // Draw each hexagon in the correct position
         for (let hex = 0; hex < hexesInRow; hex++) {
+            let hexColour = returnColour(TYPE_MAP[typeMapIndex]);
+            fill(hexColour);
+            typeMapIndex = typeMapIndex + 1;
             drawHexagon(x, y, radius);
             x = x + (Math.sqrt(3) * radius);
         }
@@ -77,5 +84,27 @@ function drawHexagon(centreX, centreY, radius){
 
     // Call endShape(CLOSE) to finish drawing the hexagon
     endShape(CLOSE)
+
+}
+
+// Return a colour hex value corresponding to the correct tile type
+function returnColour(id) {
+
+    switch (id) {
+        case 0:
+            return FIELD_TILE_COLOUR;
+        case 1:
+            return MOUNTAIN_TILE_COLOUR;
+        case 2:
+            return HILLS_TILE_COLOUR;
+        case 3:
+            return PASTURES_TILE_COLOUR;
+        case 4:
+            return FOREST_TILE_COLOUR;
+        case 5:
+            return DESERT_TILE_COLOUR;
+        case 6:
+            return WATER_TILE_COLOUR;
+    }
 
 }
