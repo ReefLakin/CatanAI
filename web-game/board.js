@@ -10,11 +10,14 @@ WATER_TILE_COLOUR = '#039cdd'; // 6
 // TILE COLOURS (UNSUSED)
 CTHULHU_TILE_COLOUR = '#E85BEC'; // 7
 
+// DEFAULT TYPE MAP
+DEFAULT_TYPE_MAP = [1, 3, 4, 0, 2, 3, 2, 0, 4, 5, 4, 1, 4, 1, 0, 3, 2, 0, 3];
+
 // BOARD DIMENSIONS
 BOARD_DIMS = [3, 4, 5, 4, 3];
 
 // TYPE MAP
-TYPE_MAP = [1, 3, 4, 0, 2, 3, 2, 0, 4, 5, 4, 1, 4, 1, 0, 3, 2, 0, 3];
+TYPE_MAP = returnRandomTypeMapWithDesert();
 
 // Setup function
 function setup() { 
@@ -51,7 +54,20 @@ function drawCatanGrid(centreXFirstPoint, centreYFirstPoint, radius) {
             fill(hexColour);
             typeMapIndex = typeMapIndex + 1;
             drawHexagon(x, y, radius);
+            // Write text in the middle of each hexagon equal to its type
+            // Text should be the name of the tile type
+            // Text should be black with no stroke
+            let tileName = returnTileName(TYPE_MAP[typeMapIndex - 1]);
+            noStroke();
+            fill('#000000');
+            textSize(20);
+            textAlign(CENTER, CENTER);
+            text(tileName, x, y);
+            // Recalculate x position for each hexagon in the row
             x = x + (Math.sqrt(3) * radius);
+            // Return stroke to original value
+            stroke('#877578');
+
         }
         // Recalculate y position for each row
         y = y + (3/4 * (radius * 2));
@@ -106,5 +122,58 @@ function returnColour(id) {
         case 6:
             return WATER_TILE_COLOUR;
     }
+
+}
+
+// Return name of tile type
+// 0 = field, 1 = mountain, 2 = hills, 3 = pastures, 4 = forest, 5 = desert, 6 = water
+function returnTileName(id) {
+
+    switch (id) {
+        case 0:
+            return 'Field';
+        case 1:
+            return 'Mountain';
+        case 2:
+            return 'Hills';
+        case 3:
+            return 'Pastures';
+        case 4:
+            return 'Forest';
+        case 5:
+            return 'Desert';
+        case 6:
+            return 'Water';
+    }
+
+}
+
+// Return a random type map for the board
+function returnRandomTypeMap() {
+
+    let typeMap = [];
+
+    for (let i = 0; i < 19; i++) {
+        let randomType = Math.floor(Math.random() * 6);
+        typeMap.push(randomType);
+    }
+
+    return typeMap;
+
+}
+
+// Return a random type map for the board, but the desert is always in the middle
+function returnRandomTypeMapWithDesert() {
+
+    let typeMap = [];
+
+    for (let i = 0; i < 19; i++) {
+        let randomType = Math.floor(Math.random() * 6);
+        typeMap.push(randomType);
+    }
+
+    typeMap[9] = 5;
+
+    return typeMap;
 
 }
