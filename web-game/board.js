@@ -10,14 +10,11 @@ WATER_TILE_COLOUR = '#039cdd'; // 6
 // TILE COLOURS (UNSUSED)
 CTHULHU_TILE_COLOUR = '#E85BEC'; // 7
 
-// DEFAULT TYPE MAP
-DEFAULT_TYPE_MAP = [1, 3, 4, 0, 2, 3, 2, 0, 4, 5, 4, 1, 4, 1, 0, 3, 2, 0, 3];
-
 // BOARD DIMENSIONS
 BOARD_DIMS = [3, 4, 5, 4, 3];
 
 // TYPE MAP
-TYPE_MAP = returnRandomTypeMapWithDesert();
+TYPE_MAP = returnDefaultTypeMap();
 
 // Setup function
 function setup() { 
@@ -175,5 +172,14 @@ function returnRandomTypeMapWithDesert() {
     typeMap[9] = 5;
 
     return typeMap;
+
+}
+
+// Return type map equal to the default type map
+function returnDefaultTypeMap() {
+
+    // DEFAULT TYPE MAP
+    DEFAULT_TYPE_MAP = [1, 3, 4, 0, 2, 3, 2, 0, 4, 5, 4, 1, 4, 1, 0, 3, 2, 0, 3];
+    return DEFAULT_TYPE_MAP;
 
 }
