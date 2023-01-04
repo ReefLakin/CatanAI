@@ -138,10 +138,56 @@ class Tile:
     def set_tile_value(self, tile_value):
         self.tile_value = tile_value
     
+    # If two vertices are next to each other on the board, return True. Otherwise, return False.
     def is_neighbouring_vertex(self, vertex_1, vertex_2):
-        pass
+        
+        # Create array of all vertex IDs from 1-6.
+        vertex_ids = [self.vertex_1.get_vertex_id(), self.vertex_2.get_vertex_id(), self.vertex_3.get_vertex_id(), self.vertex_4.get_vertex_id(), self.vertex_5.get_vertex_id(), self.vertex_6.get_vertex_id()]
 
+        # If vertex_1 isn't in the array, return False.
+        if vertex_1 not in vertex_ids:
+            return False
+        
+        # If vertex_2 isn't in the array, return False.
+        if vertex_2 not in vertex_ids:
+            return False
+        
+        # If vertex_1 and vertex_2 are next to each other in the array, return True.
+        index_to_check_lower = (vertex_ids.index(vertex_1) - 1)
+        index_to_check_higher = (vertex_ids.index(vertex_1) + 1)
+        if index_to_check_lower < 0:
+            index_to_check_lower = 5
+        if index_to_check_higher > 5:
+            index_to_check_higher = 0
+        if vertex_ids[index_to_check_lower] == vertex_2 or vertex_ids[index_to_check_higher] == vertex_2:
+            return True
+        
+        return False
+
+    # If two sides are next to each other on the board, return True. Otherwise, return False.
     def is_neighbouring_side(self, side_1, side_2):
-        pass
+            
+            # Create array of all side IDs from 1-6.
+            side_ids = [self.side_1.get_side_id(), self.side_2.get_side_id(), self.side_3.get_side_id(), self.side_4.get_side_id(), self.side_5.get_side_id(), self.side_6.get_side_id()]
+    
+            # If side_1 isn't in the array, return False.
+            if side_1 not in side_ids:
+                return False
+            
+            # If side_2 isn't in the array, return False.
+            if side_2 not in side_ids:
+                return False
+            
+            # If side_1 and side_2 are next to each other in the array, return True.
+            index_to_check_lower = (side_ids.index(side_1) - 1)
+            index_to_check_higher = (side_ids.index(side_1) + 1)
+            if index_to_check_lower < 0:
+                index_to_check_lower = 5
+            if index_to_check_higher > 5:
+                index_to_check_higher = 0
+            if side_ids[index_to_check_lower] == side_2 or side_ids[index_to_check_higher] == side_2:
+                return True
+            
+            return False
 
 # To do: Add type hints to getters and setters
