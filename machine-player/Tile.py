@@ -3,18 +3,18 @@ The class will contain the following attributes:
 - type (the type of which will be another class TileType)
 - board_tile_id (int)
 - has_robber (boolean)
-- vertex_1 (the type of which will be another class TileVertex)
-- vertex_2
-- vertex_3
-- vertex_4
-- vertex_5
-- vertex_6
-- side_1 (the type of which will be a new class TileSide)
-- side_2
-- side_3
-- side_4
-- side_5
-- side_6
+- vert_northwest (the type of which will be another class TileVertex)
+- vert_north
+- vert_northeast
+- vert_southeast
+- vert_south
+- vert_southwest
+- side_northwest (the type of which will be a new class TileSide)
+- side_northeast
+- side_east
+- side_southeast
+- side_southwest
+- side_west
 - tile_value (int)
 
 It will have the following methods:
@@ -24,22 +24,22 @@ It will have the following methods:
 """
 
 class Tile:
-    def __init__(self, type, board_tile_id, has_robber, vertex_1, vertex_2, vertex_3, vertex_4, vertex_5, vertex_6, side_1, side_2, side_3, side_4, side_5, side_6, tile_value):
+    def __init__(self, type, board_tile_id, has_robber, vert_northwest, vert_north, vert_northeast, vert_southeast, vert_south, vert_southwest, side_northwest, side_northeast, side_east, side_southeast, side_southwest, side_west, tile_value):
         self.type = type
         self.board_tile_id = board_tile_id
         self.has_robber = has_robber
-        self.vertex_1 = vertex_1
-        self.vertex_2 = vertex_2
-        self.vertex_3 = vertex_3
-        self.vertex_4 = vertex_4
-        self.vertex_5 = vertex_5
-        self.vertex_6 = vertex_6
-        self.side_1 = side_1
-        self.side_2 = side_2
-        self.side_3 = side_3
-        self.side_4 = side_4
-        self.side_5 = side_5
-        self.side_6 = side_6
+        self.vert_northwest = vert_northwest
+        self.vert_north = vert_north
+        self.vert_northeast = vert_northeast
+        self.vert_southeast = vert_southeast
+        self.vert_south = vert_south
+        self.vert_southwest = vert_southwest
+        self.side_northwest = side_northwest
+        self.side_northeast = side_northeast
+        self.side_east = side_east
+        self.side_southeast = side_southeast
+        self.side_southwest = side_southwest
+        self.side_west = side_west
         self.tile_value = tile_value
 
     def get_type(self):
@@ -60,77 +60,77 @@ class Tile:
     def set_has_robber(self, has_robber):
         self.has_robber = has_robber
 
-    def get_vertex_1(self):
-        return self.vertex_1
+    def get_vert_northwest(self):
+        return self.vert_northwest
 
-    def set_vertex_1(self, vertex_1):
-        self.vertex_1 = vertex_1
+    def set_vert_northwest(self, vert_northwest):
+        self.vert_northwest = vert_northwest
 
-    def get_vertex_2(self):
-        return self.vertex_2
+    def get_vert_north(self):
+        return self.vert_north
 
-    def set_vertex_2(self, vertex_2):
-        self.vertex_2 = vertex_2
+    def set_vert_north(self, vert_north):
+        self.vert_north = vert_north
 
-    def get_vertex_3(self):
-        return self.vertex_3
+    def get_vert_northeast(self):
+        return self.vert_northeast
 
-    def set_vertex_3(self, vertex_3):
-        self.vertex_3 = vertex_3
+    def set_vert_northeast(self, vert_northeast):
+        self.vert_northeast = vert_northeast
 
-    def get_vertex_4(self):
-        return self.vertex_4
+    def get_vert_southeast(self):
+        return self.vert_southeast
 
-    def set_vertex_4(self, vertex_4):
-        self.vertex_4 = vertex_4
+    def set_vert_southeast(self, vert_southeast):
+        self.vert_southeast = vert_southeast
 
-    def get_vertex_5(self):
-        return self.vertex_5
+    def get_vert_south(self):
+        return self.vert_south
 
-    def set_vertex_5(self, vertex_5):
-        self.vertex_5 = vertex_5
+    def set_vert_south(self, vert_south):
+        self.vert_south = vert_south
     
-    def get_vertex_6(self):
-        return self.vertex_6
+    def get_vert_southwest(self):
+        return self.vert_southwest
     
-    def set_vertex_6(self, vertex_6):
-        self.vertex_6 = vertex_6
+    def set_vert_southwest(self, vert_southwest):
+        self.vert_southwest = vert_southwest
     
-    def get_side_1(self):
-        return self.side_1
+    def get_side_northwest(self):
+        return self.side_northwest
     
-    def set_side_1(self, side_1):
-        self.side_1 = side_1
+    def set_side_northwest(self, side_northwest):
+        self.side_northwest = side_northwest
     
-    def get_side_2(self):
-        return self.side_2
+    def get_side_northeast(self):
+        return self.side_northeast
     
-    def set_side_2(self, side_2):
-        self.side_2 = side_2
+    def set_side_northeast(self, side_northeast):
+        self.side_northeast = side_northeast
 
-    def get_side_3(self):
-        return self.side_3
+    def get_side_east(self):
+        return self.side_east
     
-    def set_side_3(self, side_3):
-        self.side_3 = side_3
+    def set_side_east(self, side_east):
+        self.side_east = side_east
     
-    def get_side_4(self):
-        return self.side_4
+    def get_side_southeast(self):
+        return self.side_southeast
 
-    def set_side_4(self, side_4):
-        self.side_4 = side_4
+    def set_side_southeast(self, side_southeast):
+        self.side_southeast = side_southeast
     
-    def get_side_5(self):
-        return self.side_5
+    def get_side_southwest(self):
+        return self.side_southwest
     
-    def set_side_5(self, side_5):
-        self.side_5 = side_5
+    def set_side_southwest(self, side_southwest):
+        self.side_southwest = side_southwest
     
-    def get_side_6(self):
-        return self.side_6
+    def get_side_west(self):
+        return self.side_west
     
-    def set_side_6(self, side_6):
-        self.side_6 = side_6
+    def set_side_west(self, side_west):
+        self.side_west = side_west
     
     def get_tile_value(self):
         return self.tile_value
@@ -139,53 +139,53 @@ class Tile:
         self.tile_value = tile_value
     
     # If two vertices are next to each other on the board, return True. Otherwise, return False.
-    def is_neighbouring_vertex(self, vertex_1, vertex_2):
+    def is_neighbouring_vertex(self, vert_northwest, vert_north):
         
         # Create array of all vertex IDs from 1-6.
-        vertex_ids = [self.vertex_1.get_vertex_id(), self.vertex_2.get_vertex_id(), self.vertex_3.get_vertex_id(), self.vertex_4.get_vertex_id(), self.vertex_5.get_vertex_id(), self.vertex_6.get_vertex_id()]
+        vertex_ids = [self.vert_northwest.get_vertex_id(), self.vert_north.get_vertex_id(), self.vert_northeast.get_vertex_id(), self.vert_southeast.get_vertex_id(), self.vert_south.get_vertex_id(), self.vert_southwest.get_vertex_id()]
 
-        # If vertex_1 isn't in the array, return False.
-        if vertex_1 not in vertex_ids:
+        # If vert_northwest isn't in the array, return False.
+        if vert_northwest not in vertex_ids:
             return False
         
-        # If vertex_2 isn't in the array, return False.
-        if vertex_2 not in vertex_ids:
+        # If vert_north isn't in the array, return False.
+        if vert_north not in vertex_ids:
             return False
         
-        # If vertex_1 and vertex_2 are next to each other in the array, return True.
-        index_to_check_lower = (vertex_ids.index(vertex_1) - 1)
-        index_to_check_higher = (vertex_ids.index(vertex_1) + 1)
+        # If vert_northwest and vert_north are next to each other in the array, return True.
+        index_to_check_lower = (vertex_ids.index(vert_northwest) - 1)
+        index_to_check_higher = (vertex_ids.index(vert_northwest) + 1)
         if index_to_check_lower < 0:
             index_to_check_lower = 5
         if index_to_check_higher > 5:
             index_to_check_higher = 0
-        if vertex_ids[index_to_check_lower] == vertex_2 or vertex_ids[index_to_check_higher] == vertex_2:
+        if vertex_ids[index_to_check_lower] == vert_north or vertex_ids[index_to_check_higher] == vert_north:
             return True
         
         return False
 
     # If two sides are next to each other on the board, return True. Otherwise, return False.
-    def is_neighbouring_side(self, side_1, side_2):
+    def is_neighbouring_side(self, side_northwest, side_northeast):
             
             # Create array of all side IDs from 1-6.
-            side_ids = [self.side_1.get_side_id(), self.side_2.get_side_id(), self.side_3.get_side_id(), self.side_4.get_side_id(), self.side_5.get_side_id(), self.side_6.get_side_id()]
+            side_ids = [self.side_northwest.get_side_id(), self.side_northeast.get_side_id(), self.side_east.get_side_id(), self.side_southeast.get_side_id(), self.side_southwest.get_side_id(), self.side_west.get_side_id()]
     
-            # If side_1 isn't in the array, return False.
-            if side_1 not in side_ids:
+            # If side_northwest isn't in the array, return False.
+            if side_northwest not in side_ids:
                 return False
             
-            # If side_2 isn't in the array, return False.
-            if side_2 not in side_ids:
+            # If side_northeast isn't in the array, return False.
+            if side_northeast not in side_ids:
                 return False
             
-            # If side_1 and side_2 are next to each other in the array, return True.
-            index_to_check_lower = (side_ids.index(side_1) - 1)
-            index_to_check_higher = (side_ids.index(side_1) + 1)
+            # If side_northwest and side_northeast are next to each other in the array, return True.
+            index_to_check_lower = (side_ids.index(side_northwest) - 1)
+            index_to_check_higher = (side_ids.index(side_northwest) + 1)
             if index_to_check_lower < 0:
                 index_to_check_lower = 5
             if index_to_check_higher > 5:
                 index_to_check_higher = 0
-            if side_ids[index_to_check_lower] == side_2 or side_ids[index_to_check_higher] == side_2:
+            if side_ids[index_to_check_lower] == side_northeast or side_ids[index_to_check_higher] == side_northeast:
                 return True
             
             return False
