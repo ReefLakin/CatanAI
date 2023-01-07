@@ -16,6 +16,9 @@ The class will contain the following attributes:
 - side_southwest
 - side_west
 - tile_value (int)
+- q_coord (int)
+- r_coord (int)
+- s_coord (int)
 
 It will have the following methods:
 - getters and setters for all the attributes
@@ -24,7 +27,8 @@ It will have the following methods:
 """
 
 class Tile:
-    def __init__(self, type, board_tile_id, has_robber, vert_northwest, vert_north, vert_northeast, vert_southeast, vert_south, vert_southwest, side_northwest, side_northeast, side_east, side_southeast, side_southwest, side_west, tile_value):
+    # Constructor
+    def __init__(self, type, board_tile_id, has_robber, vert_northwest, vert_north, vert_northeast, vert_southeast, vert_south, vert_southwest, side_northwest, side_northeast, side_east, side_southeast, side_southwest, side_west, tile_value, q_coord, r_coord, s_coord):
         self.type = type
         self.board_tile_id = board_tile_id
         self.has_robber = has_robber
@@ -41,7 +45,17 @@ class Tile:
         self.side_southwest = side_southwest
         self.side_west = side_west
         self.tile_value = tile_value
+        self.q_coord = q_coord
+        self.r_coord = r_coord
+        self.s_coord = s_coord
+    
+    # Alternative contructor, that only takes the type and board_tile_id; the rest of the attributes are set to default values
+    @classmethod
+    def from_type_and_id(cls, type, board_tile_id):
+        return cls(type, board_tile_id, False, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
 
+
+    # Getters and setters
     def get_type(self):
         return self.type
 
@@ -137,6 +151,26 @@ class Tile:
     
     def set_tile_value(self, tile_value):
         self.tile_value = tile_value
+
+    def get_q_coord(self):
+        return self.q_coord
+
+    def set_q_coord(self, q_coord):
+        self.q_coord = q_coord
+    
+    def get_r_coord(self):
+        return self.r_coord
+    
+    def set_r_coord(self, r_coord):
+        self.r_coord = r_coord
+    
+    def get_s_coord(self):
+        return self.s_coord
+    
+    def set_s_coord(self, s_coord):
+        self.s_coord = s_coord
+
+    # Other methods
     
     # If two vertices are next to each other on the board, return True. Otherwise, return False.
     def is_neighbouring_vertex(self, vert_northwest, vert_north):
