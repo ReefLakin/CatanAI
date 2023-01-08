@@ -1,0 +1,8 @@
+# Anything I don't want Git to track related to testing
+*.pyc
+*.pyo
+*.pyd
+*.so
+__pycache__/
+.coverage
+.cache
