@@ -12,4 +12,4 @@ jobs:
       with:
         python-version: 3.8
     - run: cd machine-player
-    - run: python -m unittest discover
+    - run: python3 -m unittest discover
