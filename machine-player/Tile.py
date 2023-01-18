@@ -1,6 +1,6 @@
 """
 The class will contain the following attributes:
-- type (the type of which will be another class TileType)
+- type (the type of which will be another class TileType, but for now it will be a string)
 - board_tile_id (int)
 - has_robber (boolean)
 - vert_northwest (the type of which will be another class TileVertex)
@@ -48,11 +48,6 @@ class Tile:
         self.q_coord = q_coord
         self.r_coord = r_coord
         self.s_coord = s_coord
-    
-    # Alternative contructor, that only takes the type and board_tile_id; the rest of the attributes are set to default values
-    @classmethod
-    def from_type_and_id(cls, type, board_tile_id):
-        return cls(type, board_tile_id, False, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
 
 
     # Getters and setters
@@ -171,57 +166,222 @@ class Tile:
         self.s_coord = s_coord
 
     # Other methods
-    
-    # If two vertices are next to each other on the board, return True. Otherwise, return False.
-    def is_neighbouring_vertex(self, vert_northwest, vert_north):
-        
-        # Create array of all vertex IDs from 1-6.
-        vertex_ids = [self.vert_northwest.get_vertex_id(), self.vert_north.get_vertex_id(), self.vert_northeast.get_vertex_id(), self.vert_southeast.get_vertex_id(), self.vert_south.get_vertex_id(), self.vert_southwest.get_vertex_id()]
 
-        # If vert_northwest isn't in the array, return False.
-        if vert_northwest not in vertex_ids:
-            return False
-        
-        # If vert_north isn't in the array, return False.
-        if vert_north not in vertex_ids:
-            return False
-        
-        # If vert_northwest and vert_north are next to each other in the array, return True.
-        index_to_check_lower = (vertex_ids.index(vert_northwest) - 1)
-        index_to_check_higher = (vertex_ids.index(vert_northwest) + 1)
-        if index_to_check_lower < 0:
-            index_to_check_lower = 5
-        if index_to_check_higher > 5:
-            index_to_check_higher = 0
-        if vertex_ids[index_to_check_lower] == vert_north or vertex_ids[index_to_check_higher] == vert_north:
-            return True
-        
-        return False
-
-    # If two sides are next to each other on the board, return True. Otherwise, return False.
-    def is_neighbouring_side(self, side_northwest, side_northeast):
-            
-            # Create array of all side IDs from 1-6.
-            side_ids = [self.side_northwest.get_side_id(), self.side_northeast.get_side_id(), self.side_east.get_side_id(), self.side_southeast.get_side_id(), self.side_southwest.get_side_id(), self.side_west.get_side_id()]
+    # Return the state of the entire tile.
+    # The state will be of type dict.
+    def get_state(self):
+        return {
+            "type": self.type,
+            "board_tile_id": self.board_tile_id,
+            "has_robber": self.has_robber,
+            "vert_northwest": self.vert_northwest,
+            "vert_north": self.vert_north,
+            "vert_northeast": self.vert_northeast,
+            "vert_southeast": self.vert_southeast,
+            "vert_south": self.vert_south,
+            "vert_southwest": self.vert_southwest,
+            "side_northwest": self.side_northwest,
+            "side_northeast": self.side_northeast,
+            "side_east": self.side_east,
+            "side_southeast": self.side_southeast,
+            "side_southwest": self.side_southwest,
+            "side_west": self.side_west,
+            "tile_value": self.tile_value,
+            "q_coord": self.q_coord,
+            "r_coord": self.r_coord,
+            "s_coord": self.s_coord
+        }
     
-            # If side_northwest isn't in the array, return False.
-            if side_northwest not in side_ids:
+    # Given two 
+
+    # Return a list of all the tiles that are not equal to None
+    def get_occupied_verticies(self):
+
+        occupied_veriticies = []
+
+        if self.vert_northwest.get_tile() != None:
+            occupied_veriticies.append(self.vert_northwest.get_tile())
+        if self.vert_north.get_tile() != None:
+            occupied_veriticies.append(self.vert_north.get_tile())
+        if self.vert_northeast.get_tile() != None:
+            occupied_veriticies.append(self.vert_northeast.get_tile())
+        if self.vert_southeast.get_tile() != None:
+            occupied_veriticies.append(self.vert_southeast.get_tile())
+        if self.vert_south.get_tile() != None:
+            occupied_veriticies.append(self.vert_south.get_tile())
+        if self.vert_southwest.get_tile() != None:
+            occupied_veriticies.append(self.vert_southwest.get_tile())
+
+        return occupied_veriticies
+    
+    # Return the value of a specified vertex
+    def get_vertex_from_direction(self, direction):
+        if direction == "northwest":
+            return self.vert_northwest
+        elif direction == "north":
+            return self.vert_north
+        elif direction == "northeast":
+            return self.vert_northeast
+        elif direction == "southeast":
+            return self.vert_southeast
+        elif direction == "south":
+            return self.vert_south
+        elif direction == "southwest":
+            return self.vert_southwest
+        else:
+            return None
+    
+    # Set the value of a specified vertex to 1 (settlement)
+    def build_settlement(self, direction):
+        if direction == "northwest":
+            self.vert_northwest = 1
+        elif direction == "north":
+            self.vert_north = 1
+        elif direction == "northeast":
+            self.vert_northeast = 1
+        elif direction == "southeast":
+            self.vert_southeast = 1
+        elif direction == "south":
+            self.vert_south = 1
+        elif direction == "southwest":
+            self.vert_southwest = 1
+        else:
+            return None
+
+    
+    # Return the value of a specified side
+    def get_side_from_direction(self, direction):
+        if direction == "northwest":
+            return self.side_northwest
+        elif direction == "northeast":
+            return self.side_northeast
+        elif direction == "east":
+            return self.side_east
+        elif direction == "southeast":
+            return self.side_southeast
+        elif direction == "southwest":
+            return self.side_southwest
+        elif direction == "west":
+            return self.side_west
+        else:
+            return None
+
+    # Set the value of a specified side to 1 (road)
+    def build_road(self, direction):
+        if direction == "northwest":
+            self.side_northwest = 1
+        elif direction == "northeast":
+            self.side_northeast = 1
+        elif direction == "east":
+            self.side_east = 1
+        elif direction == "southeast":
+            self.side_southeast = 1
+        elif direction == "southwest":
+            self.side_southwest = 1
+        elif direction == "west":
+            self.side_west = 1
+    
+    # Return the neighbouring verticies of a specified vertex
+    def get_neighbouring_verticies(self, direction):
+        if direction == "northwest":
+            return [self.vert_north, self.vert_southwest]
+        elif direction == "north":
+            return [self.vert_northwest, self.vert_northeast]
+        elif direction == "northeast":
+            return [self.vert_north, self.vert_southeast]
+        elif direction == "southeast":
+            return [self.vert_south, self.vert_northeast]
+        elif direction == "south":
+            return [self.vert_southeast, self.vert_southwest]
+        elif direction == "southwest":
+            return [self.vert_south, self.vert_northwest]
+        else:
+            return None
+
+    # Return the neighbouring sides of a specified side
+    def get_neighbouring_sides(self, direction):
+        if direction == "northwest":
+            return [self.side_northeast, self.side_west]
+        elif direction == "northeast":
+            return [self.side_northwest, self.side_east]
+        elif direction == "east":
+            return [self.side_northeast, self.side_southeast]
+        elif direction == "southeast":
+            return [self.side_east, self.side_southwest]
+        elif direction == "southwest":
+            return [self.side_southeast, self.side_west]
+        elif direction == "west":
+            return [self.side_southwest, self.side_northwest]
+        else:
+            return None
+    
+    # Return a bool indicating whether or not placing on a specific vertex satisfies the distance rule
+    def satisfies_distance_rule(self, direction):
+        vertex_specified = self.get_vertex_from_direction(direction)
+        neighbours = self.get_neighbouring_verticies(direction)
+        for neighbour in neighbours:
+            if (neighbour == 1 and vertex_specified == 1):
                 return False
-            
-            # If side_northeast isn't in the array, return False.
-            if side_northeast not in side_ids:
-                return False
-            
-            # If side_northwest and side_northeast are next to each other in the array, return True.
-            index_to_check_lower = (side_ids.index(side_northwest) - 1)
-            index_to_check_higher = (side_ids.index(side_northwest) + 1)
-            if index_to_check_lower < 0:
-                index_to_check_lower = 5
-            if index_to_check_higher > 5:
-                index_to_check_higher = 0
-            if side_ids[index_to_check_lower] == side_northeast or side_ids[index_to_check_higher] == side_northeast:
+        return True
+
+    # Return the opposite side direction of a specified direction
+    def get_opposite_side_direction(self, direction):
+        if direction == "northwest":
+            return "southeast"
+        elif direction == "northeast":
+            return "southwest"
+        elif direction == "east":
+            return "west"
+        elif direction == "southeast":
+            return "northwest"
+        elif direction == "southwest":
+            return "northeast"
+        elif direction == "west":
+            return "east"
+        else:
+            return None
+    
+    # Return the 2 opposite vertex directions of a specified direction
+    # This needs to be in a clockwise order to work with higher level functions; possibly change this later
+    def get_opposite_vertex_directions(self, direction):
+        if direction == "northwest":
+            return ["northeast", "south"]
+        elif direction == "north":
+            return ["southeast", "southwest"]
+        elif direction == "northeast":
+            return ["south", "northwest"]
+        elif direction == "southeast":
+            return ["southwest", "north"]
+        elif direction == "south":
+            return ["northwest", "northeast"]
+        elif direction == "southwest":
+            return ["north", "southeast"]
+        else:
+            return None
+
+    # Return the directions of the sides that are adjacent to a specified vertex
+    def get_adjacent_sides_of_vertex(self, direction):
+        if direction == "northwest":
+            return ["northwest", "west"]
+        elif direction == "north":
+            return ["northwest", "northeast"]
+        elif direction == "northeast":
+            return ["northeast", "east"]
+        elif direction == "southeast":
+            return ["southeast", "east"]
+        elif direction == "south":
+            return ["southeast", "southwest"]
+        elif direction == "southwest":
+            return ["southwest", "west"]
+        else:
+            return None
+
+    # Check if a specified vertex is adjacent to a road
+    def is_vertex_adjacent_to_road(self, direction):
+        adjacent_sides = self.get_adjacent_sides_of_vertex(direction)
+        for side in adjacent_sides:
+            if self.get_side_from_direction(side) == 1:
                 return True
-            
-            return False
+        return False
 
 # To do: Add type hints to getters and setters
