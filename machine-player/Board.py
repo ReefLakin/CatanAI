@@ -154,9 +154,34 @@ class Board:
             if neighbour_tiles[i] != None:
                 neighbour_tiles[i].build_settlement(direction_array[i])
     
-    # Get state of all tiles
-    def get_tile_states(self):
-        tile_states = []
+    # Get the tile types of all tiles
+    def get_tile_types_in_a_list(self):
+        tile_types = []
         for tile in self.board_tiles:
-            tile_states.append(tile.get_type())
-        return tile_states
+            tile_types.append(tile.get_type())
+        return tile_types
+    
+    # Get the tile numbers of all tiles
+    def get_tile_numbers_in_a_list(self):
+        tile_values = []
+        for tile in self.board_tiles:
+            tile_values.append(tile.get_tile_value())
+        return tile_values
+
+    # Get the state of all edges on the board
+    # 0 = no road, 1 = road
+    # Edges that are shared by two tiles are listed twice
+    def get_side_states(self):
+        side_states = []
+        for tile in self.board_tiles:
+            side_states.append(tile.get_all_side_values_as_list())
+        return side_states
+    
+    # Get the state of all vertices on the board
+    # 0 = no settlement, 1 = settlement
+    # Vertices that are shared by two or more tiles are listed possibly two or three times
+    def get_vertex_states(self):
+        vertex_states = []
+        for tile in self.board_tiles:
+            vertex_states.append(tile.get_all_vertex_values_as_list())
+        return vertex_states

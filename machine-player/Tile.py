@@ -383,5 +383,13 @@ class Tile:
             if self.get_side_from_direction(side) == 1:
                 return True
         return False
+    
+    # Return a list of all the side values of this tile
+    def get_all_side_values_as_list(self):
+        return [self.side_northwest, self.side_northeast, self.side_east, self.side_southeast, self.side_southwest, self.side_west]
+    
+    # Return a list of all the vertex values of this tile
+    def get_all_vertex_values_as_list(self):
+        return [self.vert_northwest, self.vert_north, self.vert_northeast, self.vert_southeast, self.vert_south, self.vert_southwest]
 
 # To do: Add type hints to getters and setters

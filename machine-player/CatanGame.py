@@ -137,7 +137,10 @@ class CatanGame:
     # Build a dictionary of state information, which includes all of the tile state info, player resources, VPs and turn number.
     # This info is purposely in a human-readable state, but will likely be preprocessed before being fed to the DQN.
     return {
-      "tile_states": self.board.get_tile_states(),
+      "side_states": self.board.get_side_states(),
+      "vertex_states": self.board.get_vertex_states(),
+      "board_dims": self.board.get_board_dims(),
+      "tile_types": self.board.get_tile_types_in_a_list(),
       "num_brick": self.resource_pool["brick"],
       "num_lumber": self.resource_pool["lumber"],
       "num_wool": self.resource_pool["wool"],
