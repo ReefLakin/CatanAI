@@ -381,3 +381,9 @@ class CatanGame:
         self.board.build_road(0, 0, 0, "west")
         # Build a settlement at [-1, 1, 0] northwest
         self.board.build_road(-1, 1, 0, "northwest")
+        # Set victory points to 5
+        self.victory_points = 5
+        # Give the player 3 brick, 1 ore and 2 lumber
+        self.resource_pool["brick"] = 3
+        self.resource_pool["ore"] = 1
+        self.resource_pool["lumber"] = 2

@@ -177,7 +177,7 @@ def get_colour_value_from_resource_name(name):
 pygame.init()
 
 # Set the dimensions of the screen
-screen = pygame.display.set_mode((800, 600))
+screen = pygame.display.set_mode((900, 600))
 
 # Fill the background colour to the screen
 # Use pygame.Color to convert the hex colour to RGB
@@ -187,7 +187,7 @@ screen.fill(pygame.Color(WATER_TILE_COLOUR))
 pygame.display.set_caption("Catan Board")
 
 # Load a font
-font = pygame.font.SysFont("Arial", 20)
+font = pygame.font.SysFont("Arial", 18)
 
 
 # Acquire Board Data
@@ -212,6 +212,16 @@ vertex_states = game_state["vertex_states"]
 
 # Get the side states from the game instance
 side_states = game_state["side_states"]
+
+# Get the number of current victory points from the game instance
+victory_points = game_state["victory_points"]
+
+# Get the number of resources from the current player's resource pool
+num_lumber = game_state["num_lumber"]
+num_grain = game_state["num_grain"]
+num_ore = game_state["num_ore"]
+num_wool = game_state["num_wool"]
+num_brick = game_state["num_brick"]
 
 
 # Draw the Board
@@ -282,6 +292,34 @@ for hex in all_road_points:
             (side[2], side[3]),
             6,
         )
+
+# Write the victory points to the screen
+# Draw the text with font.render()
+text = font.render(
+    "Victory Points: " + str(victory_points), True, pygame.Color(BORDER_COLOUR)
+)
+# Draw the text to the screen
+text_rect = text.get_rect(center=(100, 570))
+screen.blit(text, text_rect)
+
+# Write the resources to the screen
+# Draw the text with font.render()
+lum_text = font.render("Lumber: " + str(num_lumber), True, pygame.Color(BORDER_COLOUR))
+grain_text = font.render("Grain: " + str(num_grain), True, pygame.Color(BORDER_COLOUR))
+ore_text = font.render("Ore: " + str(num_ore), True, pygame.Color(BORDER_COLOUR))
+wool_text = font.render("Wool: " + str(num_wool), True, pygame.Color(BORDER_COLOUR))
+brick_text = font.render("Brick: " + str(num_brick), True, pygame.Color(BORDER_COLOUR))
+# Draw the text to the screen
+lumber_text_rect = lum_text.get_rect(center=(800, 30))
+grain_text_rect = grain_text.get_rect(center=(800, 50))
+ore_text_rect = ore_text.get_rect(center=(800, 70))
+wool_text_rect = wool_text.get_rect(center=(800, 90))
+brick_text_rect = brick_text.get_rect(center=(800, 110))
+screen.blit(lum_text, lumber_text_rect)
+screen.blit(grain_text, grain_text_rect)
+screen.blit(ore_text, ore_text_rect)
+screen.blit(wool_text, wool_text_rect)
+screen.blit(brick_text, brick_text_rect)
 
 
 # Update the display using flip
