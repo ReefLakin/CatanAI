@@ -27,6 +27,8 @@ WATER_TILE_COLOUR = "#039cdd"
 BORDER_COLOUR = "#000000"
 SETTLEMENT_COLOUR = "#FFFFFF"
 ROAD_COLOUR = "#FFFFFF"
+NUMBER_COLOUR = "#000000"
+RED_NUMBER_COLOUR = "#BF4444"
 
 # BOARD DIMENSIONS
 BOARD_DIMS = [3, 4, 5, 4, 3]
@@ -258,7 +260,11 @@ for hex_points in all_hex_points:
     # Skip the desert tile
     if value != 0:
         # Draw the text with font.render()
-        text = font.render(str(value), True, pygame.Color(BORDER_COLOUR))
+        # Is the number a six or an eight?
+        if value == 6 or value == 8:
+            text = font.render(str(value), True, pygame.Color(RED_NUMBER_COLOUR))
+        else:
+            text = font.render(str(value), True, pygame.Color(NUMBER_COLOUR))
         # Draw the text to the screen
         text_rect = text.get_rect(center=(centre_points[0], centre_points[1]))
         screen.blit(text, text_rect)
