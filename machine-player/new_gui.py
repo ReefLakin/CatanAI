@@ -195,7 +195,10 @@ font = pygame.font.SysFont("Arial", 18)
 # Acquire Board Data
 
 # Set the board to an in-progress test board
-game_instance.setup_game_in_progress()
+# game_instance.setup_game_in_progress()
+
+# Start the game
+game_instance.start_game()
 
 # Get the default type map
 # type_map = get_default_type_map()

@@ -387,3 +387,21 @@ class CatanGame:
         self.resource_pool["brick"] = 3
         self.resource_pool["ore"] = 1
         self.resource_pool["lumber"] = 2
+
+    def start_game(self):
+        # Set a flag so that the game knows the pre-game build phase has begun
+        self.build_phase_active = True
+
+        # For now, we're going to build for the player to start the game
+
+        # Build a settlement at [1, -1, 0] northeast
+        self.board.build_settlement(1, -1, 0, "northeast")
+        # Build a road at [1, -1, 0] east
+        self.board.build_road(1, -1, 0, "east")
+        # Build a settlement at [-1, 1, 0] south
+        self.board.build_settlement(-1, 1, 0, "south")
+        # Build a road at [-1, 1, 0] southeast
+        self.board.build_road(-1, 1, 0, "southeast")
+
+        # Turn off the build phase flag
+        self.build_phase_active = False
