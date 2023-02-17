@@ -1,34 +1,16 @@
-"""
-The class will contain the following methods:
-- learn (for receiving information on the current state of the game)
-- preprocess (for preprocessing the game state in a format that the model understands best)
-- select_action (for choosing which action to take)
+# Import the random library
+import random
 
-The class will contain the following attributes:
-- model (which is the model that the agent will use to learn and make decisions)
-- replay_memory (which is the replay memory that the agent will use to store experiences)
-- policy (which is the policy that the agent will use to select actions)
-- learning_rate (which is an adjustable hyperparameter used to fine-tune the Agent)
-- discount_factor (which is an adjustable hyperparameter used to fine-tune the Agent)
-"""
-
+# Define the Agent class
 class Agent:
+    def __init__(self, exploration_rate):
+        self.exploration_rate = exploration_rate
 
-    def __init__(self, model, replay_memory, policy, learning_rate, discount_factor):
-        self.model = model
-        self.replay_memory = replay_memory
-        self.policy = policy
-        self.learning_rate = learning_rate
-        self.discount_factor = discount_factor
+    # Method for selecting an action
+    def select_action(self, legal_actions):
+        if random.random() < self.exploration_rate:
+            return random.choice(legal_actions)
 
-    def learn(self, new_state, reward, game_over):
-        # Make an observation of the game state
-        pass
-
-    def preprocess(self, batch):
-        # Preprocess a batch of state information and return it
-        pass
-
-    def select_action(self, state):
-        # Select an action to take based on the given state and the Agent's policy
-        pass
+        # Eventually to be replaced with a call to the model (at the moment exp. rate is going to always be 1)
+        else:
+            return random.choice(legal_actions)
