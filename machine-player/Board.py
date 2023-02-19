@@ -10,10 +10,11 @@ It will have the following methods:
 
 import Tile
 
+
 class Board:
     def __init__(self, board_dims, board_tiles):
-        self.board_dims = board_dims # Array of ints, specfiying the dimensions of the board, e.g. [3, 4, 5, 4, 3]
-        
+        self.board_dims = board_dims  # Array of ints, specfiying the dimensions of the board, e.g. [3, 4, 5, 4, 3]
+
         # Set the q, r, s coordinates for each tile, if the board is a standard board
         if board_dims == [3, 4, 5, 4, 3]:
             q_vals = [0, 1, 2, -1, 0, 1, 2, -2, -1, 0, 1, 2, -2, -1, 0, 1, -2, -1, 0]
@@ -39,7 +40,11 @@ class Board:
     # Get requested tile given q, r, s coordinates
     def get_tile(self, q, r, s):
         for tile in self.board_tiles:
-            if tile.get_q_coord() == q and tile.get_r_coord() == r and tile.get_s_coord() == s:
+            if (
+                tile.get_q_coord() == q
+                and tile.get_r_coord() == r
+                and tile.get_s_coord() == s
+            ):
                 return tile
         return None
 
@@ -57,22 +62,40 @@ class Board:
             return self.get_tile(q - 1, r + 1, s)
         elif direction == "west":
             return self.get_tile(q - 1, r, s + 1)
-    
+
     # Get the tiles that share a corner with the given tile
     def shared_vertex_location(self, q, r, s, direction):
         if direction == "northwest":
-            return [self.shared_side_location(q, r, s, "west"), self.shared_side_location(q, r, s, "northwest")]
+            return [
+                self.shared_side_location(q, r, s, "west"),
+                self.shared_side_location(q, r, s, "northwest"),
+            ]
         elif direction == "north":
-            return [self.shared_side_location(q, r, s, "northwest"), self.shared_side_location(q, r, s, "northeast")]
+            return [
+                self.shared_side_location(q, r, s, "northwest"),
+                self.shared_side_location(q, r, s, "northeast"),
+            ]
         elif direction == "northeast":
-            return [self.shared_side_location(q, r, s, "northeast"), self.shared_side_location(q, r, s, "east")]
+            return [
+                self.shared_side_location(q, r, s, "northeast"),
+                self.shared_side_location(q, r, s, "east"),
+            ]
         elif direction == "southeast":
-            return [self.shared_side_location(q, r, s, "east"), self.shared_side_location(q, r, s, "southeast")]
+            return [
+                self.shared_side_location(q, r, s, "east"),
+                self.shared_side_location(q, r, s, "southeast"),
+            ]
         elif direction == "south":
-            return [self.shared_side_location(q, r, s, "southeast"), self.shared_side_location(q, r, s, "southwest")]
+            return [
+                self.shared_side_location(q, r, s, "southeast"),
+                self.shared_side_location(q, r, s, "southwest"),
+            ]
         elif direction == "southwest":
-            return [self.shared_side_location(q, r, s, "southwest"), self.shared_side_location(q, r, s, "west")]
-    
+            return [
+                self.shared_side_location(q, r, s, "southwest"),
+                self.shared_side_location(q, r, s, "west"),
+            ]
+
     # Can a player place a road on a given side location?
     def check_road_placement_legal(self, q, r, s, direction):
         # Grab the tile
@@ -94,12 +117,14 @@ class Board:
                 return False
             else:
                 opposite_direction = tile.get_opposite_side_direction(direction)
-                neighbour_tile_neighbouring_roads = neighbour_tile.get_neighbouring_sides(opposite_direction)
+                neighbour_tile_neighbouring_roads = (
+                    neighbour_tile.get_neighbouring_sides(opposite_direction)
+                )
                 if 1 in neighbour_tile_neighbouring_roads:
                     return True
                 else:
                     return False
-    
+
     # Can a player place a settlement on a given vertex location?
     def check_settlement_placement_legal(self, q, r, s, direction):
         # Grab the tile
@@ -118,7 +143,12 @@ class Board:
         neighbouring_tiles = self.shared_vertex_location(q, r, s, direction)
         for i in range(2):
             if neighbouring_tiles[i] != None:
-                if neighbouring_tiles[i].satisfies_distance_rule(opposite_directions[i]) == False:
+                if (
+                    neighbouring_tiles[i].satisfies_distance_rule(
+                        opposite_directions[i]
+                    )
+                    == False
+                ):
                     return False
         # Next, we have to check that the proposed settlement location is connected to a road. First, check the tile in question
         if tile.is_vertex_adjacent_to_road(direction) == True:
@@ -130,7 +160,7 @@ class Board:
                     return True
         # If we've made it this far, the settlement is not connected to a road so it cannot be placed
         return False
-    
+
     # Build a road at a location, given the q, r, s coordinates and the direction
     def build_road(self, q, r, s, direction):
         # Build the road on the specified tile
@@ -141,7 +171,7 @@ class Board:
         if neighbour_tile != None:
             opposite_direction = tile.get_opposite_side_direction(direction)
             neighbour_tile.build_road(opposite_direction)
-    
+
     # Build a settlement at a location, given the q, r, s coordinates and the direction
     def build_settlement(self, q, r, s, direction):
         # Build the settlement on the specified tile
@@ -153,14 +183,14 @@ class Board:
         for i in range(0, len(neighbour_tiles)):
             if neighbour_tiles[i] != None:
                 neighbour_tiles[i].build_settlement(direction_array[i])
-    
+
     # Get the tile types of all tiles
     def get_tile_types_in_a_list(self):
         tile_types = []
         for tile in self.board_tiles:
             tile_types.append(tile.get_type())
         return tile_types
-    
+
     # Get the tile numbers of all tiles
     def get_tile_numbers_in_a_list(self):
         tile_values = []
@@ -176,7 +206,7 @@ class Board:
         for tile in self.board_tiles:
             side_states.append(tile.get_all_side_values_as_list())
         return side_states
-    
+
     # Get the state of all vertices on the board
     # 0 = no settlement, 1 = settlement
     # Vertices that are shared by two or more tiles are listed possibly two or three times

@@ -113,18 +113,28 @@ class CatanGame:
         elif action_parts[0] == "build" and action_parts[1] == "road":
             # Call a currently non-existent function to build a road
             self.board.build_road(
-                action_parts[2], action_parts[3], action_parts[4], action_parts[5]
+                int(action_parts[3]),
+                int(action_parts[4]),
+                int(action_parts[5]),
+                action_parts[2],
             )
 
             # Update the reward
             reward = self.get_reward(action)
             self.reward = self.reward + reward
 
+            # Remove 1 lumber and 1 brick from the resource pool
+            self.resource_pool["lumber"] = self.resource_pool["lumber"] - 1
+            self.resource_pool["brick"] = self.resource_pool["brick"] - 1
+
         # If the action is legal, is it a settlement build?
         elif action_parts[0] == "build" and action_parts[1] == "settlement":
             # Call a currently non-existent function to build a settlement
             self.board.build_settlement(
-                action_parts[2], action_parts[3], action_parts[4], action_parts[5]
+                int(action_parts[3]),
+                int(action_parts[4]),
+                int(action_parts[5]),
+                action_parts[2],
             )
 
             # Update the player's VP count
@@ -133,6 +143,12 @@ class CatanGame:
             # Update the reward
             reward = self.get_reward(action)
             self.reward = self.reward + reward
+
+            # Remove 1 lumber, 1 brick, 1 wool, and 1 grain from the resource pool
+            self.resource_pool["lumber"] = self.resource_pool["lumber"] - 1
+            self.resource_pool["brick"] = self.resource_pool["brick"] - 1
+            self.resource_pool["wool"] = self.resource_pool["wool"] - 1
+            self.resource_pool["grain"] = self.resource_pool["grain"] - 1
 
         # If the action is legal, is it a simple end turn?
         elif action == "end_turn":
@@ -223,10 +239,17 @@ class CatanGame:
             # If the location already has a settlement on it, skip this action; consider it cut from the list of legal actions
             elif action_parts[0] == "build" and action_parts[1] == "settlement":
                 direction = action_parts[2]
-                q_coord = action_parts[3]
-                r_coord = action_parts[4]
-                s_coord = action_parts[5]
+                q_coord = int(action_parts[3])
+                r_coord = int(action_parts[4])
+                s_coord = int(action_parts[5])
                 tile = self.board.get_tile(q_coord, r_coord, s_coord)
+                # Raise an error if the tile is not found; that shouldn't happen here
+                if tile is None:
+                    raise ValueError(
+                        "Tile not found at coordinates ({}, {}, {})".format(
+                            q_coord, r_coord, s_coord
+                        )
+                    )
                 vert_val = tile.get_vertex_from_direction(direction)
                 if vert_val is not None:
                     continue
@@ -242,10 +265,17 @@ class CatanGame:
             # If the location already has a road on it, skip this action; consider it cut from the list of legal actions
             elif action_parts[0] == "build" and action_parts[1] == "road":
                 direction = action_parts[2]
-                q_coord = action_parts[3]
-                r_coord = action_parts[4]
-                s_coord = action_parts[5]
+                q_coord = int(action_parts[3])
+                r_coord = int(action_parts[4])
+                s_coord = int(action_parts[5])
                 tile = self.board.get_tile(q_coord, r_coord, s_coord)
+                # Raise an error if the tile is not found; that shouldn't happen here
+                if tile is None:
+                    raise ValueError(
+                        "Tile not found at coordinates ({}, {}, {})".format(
+                            q_coord, r_coord, s_coord
+                        )
+                    )
                 side_val = tile.get_side_from_direction(direction)
                 if side_val is not None:
                     continue
