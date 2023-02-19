@@ -83,6 +83,9 @@ class CatanGame:
         return self.board
 
     def step(self, action):
+        # Print the action taken to the console along with turn number
+        print("Turn " + str(self.turn_number) + ": " + action)
+
         # Take a step in the game by applying the given action
         action_parts = action.split("_")
 
@@ -146,10 +149,13 @@ class CatanGame:
                 self.reward = self.reward + reward
 
                 # Roll the dice
-                self.board.roll_dice()
+                roll = self.dice_roll()
 
                 # Distribute resources
-                self.distribute_resources()
+                self.distribute_resources(roll)
+
+        # Update the legal actions
+        self.set_legal_actions()
 
     def get_reward(self, action):
         # Return the reward for taking a given action
@@ -275,7 +281,8 @@ class CatanGame:
     def set_all_possible_actions(self):
         # Set the list of all possible actions, usually run once at the beginning of the game
         self.all_actions = [
-            "end_turn" "trade_bank_4_for_1_lumber_brick",
+            "end_turn",
+            "trade_bank_4_for_1_lumber_brick",
             "trade_bank_4_for_1_lumber_wool",
             "trade_bank_4_for_1_lumber_grain",
             "trade_bank_4_for_1_lumber_ore",
@@ -342,7 +349,7 @@ class CatanGame:
             for tile in tiles:
                 if tile.get_tile_value() == roll:
                     occupied = tile.get_occupied_verticies()
-                    resource_to_give = tile.get_tile_type()
+                    resource_to_give = tile.get_type()
                     resource_count = len(occupied)
 
                     # Give the correct resource to the player
@@ -356,6 +363,8 @@ class CatanGame:
         # Roll the dice and return the result
         dice_1 = random.randint(1, 6)
         dice_2 = random.randint(1, 6)
+        # Print the roll to the console
+        print(f"Rolled a {dice_1} and a {dice_2} for a total of {dice_1 + dice_2}")
         return dice_1 + dice_2
 
     def set_legal_actions_manually(self, actions):
@@ -403,5 +412,11 @@ class CatanGame:
         # Build a road at [-1, 1, 0] southeast
         self.board.build_road(-1, 1, 0, "southeast")
 
+        # Set the victory points to 2
+        self.victory_points = 2
+
         # Turn off the build phase flag
         self.build_phase_active = False
+
+        # Set legal actions
+        self.set_legal_actions()

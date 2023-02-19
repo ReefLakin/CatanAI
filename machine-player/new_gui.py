@@ -11,6 +11,9 @@ import math
 # CATAN GAME
 from CatanGame import CatanGame
 
+# AGENT
+from Agent import Agent
+
 
 # Set Constants
 
@@ -41,6 +44,9 @@ SETTLEMENT_RADIUS = HEX_RADIUS / 6
 
 # THE ACTUAL BOARD
 game_instance = CatanGame()
+
+# THE AGENT
+agent = Agent(1)
 
 
 # Helper Functions
@@ -348,3 +354,167 @@ while running:
         # Check for QUIT event
         if event.type == pygame.QUIT:
             running = False
+
+        # Check for a key press of S
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_s:
+                # Get the legal actions from the game instance
+                actions = game_instance.get_legal_actions()
+                # Get the agent to pick an action
+                action = agent.select_action(actions)
+                # Take a step in the game
+                game_instance.step(action)
+
+                # Update the game state on the GUI
+                screen.fill(pygame.Color(WATER_TILE_COLOUR))
+
+                # Get the game state once
+                game_state = game_instance.get_state()
+
+                # Get the type map from the game instance
+                type_map = game_state["tile_types"]
+
+                # Get the values map from the game instance
+                values_map = game_state["tile_values"]
+
+                # Get the vertex states from the game instance
+                vertex_states = game_state["vertex_states"]
+
+                # Get the side states from the game instance
+                side_states = game_state["side_states"]
+
+                # Get the number of current victory points from the game instance
+                victory_points = game_state["victory_points"]
+
+                # Get the number of resources from the current player's resource pool
+                num_lumber = game_state["num_lumber"]
+                num_grain = game_state["num_grain"]
+                num_ore = game_state["num_ore"]
+                num_wool = game_state["num_wool"]
+                num_brick = game_state["num_brick"]
+
+                # Draw the Board
+
+                # Get the points for each hexagon on the board
+                (
+                    all_hex_points,
+                    all_hex_centre_values,
+                    all_settlement_points,
+                    all_road_points,
+                ) = get_all_hex_points(
+                    STARTING_HEX_CENTRE_X,
+                    STARTING_HEX_CENTRE_Y,
+                    HEX_RADIUS,
+                    BOARD_DIMS,
+                    vertex_states,
+                    side_states,
+                )
+
+                # Draw each hexagon, with a border of 10 pixels
+                for hex_points in all_hex_points:
+                    # Get the colour value for the current hexagon
+                    fill_colour = get_colour_value_from_resource_name(type_map.pop(0))
+                    # Draw the hexagon
+                    pygame.draw.polygon(
+                        screen, pygame.Color(fill_colour), hex_points, 0
+                    )
+                    # Draw the border
+                    pygame.draw.polygon(
+                        screen, pygame.Color(BORDER_COLOUR), hex_points, 6
+                    )
+
+                    # Draw the value in the centre of each hexagon
+                    # Get the value for the current hexagon
+                    value = values_map.pop(0)
+                    # Get the centre points for the current hexagon
+                    centre_points = all_hex_centre_values.pop(0)
+                    # Skip the desert tile
+                    if value != 0:
+                        # Draw the text with font.render()
+                        # Is the number a six or an eight?
+                        if value == 6 or value == 8:
+                            text = font.render(
+                                str(value), True, pygame.Color(RED_NUMBER_COLOUR)
+                            )
+                        else:
+                            text = font.render(
+                                str(value), True, pygame.Color(NUMBER_COLOUR)
+                            )
+                        # Draw the text to the screen
+                        text_rect = text.get_rect(
+                            center=(centre_points[0], centre_points[1])
+                        )
+                        screen.blit(text, text_rect)
+
+                # Draw the settlements
+                # First, loop through each hex
+                for hex in all_settlement_points:
+                    # Then, loop through each vertex in the hex
+                    for vertex in hex:
+                        # Calculate x and y of the top left corner
+                        x = vertex[0] - SETTLEMENT_RADIUS
+                        y = vertex[1] - SETTLEMENT_RADIUS
+                        # Draw the settlement
+                        pygame.draw.rect(
+                            screen,
+                            pygame.Color(SETTLEMENT_COLOUR),
+                            (x, y, SETTLEMENT_RADIUS * 2, SETTLEMENT_RADIUS * 2),
+                            0,
+                        )
+
+                # Draw the roads
+                # First, loop through each hex
+                for hex in all_road_points:
+                    # Then, loop through each side in the hex
+                    for side in hex:
+                        # Draw the road
+                        pygame.draw.line(
+                            screen,
+                            pygame.Color(ROAD_COLOUR),
+                            (side[0], side[1]),
+                            (side[2], side[3]),
+                            6,
+                        )
+
+                # Write the victory points to the screen
+                # Draw the text with font.render()
+                text = font.render(
+                    "Victory Points: " + str(victory_points),
+                    True,
+                    pygame.Color(BORDER_COLOUR),
+                )
+                # Draw the text to the screen
+                text_rect = text.get_rect(center=(100, 570))
+                screen.blit(text, text_rect)
+
+                # Write the resources to the screen
+                # Draw the text with font.render()
+                lum_text = font.render(
+                    "Lumber: " + str(num_lumber), True, pygame.Color(BORDER_COLOUR)
+                )
+                grain_text = font.render(
+                    "Grain: " + str(num_grain), True, pygame.Color(BORDER_COLOUR)
+                )
+                ore_text = font.render(
+                    "Ore: " + str(num_ore), True, pygame.Color(BORDER_COLOUR)
+                )
+                wool_text = font.render(
+                    "Wool: " + str(num_wool), True, pygame.Color(BORDER_COLOUR)
+                )
+                brick_text = font.render(
+                    "Brick: " + str(num_brick), True, pygame.Color(BORDER_COLOUR)
+                )
+                # Draw the text to the screen
+                lumber_text_rect = lum_text.get_rect(center=(800, 30))
+                grain_text_rect = grain_text.get_rect(center=(800, 50))
+                ore_text_rect = ore_text.get_rect(center=(800, 70))
+                wool_text_rect = wool_text.get_rect(center=(800, 90))
+                brick_text_rect = brick_text.get_rect(center=(800, 110))
+                screen.blit(lum_text, lumber_text_rect)
+                screen.blit(grain_text, grain_text_rect)
+                screen.blit(ore_text, ore_text_rect)
+                screen.blit(wool_text, wool_text_rect)
+                screen.blit(brick_text, brick_text_rect)
+
+                # Update the display using flip
+                pygame.display.flip()

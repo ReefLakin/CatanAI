@@ -220,18 +220,18 @@ class Tile:
 
         occupied_veriticies = []
 
-        if self.vert_northwest.get_tile() != None:
-            occupied_veriticies.append(self.vert_northwest.get_tile())
-        if self.vert_north.get_tile() != None:
-            occupied_veriticies.append(self.vert_north.get_tile())
-        if self.vert_northeast.get_tile() != None:
-            occupied_veriticies.append(self.vert_northeast.get_tile())
-        if self.vert_southeast.get_tile() != None:
-            occupied_veriticies.append(self.vert_southeast.get_tile())
-        if self.vert_south.get_tile() != None:
-            occupied_veriticies.append(self.vert_south.get_tile())
-        if self.vert_southwest.get_tile() != None:
-            occupied_veriticies.append(self.vert_southwest.get_tile())
+        if self.vert_northwest != None:
+            occupied_veriticies.append(self.vert_northwest)
+        if self.vert_southwest != None:
+            occupied_veriticies.append(self.vert_southwest)
+        if self.vert_south != None:
+            occupied_veriticies.append(self.vert_south)
+        if self.vert_southeast != None:
+            occupied_veriticies.append(self.vert_southeast)
+        if self.vert_northeast != None:
+            occupied_veriticies.append(self.vert_northeast)
+        if self.vert_north != None:
+            occupied_veriticies.append(self.vert_north)
 
         return occupied_veriticies
 
