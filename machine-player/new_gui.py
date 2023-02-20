@@ -14,6 +14,9 @@ from CatanGame import CatanGame
 # AGENT
 from Agent import Agent
 
+# REPLAY MEMORY
+from ReplayMemory import ReplayMemory
+
 
 # Set Constants
 
@@ -47,6 +50,9 @@ game_instance = CatanGame()
 
 # THE AGENT
 agent = Agent(1)
+
+# REPLAY MEMORY
+replay_memory = ReplayMemory(1000)
 
 
 # Helper Functions
@@ -358,12 +364,33 @@ while running:
         # Check for a key press of S
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_s:
+
+                # -- MAKE A MOVE --
+
                 # Get the legal actions from the game instance
                 actions = game_instance.get_legal_actions()
                 # Get the agent to pick an action
                 action = agent.select_action(actions)
+
+                # Get the game state
+                game_state = game_instance.get_state()
+
                 # Take a step in the game
                 game_instance.step(action)
+
+                # Get the game reward
+                reward = game_instance.get_current_game_reward()
+
+                # Get the new game state
+                new_game_state = game_instance.get_state()
+
+                # Create a memory tuple
+                memory_tuple = (game_state, action, reward, new_game_state)
+
+                # Add the memory tuple to the replay buffer
+                replay_memory.add(memory_tuple)
+
+                # -- UPDATE THE GAME UI --
 
                 # Update the game state on the GUI
                 screen.fill(pygame.Color(WATER_TILE_COLOUR))
@@ -518,3 +545,13 @@ while running:
 
                 # Update the display using flip
                 pygame.display.flip()
+
+                # Game over?
+                game_over_flag = game_instance.get_game_over_flag()
+                pulled_to_csv = False
+
+                if game_over_flag == True:
+                    if pulled_to_csv == False:
+                        replay_memory.save_buffer()
+                        print("Saved as JSON!")
+                    pulled_to_csv = True

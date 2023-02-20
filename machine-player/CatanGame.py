@@ -105,10 +105,6 @@ class CatanGame:
                 self.resource_pool[action_parts[6]] + 1
             )
 
-            # Update the reward
-            reward = self.get_reward(action)
-            self.reward = self.reward + reward
-
         # If the action is legal, is it a road build?
         elif action_parts[0] == "build" and action_parts[1] == "road":
             # Call a currently non-existent function to build a road
@@ -118,10 +114,6 @@ class CatanGame:
                 int(action_parts[5]),
                 action_parts[2],
             )
-
-            # Update the reward
-            reward = self.get_reward(action)
-            self.reward = self.reward + reward
 
             # Remove 1 lumber and 1 brick from the resource pool
             self.resource_pool["lumber"] = self.resource_pool["lumber"] - 1
@@ -140,10 +132,6 @@ class CatanGame:
             # Update the player's VP count
             self.victory_points = self.victory_points + 1
 
-            # Update the reward
-            reward = self.get_reward(action)
-            self.reward = self.reward + reward
-
             # Remove 1 lumber, 1 brick, 1 wool, and 1 grain from the resource pool
             self.resource_pool["lumber"] = self.resource_pool["lumber"] - 1
             self.resource_pool["brick"] = self.resource_pool["brick"] - 1
@@ -153,22 +141,22 @@ class CatanGame:
         # If the action is legal, is it a simple end turn?
         elif action == "end_turn":
 
-            # Is the game over?
-            if self.victory_points >= 10:
-                self.game_over = True
-            else:
-                # Update the turn number
-                self.turn_number = self.turn_number + 1
+            # Update the turn number
+            self.turn_number = self.turn_number + 1
 
-                # Update the reward
-                reward = self.get_reward(action)
-                self.reward = self.reward + reward
+            # Roll the dice
+            roll = self.dice_roll()
 
-                # Roll the dice
-                roll = self.dice_roll()
+            # Distribute resources
+            self.distribute_resources(roll)
 
-                # Distribute resources
-                self.distribute_resources(roll)
+        # Update the reward
+        reward = self.get_reward(action)
+        self.reward = self.reward + reward
+
+        # Is the game over?
+        if self.victory_points >= 10:
+            self.game_over = True
 
         # Update the legal actions
         self.set_legal_actions()
@@ -193,6 +181,10 @@ class CatanGame:
             else:
                 return 0
 
+    def get_current_game_reward(self):
+        # Return the current game reward
+        return self.reward
+
     def select_action(self, action_values, epsilon):
         # Select an action to take based on the given action values and the given probability of taking a random action (epsilon)
         # There are many different approaches to selecting actions, such as greedily choosing the action with the highest predicted value or using a probability distribution over the predicted values to sample an action
@@ -215,6 +207,24 @@ class CatanGame:
             "turn_number": self.turn_number,
             "tile_values": self.board.get_tile_numbers_in_a_list(),
         }
+
+    def get_state_as_single_list(self):
+        # Build a list of state information
+        # This is put in one array and can be used for replay memory or preprocessing, etc.
+        listed_state = []
+        current_state = self.get_state()
+
+        # Victory points
+        listed_state.append(current_state["victory_points"])
+
+        # Turn number
+        listed_state.append(current_state["turn_number"])
+
+        # Rows in board
+        listed_state.append(len(current_state["board_dims"]))
+
+        # Total number of tiles
+        listed_state.append(len(current_state["tile_types"]))
 
     def set_legal_actions(self):
         # Return a list of legal actions given the current state of the game
@@ -426,6 +436,10 @@ class CatanGame:
         self.resource_pool["brick"] = 3
         self.resource_pool["ore"] = 1
         self.resource_pool["lumber"] = 2
+
+    def get_game_over_flag(self):
+        # Return the game over flag
+        return self.game_over
 
     def start_game(self):
         # Set a flag so that the game knows the pre-game build phase has begun
