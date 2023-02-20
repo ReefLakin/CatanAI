@@ -6,3 +6,5 @@
 __pycache__/
 .coverage
 .cache
+/history
+.vscode/settings.json
