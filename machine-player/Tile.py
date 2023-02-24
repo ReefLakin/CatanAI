@@ -337,10 +337,9 @@ class Tile:
 
     # Return a bool indicating whether or not placing on a specific vertex satisfies the distance rule
     def satisfies_distance_rule(self, direction):
-        vertex_specified = self.get_vertex_from_direction(direction)
         neighbours = self.get_neighbouring_verticies(direction)
         for neighbour in neighbours:
-            if neighbour == 1 and vertex_specified == 1:
+            if neighbour == 1:
                 return False
         return True
 
