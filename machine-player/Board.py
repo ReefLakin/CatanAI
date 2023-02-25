@@ -154,10 +154,12 @@ class Board:
         if tile.is_vertex_adjacent_to_road(direction) == True:
             return True
         # If that didn't come up true, all hope is not lost. Check the neighbouring tiles
+        i = 0
         for tile in neighbouring_tiles:
             if tile != None:
                 if tile.is_vertex_adjacent_to_road(opposite_directions[i]) == True:
                     return True
+            i += 1
         # If we've made it this far, the settlement is not connected to a road so it cannot be placed
         return False
 
