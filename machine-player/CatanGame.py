@@ -194,18 +194,19 @@ class CatanGame:
         # Build a dictionary of state information, which includes all of the tile state info, player resources, VPs and turn number.
         # This info is purposely in a human-readable state, but will likely be preprocessed before being fed to the DQN.
         return {
-            "side_states": self.board.get_side_states(),
-            "vertex_states": self.board.get_vertex_states(),
-            "board_dims": self.board.get_board_dims(),
-            "tile_types": self.board.get_tile_types_in_a_list(),
-            "num_brick": self.resource_pool["brick"],
-            "num_lumber": self.resource_pool["lumber"],
-            "num_wool": self.resource_pool["wool"],
-            "num_grain": self.resource_pool["grain"],
-            "num_ore": self.resource_pool["ore"],
-            "victory_points": self.victory_points,
-            "turn_number": self.turn_number,
-            "tile_values": self.board.get_tile_numbers_in_a_list(),
+            "side_states": self.board.get_side_states(),  # 72
+            "vertex_states": self.board.get_vertex_states(),  # 54
+            "board_dims": self.board.get_board_dims(),  # 5
+            "tile_types": self.board.get_tile_types_in_a_list(),  # 19
+            "num_brick": self.resource_pool["brick"],  # 1
+            "num_lumber": self.resource_pool["lumber"],  # 1
+            "num_wool": self.resource_pool["wool"],  # 1
+            "num_grain": self.resource_pool["grain"],  # 1
+            "num_ore": self.resource_pool["ore"],  # 1
+            "victory_points": self.victory_points,  # 1
+            "turn_number": self.turn_number,  # 1
+            "tile_values": self.board.get_tile_numbers_in_a_list(),  # 19
+            # Total: 176
         }
 
     def get_state_as_single_list(self):
@@ -381,6 +382,9 @@ class CatanGame:
                 f"build_road_southwest_{q_coord}_{r_coord}_{s_coord}"
             )
             self.all_actions.append(f"build_road_west_{q_coord}_{r_coord}_{s_coord}")
+
+        # Print the size of the list of all possible actions (246)
+        # print(f"Size of all possible actions: {len(self.all_actions)}")
 
     def distribute_resources(self, roll):
         # Distribute resources to players based on the given dice roll
