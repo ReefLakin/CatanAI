@@ -48,8 +48,9 @@ SETTLEMENT_RADIUS = HEX_RADIUS / 6
 # THE ACTUAL BOARD
 game_instance = CatanGame()
 
+
 # THE AGENT
-agent = Agent(1)
+agent = Agent(0)
 
 # REPLAY MEMORY
 replay_memory = ReplayMemory(1000)
@@ -369,11 +370,15 @@ while running:
 
                 # Get the legal actions from the game instance
                 actions = game_instance.get_legal_actions()
-                # Get the agent to pick an action
-                action = agent.select_action(actions)
+
+                # Get all possible actions from the game instance
+                all_actions = game_instance.get_all_possible_actions()
 
                 # Get the game state
                 game_state = game_instance.get_state()
+
+                # Get the agent to pick an action
+                action = agent.select_action(game_state, all_actions, actions)
 
                 # Take a step in the game
                 game_instance.step(action)

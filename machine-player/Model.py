@@ -2,7 +2,7 @@ import torch.nn as nn
 
 
 class CatanModel(nn.Module):
-    def __init__(self, input_size=176, output_size=246, hidden_size=64):
+    def __init__(self, input_size=278, output_size=246, hidden_size=64):
         super(CatanModel, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.relu1 = nn.ReLU()
