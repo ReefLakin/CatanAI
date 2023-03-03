@@ -166,17 +166,17 @@ class CatanGame:
         # Picking an illegal action will result in a reward of -1
         # If the player has earned 10 VPs, they have won the game and will receive a reward of +100
         if self.victory_points >= 10:
-            return 100
+            return 500
         if action not in self.legal_actions:
             return -1
         else:
             split_action = action.split("_")
             # Building a road will net a reward of +10
             if split_action[0] == "build" and split_action[1] == "road":
-                return 10
+                return 5
             # Building a settlement will net a reward of +30
             elif split_action[0] == "build" and split_action[1] == "settlement":
-                return 30
+                return 100
             # Anything else will net a reward of 0
             else:
                 return 0

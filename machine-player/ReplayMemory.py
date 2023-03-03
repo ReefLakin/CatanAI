@@ -6,13 +6,13 @@ from datetime import datetime
 
 
 class ReplayMemory:
-    def __init__(self, buffer_size):
+    def __init__(self, buffer_max_size):
         self.buffer = []
-        self.buffer_size = buffer_size
+        self.buffer_max_size = buffer_max_size
 
     # Add an experience to the buffer
     def add(self, experience):
-        if len(self.buffer) + 1 >= self.buffer_size:
+        if len(self.buffer) + 1 >= self.buffer_max_size:
             self.buffer.pop(0)
         self.buffer.append(experience)
 
@@ -23,6 +23,10 @@ class ReplayMemory:
     # Get the buffer
     def get_buffer(self):
         return self.buffer
+
+    # Get the current size of the buffer
+    def get_buffer_size(self):
+        return len(self.buffer)
 
     # Save the buffer to a file
     def save_buffer(self):
