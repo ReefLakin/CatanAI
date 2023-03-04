@@ -77,6 +77,8 @@ class CatanGame:
         self.set_all_possible_actions()
         # Set the legal actions
         self.set_legal_actions()
+        # Set the dice roll
+        self.most_recent_roll = (0, 0, 0, "Dice haven't been rolled yet.")
 
     def get_board(self):
         # Return the game board
@@ -409,7 +411,18 @@ class CatanGame:
         dice_2 = random.randint(1, 6)
         # Print the roll to the console
         print(f"Rolled a {dice_1} and a {dice_2} for a total of {dice_1 + dice_2}")
+        # Store the roll in the game state
+        self.most_recent_roll = (
+            dice_1,
+            dice_2,
+            dice_1 + dice_2,
+            f"{dice_1} and {dice_2}",
+        )
         return dice_1 + dice_2
+
+    def get_most_recent_roll(self):
+        # Return the most recent dice roll
+        return self.most_recent_roll
 
     def set_legal_actions_manually(self, actions):
         # Set the list of legal actions

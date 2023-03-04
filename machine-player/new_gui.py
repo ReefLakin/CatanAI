@@ -38,13 +38,18 @@ SETTLEMENT_COLOUR = "#FFFFFF"
 ROAD_COLOUR = "#FFFFFF"
 NUMBER_COLOUR = "#000000"
 RED_NUMBER_COLOUR = "#BF4444"
+VP_COLOUR = "#1B152E"
+
+# SCREEN INFORMATION
+SCREEN_WIDTH = 880
+SCREEN_HEIGHT = 700
 
 # BOARD DIMENSIONS
 BOARD_DIMS = [3, 4, 5, 4, 3]
 
 # OTHER BOARD INFORMATION
-STARTING_HEX_CENTRE_X = 250
-STARTING_HEX_CENTRE_Y = 100
+STARTING_HEX_CENTRE_X = 330
+STARTING_HEX_CENTRE_Y = 140
 HEX_RADIUS = 60
 SETTLEMENT_RADIUS = HEX_RADIUS / 6
 
@@ -195,7 +200,7 @@ def get_colour_value_from_resource_name(name):
 pygame.init()
 
 # Set the dimensions of the screen
-screen = pygame.display.set_mode((900, 600))
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 # Fill the background colour to the screen
 # Use pygame.Color to convert the hex colour to RGB
@@ -206,6 +211,8 @@ pygame.display.set_caption("Catan Board")
 
 # Load a font
 font = pygame.font.SysFont("Arial", 18)
+res_font = pygame.font.SysFont("Arial", 17)
+vp_font = pygame.font.SysFont("Arial", 20, bold=True)
 
 
 # Acquire Board Data
@@ -320,31 +327,92 @@ for hex in all_road_points:
 
 # Write the victory points to the screen
 # Draw the text with font.render()
-text = font.render(
-    "Victory Points: " + str(victory_points), True, pygame.Color(BORDER_COLOUR)
+text = vp_font.render(
+    "Victory Points: " + str(victory_points), True, pygame.Color(VP_COLOUR)
 )
 # Draw the text to the screen
-text_rect = text.get_rect(center=(100, 570))
+text_rect = text.get_rect(center=(90, 25))
 screen.blit(text, text_rect)
 
-# Write the resources to the screen
-# Draw the text with font.render()
-lum_text = font.render("Lumber: " + str(num_lumber), True, pygame.Color(BORDER_COLOUR))
-grain_text = font.render("Grain: " + str(num_grain), True, pygame.Color(BORDER_COLOUR))
-ore_text = font.render("Ore: " + str(num_ore), True, pygame.Color(BORDER_COLOUR))
-wool_text = font.render("Wool: " + str(num_wool), True, pygame.Color(BORDER_COLOUR))
-brick_text = font.render("Brick: " + str(num_brick), True, pygame.Color(BORDER_COLOUR))
+# Write the turn number just below the victory points
+text = font.render(
+    "Turn: " + str(game_state["turn_number"]), True, pygame.Color(VP_COLOUR)
+)
 # Draw the text to the screen
-lumber_text_rect = lum_text.get_rect(center=(800, 30))
-grain_text_rect = grain_text.get_rect(center=(800, 50))
-ore_text_rect = ore_text.get_rect(center=(800, 70))
-wool_text_rect = wool_text.get_rect(center=(800, 90))
-brick_text_rect = brick_text.get_rect(center=(800, 110))
-screen.blit(lum_text, lumber_text_rect)
-screen.blit(grain_text, grain_text_rect)
-screen.blit(ore_text, ore_text_rect)
-screen.blit(wool_text, wool_text_rect)
-screen.blit(brick_text, brick_text_rect)
+text_rect = text.get_rect(center=(90, 50))
+screen.blit(text, text_rect)
+
+# Get the most recent dice roll
+most_recent_dice_roll = game_instance.get_most_recent_roll()
+roll_value = most_recent_dice_roll[2]
+
+# Write the dice roll to the screen in the top right corner
+text = font.render("Last Dice Roll: " + str(roll_value), True, pygame.Color(VP_COLOUR))
+# Draw the text to the screen
+text_rect = text.get_rect(center=(SCREEN_WIDTH - 80, 25))
+screen.blit(text, text_rect)
+
+# Write up the resource texts
+resource_texts = [
+    (f"Lumber: {num_lumber}"),
+    (f"Grain: {num_grain}"),
+    (f"Ore: {num_ore}"),
+    (f"Wool: {num_wool}"),
+    (f"Brick: {num_brick}"),
+]
+
+# Load each of the resource icons
+lumber_icon = pygame.image.load("wood.png").convert_alpha()
+brick_icon = pygame.image.load("wall.png").convert_alpha()
+wool_icon = pygame.image.load("sheep.png").convert_alpha()
+grain_icon = pygame.image.load("wheat.png").convert_alpha()
+ore_icon = pygame.image.load("stone.png").convert_alpha()
+
+# List the icons
+icons = [lumber_icon, grain_icon, ore_icon, wool_icon, brick_icon]
+
+# Set up the resource box at the bottom of the screen
+box_height = 100
+box_y = SCREEN_HEIGHT - box_height
+box_color = (255, 255, 255)
+box_border_color = (0, 0, 0)
+box_border_width = 2
+box_rect = pygame.Rect(0, box_y, SCREEN_WIDTH, box_height)
+
+# Draw the box
+pygame.draw.rect(screen, box_color, box_rect)
+pygame.draw.rect(screen, box_border_color, box_rect, box_border_width)
+
+# Work out the spacing between the resource texts
+font_size = 17
+text_spacing = (box_rect.width - font_size * 5) / 6
+text_surfaces = []
+
+# Get the spacing between the icons
+icon_spacing = (box_rect.width - (font_size + icons[0].get_width()) * 5) // 6
+
+# Loop through the resource texts
+for i in range(len(resource_texts)):
+    # Create the surface
+    text_surface = res_font.render(resource_texts[i], True, (0, 0, 0))
+    text_rect = text_surface.get_rect()
+    # Set the x position
+    text_rect.x = box_rect.x + text_spacing + (font_size + text_spacing) * i
+    # Set the y position
+    text_rect.y = box_y + (box_height - font_size) // 2
+    # Add the surface and rect to the list
+    text_surfaces.append((text_surface, text_rect))
+
+    icon_surface = icons[i]
+    if icon_surface:
+        icon_rect = icon_surface.get_rect()
+        icon_rect.x = text_rect.x - 30
+        icon_rect.y = text_rect.y
+        screen.blit(icon_surface, icon_rect)
+
+# Blit the text surfaces onto the window
+for text_surface, text_rect in text_surfaces:
+    screen.blit(text_surface, text_rect)
 
 
 # Update the display using flip
@@ -537,43 +605,108 @@ while running:
 
                     # Write the victory points to the screen
                     # Draw the text with font.render()
-                    text = font.render(
+                    text = vp_font.render(
                         "Victory Points: " + str(victory_points),
                         True,
-                        pygame.Color(BORDER_COLOUR),
+                        pygame.Color(VP_COLOUR),
                     )
                     # Draw the text to the screen
-                    text_rect = text.get_rect(center=(100, 570))
+                    text_rect = text.get_rect(center=(90, 25))
                     screen.blit(text, text_rect)
 
-                    # Write the resources to the screen
-                    # Draw the text with font.render()
-                    lum_text = font.render(
-                        "Lumber: " + str(num_lumber), True, pygame.Color(BORDER_COLOUR)
-                    )
-                    grain_text = font.render(
-                        "Grain: " + str(num_grain), True, pygame.Color(BORDER_COLOUR)
-                    )
-                    ore_text = font.render(
-                        "Ore: " + str(num_ore), True, pygame.Color(BORDER_COLOUR)
-                    )
-                    wool_text = font.render(
-                        "Wool: " + str(num_wool), True, pygame.Color(BORDER_COLOUR)
-                    )
-                    brick_text = font.render(
-                        "Brick: " + str(num_brick), True, pygame.Color(BORDER_COLOUR)
+                    # Write the turn number just below the victory points
+                    text = font.render(
+                        "Turn: " + str(game_state["turn_number"]),
+                        True,
+                        pygame.Color(VP_COLOUR),
                     )
                     # Draw the text to the screen
-                    lumber_text_rect = lum_text.get_rect(center=(800, 30))
-                    grain_text_rect = grain_text.get_rect(center=(800, 50))
-                    ore_text_rect = ore_text.get_rect(center=(800, 70))
-                    wool_text_rect = wool_text.get_rect(center=(800, 90))
-                    brick_text_rect = brick_text.get_rect(center=(800, 110))
-                    screen.blit(lum_text, lumber_text_rect)
-                    screen.blit(grain_text, grain_text_rect)
-                    screen.blit(ore_text, ore_text_rect)
-                    screen.blit(wool_text, wool_text_rect)
-                    screen.blit(brick_text, brick_text_rect)
+                    text_rect = text.get_rect(center=(90, 50))
+                    screen.blit(text, text_rect)
+
+                    # Get the most recent dice roll
+                    most_recent_dice_roll = game_instance.get_most_recent_roll()
+                    roll_value = most_recent_dice_roll[2]
+
+                    # Write the dice roll to the screen in the top right corner
+                    text = font.render(
+                        "Last Dice Roll: " + str(roll_value),
+                        True,
+                        pygame.Color(VP_COLOUR),
+                    )
+                    # Draw the text to the screen
+                    text_rect = text.get_rect(center=(SCREEN_WIDTH - 80, 25))
+                    screen.blit(text, text_rect)
+
+                    # Write up the resource texts
+                    resource_texts = [
+                        (f"Lumber: {num_lumber}"),
+                        (f"Grain: {num_grain}"),
+                        (f"Ore: {num_ore}"),
+                        (f"Wool: {num_wool}"),
+                        (f"Brick: {num_brick}"),
+                    ]
+
+                    # Load each of the resource icons
+                    lumber_icon = pygame.image.load("wood.png").convert_alpha()
+                    brick_icon = pygame.image.load("wall.png").convert_alpha()
+                    wool_icon = pygame.image.load("sheep.png").convert_alpha()
+                    grain_icon = pygame.image.load("wheat.png").convert_alpha()
+                    ore_icon = pygame.image.load("stone.png").convert_alpha()
+
+                    # List the icons
+                    icons = [lumber_icon, grain_icon, ore_icon, wool_icon, brick_icon]
+
+                    # Set up the resource box at the bottom of the screen
+                    box_height = 100
+                    box_y = SCREEN_HEIGHT - box_height
+                    box_color = (255, 255, 255)
+                    box_border_color = (0, 0, 0)
+                    box_border_width = 2
+                    box_rect = pygame.Rect(0, box_y, SCREEN_WIDTH, box_height)
+
+                    # Draw the box
+                    pygame.draw.rect(screen, box_color, box_rect)
+                    pygame.draw.rect(
+                        screen, box_border_color, box_rect, box_border_width
+                    )
+
+                    # Work out the spacing between the resource texts
+                    font_size = 17
+                    text_spacing = (box_rect.width - font_size * 5) / 6
+                    text_surfaces = []
+
+                    # Get the spacing between the icons
+                    icon_spacing = (
+                        box_rect.width - (font_size + icons[0].get_width()) * 5
+                    ) // 6
+
+                    # Loop through the resource texts
+                    for i in range(len(resource_texts)):
+                        # Create the surface
+                        text_surface = res_font.render(
+                            resource_texts[i], True, (0, 0, 0)
+                        )
+                        text_rect = text_surface.get_rect()
+                        # Set the x position
+                        text_rect.x = (
+                            box_rect.x + text_spacing + (font_size + text_spacing) * i
+                        )
+                        # Set the y position
+                        text_rect.y = box_y + (box_height - font_size) // 2
+                        # Add the surface and rect to the list
+                        text_surfaces.append((text_surface, text_rect))
+
+                        icon_surface = icons[i]
+                        if icon_surface:
+                            icon_rect = icon_surface.get_rect()
+                            icon_rect.x = text_rect.x - 30
+                            icon_rect.y = text_rect.y
+                            screen.blit(icon_surface, icon_rect)
+
+                    # Blit the text surfaces onto the window
+                    for text_surface, text_rect in text_surfaces:
+                        screen.blit(text_surface, text_rect)
 
                     # Update the display using flip
                     pygame.display.flip()
