@@ -14,8 +14,9 @@ import math
 # CATAN GAME
 from CatanGame import CatanGame
 
-# AGENT
-from Agent import Agent
+# AGENTS
+from Randy import Randy
+from Adam import Adam
 
 # REPLAY MEMORY
 from ReplayMemory import ReplayMemory
@@ -58,7 +59,7 @@ game_instance = CatanGame()
 
 
 # THE AGENT
-agent = Agent(0.20)
+agent = Adam()
 
 # REPLAY MEMORY
 replay_memory = ReplayMemory(1000)
@@ -212,6 +213,7 @@ pygame.display.set_caption("Catan Board")
 # Load a font
 font = pygame.font.SysFont("Arial", 18)
 res_font = pygame.font.SysFont("Arial", 17)
+sm_font = pygame.font.SysFont("Arial", 10)
 vp_font = pygame.font.SysFont("Arial", 20, bold=True)
 
 
@@ -413,6 +415,12 @@ for i in range(len(resource_texts)):
 # Blit the text surfaces onto the window
 for text_surface, text_rect in text_surfaces:
     screen.blit(text_surface, text_rect)
+
+# Write the agent's name to the screen in the bottom left corner
+text = sm_font.render(agent.name, True, pygame.Color(BORDER_COLOUR))
+# Draw the text to the screen
+text_rect = text.get_rect(center=(25, SCREEN_HEIGHT - 15))
+screen.blit(text, text_rect)
 
 
 # Update the display using flip
