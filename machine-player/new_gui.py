@@ -43,6 +43,7 @@ ROAD_COLOUR = "#FFFFFF"
 NUMBER_COLOUR = "#000000"
 RED_NUMBER_COLOUR = "#BF4444"
 VP_COLOUR = "#1B152E"
+CITY_GOLD_COLOUR = "#FFD700"
 
 # SCREEN INFORMATION
 SCREEN_WIDTH = 880
@@ -55,13 +56,15 @@ BOARD_DIMS = [3, 4, 5, 4, 3]
 STARTING_HEX_CENTRE_X = 330
 STARTING_HEX_CENTRE_Y = 140
 HEX_RADIUS = 60
-SETTLEMENT_RADIUS = HEX_RADIUS / 6
+SETTLEMENT_RADIUS = HEX_RADIUS / 7
+CITY_RADIUS_OUTER = HEX_RADIUS / 5
+CITY_RADIUS_INNER = HEX_RADIUS / 6
 
 # THE ACTUAL BOARD
 game_instance = CatanGame()
 
 # THE AGENT
-AGENT_SELECTED = "Randy"
+AGENT_SELECTED = "Adam"
 
 # REPLAY MEMORY
 replay_memory = ReplayMemory(1000)
@@ -73,6 +76,7 @@ replay_memory = ReplayMemory(1000)
 def get_hex_points(centre_x, centre_y, radius, vertex_states, side_states):
     hex_points = []
     settle_points = []
+    city_points = []
     road_points = []
     # Make equiangular steps around the circle enclosing our hexagon
     for i in range(6):
@@ -88,6 +92,10 @@ def get_hex_points(centre_x, centre_y, radius, vertex_states, side_states):
         if vertex_states[i] == 1:
             settle_points.append([x, y])
 
+        # Also append x and y if the vertex is a city
+        if vertex_states[i] == 2:
+            city_points.append([x, y])
+
         # This part is a little more complex
         # Take the current coordinates and the next coordinates if the current side is a road
         if side_states[i] == 1:
@@ -100,7 +108,7 @@ def get_hex_points(centre_x, centre_y, radius, vertex_states, side_states):
             road_points.append([x, y, x2, y2])
 
     # Return the list of points
-    return hex_points, settle_points, road_points
+    return hex_points, settle_points, road_points, city_points
 
 
 # Collect the points for each hexagon on the board
@@ -115,6 +123,7 @@ def get_all_hex_points(
     all_hex_centre_values = []
     all_settlement_points = []
     all_road_points = []
+    all_city_points = []
 
     # Loops through each row of the board according to the dimensions
     for row in range(len(board_dims)):
@@ -132,7 +141,7 @@ def get_all_hex_points(
             # Pop the first element from the side data list
             current_hex_side_data = side_data.pop(0)
             # Get the outer points for the current hexagon
-            hex_points, settle_points, road_points = get_hex_points(
+            hex_points, settle_points, road_points, city_points = get_hex_points(
                 x, y, radius, current_hex_vert_data, current_hex_side_data
             )
             # Recalculate the x-position for the next hexagon
@@ -144,12 +153,20 @@ def get_all_hex_points(
             all_settlement_points.append(settle_points)
             # Add the road points to the list
             all_road_points.append(road_points)
+            # Add the city points to the list
+            all_city_points.append(city_points)
 
         # Recalculate the y-position for the next row
         y += 3 / 4 * (radius * 2)
 
     # Return the list of points
-    return all_hex_points, all_hex_centre_values, all_settlement_points, all_road_points
+    return (
+        all_hex_points,
+        all_hex_centre_values,
+        all_settlement_points,
+        all_road_points,
+        all_city_points,
+    )
 
 
 # Return the default type map associated with the default Catan board
@@ -254,7 +271,7 @@ while running:
 
     # If PLEASE_LORD_GIVE_ME_A_BREAK is true, make a small time delay
     if PLEASE_LORD_GIVE_ME_A_BREAK:
-        time.sleep(0.0008)
+        time.sleep(0.0000004)
         PLEASE_LORD_GIVE_ME_A_BREAK = False
         pygame.event.post(take_action)
         pygame.event.post(update_game_board)
@@ -364,6 +381,7 @@ while running:
                 all_hex_centre_values,
                 all_settlement_points,
                 all_road_points,
+                all_city_points,
             ) = get_all_hex_points(
                 STARTING_HEX_CENTRE_X,
                 STARTING_HEX_CENTRE_Y,
@@ -418,6 +436,32 @@ while running:
                         screen,
                         pygame.Color(SETTLEMENT_COLOUR),
                         (x, y, SETTLEMENT_RADIUS * 2, SETTLEMENT_RADIUS * 2),
+                        0,
+                    )
+
+            # Draw the cities
+            # First, loop through each hex
+            for hex in all_city_points:
+                # Then, loop through each vertex in the hex
+                for vertex in hex:
+                    # Calculate x and y of the top left corner (outer gold square)
+                    x = vertex[0] - CITY_RADIUS_OUTER
+                    y = vertex[1] - CITY_RADIUS_OUTER
+                    # Draw the city (outer gold square)
+                    pygame.draw.rect(
+                        screen,
+                        pygame.Color(CITY_GOLD_COLOUR),
+                        (x, y, CITY_RADIUS_OUTER * 2, CITY_RADIUS_OUTER * 2),
+                        0,
+                    )
+                    # Calculate x and y of the top left corner (inner white square)
+                    x = vertex[0] - CITY_RADIUS_INNER
+                    y = vertex[1] - CITY_RADIUS_INNER
+                    # Draw the city (outer gold square)
+                    pygame.draw.rect(
+                        screen,
+                        pygame.Color(SETTLEMENT_COLOUR),
+                        (x, y, CITY_RADIUS_INNER * 2, CITY_RADIUS_INNER * 2),
                         0,
                     )
 

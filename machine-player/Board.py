@@ -163,6 +163,22 @@ class Board:
         # If we've made it this far, the settlement is not connected to a road so it cannot be placed
         return False
 
+    # Can a player place a city on a given vertex location?
+    def check_city_placement_legal(self, q, r, s, direction):
+        # Get the tile to start
+        tile = self.get_tile(q, r, s)
+        # Check if the tile exists
+        if tile == None:
+            return False
+        # Check if a city already exists on the vertex
+        if tile.get_vertex_from_direction(direction) == 2:
+            return False
+        # Check if a settlement exists on the vertex
+        elif tile.get_vertex_from_direction(direction) == 1:
+            return True
+        else:
+            return False
+
     # Build a road at a location, given the q, r, s coordinates and the direction
     def build_road(self, q, r, s, direction):
         # Build the road on the specified tile
@@ -185,6 +201,18 @@ class Board:
         for i in range(0, len(neighbour_tiles)):
             if neighbour_tiles[i] != None:
                 neighbour_tiles[i].build_settlement(direction_array[i])
+
+    # Build a city at a location, given the q, r, s coordinates and the direction
+    def build_city(self, q, r, s, direction):
+        # Build the city on the specified tile
+        tile = self.get_tile(q, r, s)
+        tile.build_city(direction)
+        # Build a city on the neighbouring tiles, if they exist
+        neighbour_tiles = self.shared_vertex_location(q, r, s, direction)
+        direction_array = tile.get_opposite_vertex_directions(direction)
+        for i in range(0, len(neighbour_tiles)):
+            if neighbour_tiles[i] != None:
+                neighbour_tiles[i].build_city(direction_array[i])
 
     # Get the tile types of all tiles
     def get_tile_types_in_a_list(self):

@@ -18,7 +18,7 @@ import torch
 
 # Define the Adam class
 class Adam(Agent):
-    def __init__(self, exploration_rate=0.1):
+    def __init__(self, exploration_rate=0.15):
         # Set the exploration rate to the exploration rate passed to the constructor
         self.exploration_rate = exploration_rate
         # Set the model (use the default values for now)

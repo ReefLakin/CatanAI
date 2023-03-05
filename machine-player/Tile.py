@@ -269,6 +269,23 @@ class Tile:
         else:
             return None
 
+    # Set the value of a specified vertex to 2 (city)
+    def build_city(self, direction):
+        if direction == "northwest":
+            self.vert_northwest = 2
+        elif direction == "north":
+            self.vert_north = 2
+        elif direction == "northeast":
+            self.vert_northeast = 2
+        elif direction == "southeast":
+            self.vert_southeast = 2
+        elif direction == "south":
+            self.vert_south = 2
+        elif direction == "southwest":
+            self.vert_southwest = 2
+        else:
+            return None
+
     # Return the value of a specified side
     def get_side_from_direction(self, direction):
         if direction == "northwest":
@@ -339,7 +356,7 @@ class Tile:
     def satisfies_distance_rule(self, direction):
         neighbours = self.get_neighbouring_verticies(direction)
         for neighbour in neighbours:
-            if neighbour == 1:
+            if neighbour == 1 or neighbour == 2:
                 return False
         return True
 

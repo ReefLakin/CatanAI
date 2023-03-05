@@ -140,6 +140,23 @@ class CatanGame:
             self.resource_pool["wool"] = self.resource_pool["wool"] - 1
             self.resource_pool["grain"] = self.resource_pool["grain"] - 1
 
+        # If the action is legal, is it a city build?
+        elif action_parts[0] == "build" and action_parts[1] == "city":
+            # Call a currently non-existent function to build a city
+            self.board.build_city(
+                int(action_parts[3]),
+                int(action_parts[4]),
+                int(action_parts[5]),
+                action_parts[2],
+            )
+
+            # Update the player's VP count
+            self.victory_points = self.victory_points + 1
+
+            # Remove 2 grain and 3 ore from the resource pool
+            self.resource_pool["grain"] = self.resource_pool["grain"] - 2
+            self.resource_pool["ore"] = self.resource_pool["ore"] - 3
+
         # If the action is legal, is it a simple end turn?
         elif action == "end_turn":
 
@@ -166,19 +183,22 @@ class CatanGame:
     def get_reward(self, action):
         # Return the reward for taking a given action
         # Picking an illegal action will result in a reward of -1
-        # If the player has earned 10 VPs, they have won the game and will receive a reward of +100
+        # If the player has earned 10 VPs, they have won the game and will receive a reward of +300
         if self.victory_points >= 10:
-            return 500
+            return 300
         if action not in self.legal_actions:
             return -1
         else:
             split_action = action.split("_")
-            # Building a road will net a reward of +10
+            # Building a road will net a reward of +3
             if split_action[0] == "build" and split_action[1] == "road":
-                return 5
-            # Building a settlement will net a reward of +30
+                return 3
+            # Building a settlement will net a reward of +50
             elif split_action[0] == "build" and split_action[1] == "settlement":
-                return 100
+                return 50
+            # Building a city will net a reward of +50
+            elif split_action[0] == "build" and split_action[1] == "city":
+                return 50
             # Anything else will net a reward of 0
             else:
                 return 0
@@ -249,6 +269,11 @@ class CatanGame:
                 self.resource_pool["brick"] < 1 or self.resource_pool["lumber"] < 1
             ):
                 continue
+            # If the player does not have enough resources to build a city, skip this action; consider it cut from the list of legal actions
+            elif (action_parts[0] == "build" and action_parts[1] == "city") and (
+                self.resource_pool["grain"] < 2 or self.resource_pool["ore"] < 3
+            ):
+                continue
             # If the location already has a settlement on it, skip this action; consider it cut from the list of legal actions
             elif action_parts[0] == "build" and action_parts[1] == "settlement":
                 direction = action_parts[2]
@@ -301,6 +326,28 @@ class CatanGame:
                         continue
                     else:
                         self.legal_actions.append(action)
+            # If the location already has a city on it, skip this action; consider it cut from the list of legal actions
+            elif action_parts[0] == "build" and action_parts[1] == "city":
+                direction = action_parts[2]
+                q_coord = int(action_parts[3])
+                r_coord = int(action_parts[4])
+                s_coord = int(action_parts[5])
+                tile = self.board.get_tile(q_coord, r_coord, s_coord)
+                # Raise an error if the tile is not found; that shouldn't happen here
+                if tile is None:
+                    raise ValueError(
+                        "Tile not found at coordinates ({}, {}, {})".format(
+                            q_coord, r_coord, s_coord
+                        )
+                    )
+                vert_val = tile.get_vertex_from_direction(direction)
+                if vert_val is not None:
+                    if vert_val == 2:
+                        continue
+                    else:
+                        self.legal_actions.append(action)
+                else:
+                    continue
             # If the player tries to make a 4:1 trade with the bank, check if they have enough resources to make the trade
             elif (
                 action_parts[0] == "trade"
@@ -356,19 +403,37 @@ class CatanGame:
                 f"build_settlement_northwest_{q_coord}_{r_coord}_{s_coord}"
             )
             self.all_actions.append(
-                f"build_settlement_north_{q_coord}_{r_coord}_{s_coord}"
+                f"build_city_northwest_{q_coord}_{r_coord}_{s_coord}"
             )
             self.all_actions.append(
-                f"build_settlement_northeast_{q_coord}_{r_coord}_{s_coord}"
+                f"build_settlement_north_{q_coord}_{r_coord}_{s_coord}",
             )
             self.all_actions.append(
-                f"build_settlement_southeast_{q_coord}_{r_coord}_{s_coord}"
+                f"build_city_north_{q_coord}_{r_coord}_{s_coord}",
             )
             self.all_actions.append(
-                f"build_settlement_south_{q_coord}_{r_coord}_{s_coord}"
+                f"build_settlement_northeast_{q_coord}_{r_coord}_{s_coord}",
             )
             self.all_actions.append(
-                f"build_settlement_southwest_{q_coord}_{r_coord}_{s_coord}"
+                f"build_city_northeast_{q_coord}_{r_coord}_{s_coord}",
+            )
+            self.all_actions.append(
+                f"build_settlement_southeast_{q_coord}_{r_coord}_{s_coord}",
+            )
+            self.all_actions.append(
+                f"build_city_southeast_{q_coord}_{r_coord}_{s_coord}",
+            )
+            self.all_actions.append(
+                f"build_settlement_south_{q_coord}_{r_coord}_{s_coord}",
+            )
+            self.all_actions.append(
+                f"build_city_south_{q_coord}_{r_coord}_{s_coord}",
+            )
+            self.all_actions.append(
+                f"build_settlement_southwest_{q_coord}_{r_coord}_{s_coord}",
+            )
+            self.all_actions.append(
+                f"build_city_southwest_{q_coord}_{r_coord}_{s_coord}",
             )
             self.all_actions.append(
                 f"build_road_northwest_{q_coord}_{r_coord}_{s_coord}"
@@ -385,18 +450,22 @@ class CatanGame:
             )
             self.all_actions.append(f"build_road_west_{q_coord}_{r_coord}_{s_coord}")
 
-        # Print the size of the list of all possible actions (246)
-        # print(f"Size of all possible actions: {len(self.all_actions)}")
-
     def distribute_resources(self, roll):
         # Distribute resources to players based on the given dice roll
         if roll != 7:
             tiles = self.board.get_board_tiles()
             for tile in tiles:
                 if tile.get_tile_value() == roll:
+
+                    # Get the number of resources to give
                     occupied = tile.get_occupied_verticies()
+                    resource_count = 0
+                    for vertex in occupied:
+                        if vertex == 1:
+                            resource_count += 1
+                        elif vertex == 2:
+                            resource_count += 2
                     resource_to_give = tile.get_type()
-                    resource_count = len(occupied)
 
                     # Give the correct resource to the player
                     self.resource_pool[resource_to_give] += resource_count
