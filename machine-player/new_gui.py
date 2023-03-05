@@ -5,6 +5,9 @@
 # PYGAME
 import pygame
 
+# OS
+import os
+
 # TIME
 import time
 
@@ -57,9 +60,8 @@ SETTLEMENT_RADIUS = HEX_RADIUS / 6
 # THE ACTUAL BOARD
 game_instance = CatanGame()
 
-
 # THE AGENT
-agent = Adam()
+AGENT_SELECTED = "Randy"
 
 # REPLAY MEMORY
 replay_memory = ReplayMemory(1000)
@@ -200,6 +202,17 @@ def get_colour_value_from_resource_name(name):
 # Pygame's 'font' module is automatically initialised upon this call
 pygame.init()
 
+# Custom events
+UPDATE_GAME_BOARD_EVENT = pygame.USEREVENT + 0
+TAKE_ACTION = pygame.USEREVENT + 1
+
+# Create the event as a pygame event
+update_game_board = pygame.event.Event(UPDATE_GAME_BOARD_EVENT)
+take_action = pygame.event.Event(TAKE_ACTION)
+
+# Post the event immediately
+pygame.event.post(update_game_board)
+
 # Set the dimensions of the screen
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
@@ -216,223 +229,36 @@ res_font = pygame.font.SysFont("Arial", 17)
 sm_font = pygame.font.SysFont("Arial", 10)
 vp_font = pygame.font.SysFont("Arial", 20, bold=True)
 
+# Agent setup
+if AGENT_SELECTED == "Adam":
+    agent = Adam()
+    MODEL_PATH = "adam.pth"
+    if os._exists(MODEL_PATH):
+        agent.load_model(MODEL_PATH)
+else:
+    agent = Randy()
 
-# Acquire Board Data
-
-# Set the board to an in-progress test board
-# game_instance.setup_game_in_progress()
 
 # Start the game
 game_instance.start_game()
-
-# Get the default type map
-# type_map = get_default_type_map()
-
-# Get the game state once
-game_state = game_instance.get_state()
-
-# Get the type map from the game instance
-type_map = game_state["tile_types"]
-
-# Get the values map from the game instance
-values_map = game_state["tile_values"]
-
-# Get the vertex states from the game instance
-vertex_states = game_state["vertex_states"]
-
-# Get the side states from the game instance
-side_states = game_state["side_states"]
-
-# Get the number of current victory points from the game instance
-victory_points = game_state["victory_points"]
-
-# Get the number of resources from the current player's resource pool
-num_lumber = game_state["num_lumber"]
-num_grain = game_state["num_grain"]
-num_ore = game_state["num_ore"]
-num_wool = game_state["num_wool"]
-num_brick = game_state["num_brick"]
-
-
-# Draw the Board
-
-# Get the points for each hexagon on the board
-(
-    all_hex_points,
-    all_hex_centre_values,
-    all_settlement_points,
-    all_road_points,
-) = get_all_hex_points(
-    STARTING_HEX_CENTRE_X,
-    STARTING_HEX_CENTRE_Y,
-    HEX_RADIUS,
-    BOARD_DIMS,
-    vertex_states,
-    side_states,
-)
-
-# Draw each hexagon, with a border of 10 pixels
-for hex_points in all_hex_points:
-    # Get the colour value for the current hexagon
-    fill_colour = get_colour_value_from_resource_name(type_map.pop(0))
-    # Draw the hexagon
-    pygame.draw.polygon(screen, pygame.Color(fill_colour), hex_points, 0)
-    # Draw the border
-    pygame.draw.polygon(screen, pygame.Color(BORDER_COLOUR), hex_points, 6)
-
-    # Draw the value in the centre of each hexagon
-    # Get the value for the current hexagon
-    value = values_map.pop(0)
-    # Get the centre points for the current hexagon
-    centre_points = all_hex_centre_values.pop(0)
-    # Skip the desert tile
-    if value != 0:
-        # Draw the text with font.render()
-        # Is the number a six or an eight?
-        if value == 6 or value == 8:
-            text = font.render(str(value), True, pygame.Color(RED_NUMBER_COLOUR))
-        else:
-            text = font.render(str(value), True, pygame.Color(NUMBER_COLOUR))
-        # Draw the text to the screen
-        text_rect = text.get_rect(center=(centre_points[0], centre_points[1]))
-        screen.blit(text, text_rect)
-
-# Draw the settlements
-# First, loop through each hex
-for hex in all_settlement_points:
-    # Then, loop through each vertex in the hex
-    for vertex in hex:
-        # Calculate x and y of the top left corner
-        x = vertex[0] - SETTLEMENT_RADIUS
-        y = vertex[1] - SETTLEMENT_RADIUS
-        # Draw the settlement
-        pygame.draw.rect(
-            screen,
-            pygame.Color(SETTLEMENT_COLOUR),
-            (x, y, SETTLEMENT_RADIUS * 2, SETTLEMENT_RADIUS * 2),
-            0,
-        )
-
-# Draw the roads
-# First, loop through each hex
-for hex in all_road_points:
-    # Then, loop through each side in the hex
-    for side in hex:
-        # Draw the road
-        pygame.draw.line(
-            screen,
-            pygame.Color(ROAD_COLOUR),
-            (side[0], side[1]),
-            (side[2], side[3]),
-            6,
-        )
-
-# Write the victory points to the screen
-# Draw the text with font.render()
-text = vp_font.render(
-    "Victory Points: " + str(victory_points), True, pygame.Color(VP_COLOUR)
-)
-# Draw the text to the screen
-text_rect = text.get_rect(center=(90, 25))
-screen.blit(text, text_rect)
-
-# Write the turn number just below the victory points
-text = font.render(
-    "Turn: " + str(game_state["turn_number"]), True, pygame.Color(VP_COLOUR)
-)
-# Draw the text to the screen
-text_rect = text.get_rect(center=(90, 50))
-screen.blit(text, text_rect)
-
-# Get the most recent dice roll
-most_recent_dice_roll = game_instance.get_most_recent_roll()
-roll_value = most_recent_dice_roll[2]
-
-# Write the dice roll to the screen in the top right corner
-text = font.render("Last Dice Roll: " + str(roll_value), True, pygame.Color(VP_COLOUR))
-# Draw the text to the screen
-text_rect = text.get_rect(center=(SCREEN_WIDTH - 80, 25))
-screen.blit(text, text_rect)
-
-# Write up the resource texts
-resource_texts = [
-    (f"Lumber: {num_lumber}"),
-    (f"Grain: {num_grain}"),
-    (f"Ore: {num_ore}"),
-    (f"Wool: {num_wool}"),
-    (f"Brick: {num_brick}"),
-]
-
-# Load each of the resource icons
-lumber_icon = pygame.image.load("wood.png").convert_alpha()
-brick_icon = pygame.image.load("wall.png").convert_alpha()
-wool_icon = pygame.image.load("sheep.png").convert_alpha()
-grain_icon = pygame.image.load("wheat.png").convert_alpha()
-ore_icon = pygame.image.load("stone.png").convert_alpha()
-
-# List the icons
-icons = [lumber_icon, grain_icon, ore_icon, wool_icon, brick_icon]
-
-# Set up the resource box at the bottom of the screen
-box_height = 100
-box_y = SCREEN_HEIGHT - box_height
-box_color = (255, 255, 255)
-box_border_color = (0, 0, 0)
-box_border_width = 2
-box_rect = pygame.Rect(0, box_y, SCREEN_WIDTH, box_height)
-
-# Draw the box
-pygame.draw.rect(screen, box_color, box_rect)
-pygame.draw.rect(screen, box_border_color, box_rect, box_border_width)
-
-# Work out the spacing between the resource texts
-font_size = 17
-text_spacing = (box_rect.width - font_size * 5) / 6
-text_surfaces = []
-
-# Get the spacing between the icons
-icon_spacing = (box_rect.width - (font_size + icons[0].get_width()) * 5) // 6
-
-# Loop through the resource texts
-for i in range(len(resource_texts)):
-    # Create the surface
-    text_surface = res_font.render(resource_texts[i], True, (0, 0, 0))
-    text_rect = text_surface.get_rect()
-    # Set the x position
-    text_rect.x = box_rect.x + text_spacing + (font_size + text_spacing) * i
-    # Set the y position
-    text_rect.y = box_y + (box_height - font_size) // 2
-    # Add the surface and rect to the list
-    text_surfaces.append((text_surface, text_rect))
-
-    icon_surface = icons[i]
-    if icon_surface:
-        icon_rect = icon_surface.get_rect()
-        icon_rect.x = text_rect.x - 30
-        icon_rect.y = text_rect.y
-        screen.blit(icon_surface, icon_rect)
-
-# Blit the text surfaces onto the window
-for text_surface, text_rect in text_surfaces:
-    screen.blit(text_surface, text_rect)
-
-# Write the agent's name to the screen in the bottom left corner
-text = sm_font.render(agent.name, True, pygame.Color(BORDER_COLOUR))
-# Draw the text to the screen
-text_rect = text.get_rect(center=(25, SCREEN_HEIGHT - 15))
-screen.blit(text, text_rect)
-
-
-# Update the display using flip
-pygame.display.flip()
 
 
 # Game Loop
 
 # Variable to keep our game loop running
 running = True
+PLEASE_LORD_GIVE_ME_A_BREAK = False
+learn_steps = 0
 
 while running:
+
+    # If PLEASE_LORD_GIVE_ME_A_BREAK is true, make a small time delay
+    if PLEASE_LORD_GIVE_ME_A_BREAK:
+        time.sleep(0.0008)
+        PLEASE_LORD_GIVE_ME_A_BREAK = False
+        pygame.event.post(take_action)
+        pygame.event.post(update_game_board)
+        PLEASE_LORD_GIVE_ME_A_BREAK = True
 
     # Loop over the event queue
     for event in pygame.event.get():
@@ -441,296 +267,299 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-        # Check for a key press of S
         if event.type == pygame.KEYDOWN:
+
+            # Check for S key press (STEP)
             if event.key == pygame.K_s:
+                # Take action, then update the board
+                pygame.event.post(take_action)
+                pygame.event.post(update_game_board)
 
-                # -- MAKE A MOVE --
+            # Check for T key press (TRAIN)
+            if event.key == pygame.K_t:
+                # Take action, then update the board
+                pygame.event.post(take_action)
+                pygame.event.post(update_game_board)
+                PLEASE_LORD_GIVE_ME_A_BREAK = True
 
-                # Set learn_steps
-                learn_steps = 0
+        # Check for the custom event that we set up to take action
+        if event.type == TAKE_ACTION:
+            # Get the legal actions from the game instance
+            actions = game_instance.get_legal_actions()
 
-                while running == True:
+            # Get all possible actions from the game instance
+            all_actions = game_instance.get_all_possible_actions()
 
-                    # Add a time delay of 0.2 seconds
-                    time.sleep(0.2)
+            # Get the game state
+            game_state = game_instance.get_state()
 
-                    # Get the legal actions from the game instance
-                    actions = game_instance.get_legal_actions()
+            # Get the agent to pick an action
+            action = agent.select_action(game_state, all_actions, actions)
 
-                    # Get all possible actions from the game instance
-                    all_actions = game_instance.get_all_possible_actions()
+            # What is the index of the action when set against the entire list of actions?
+            action_index = all_actions.index(action)
 
-                    # Get the game state
-                    game_state = game_instance.get_state()
+            # Take a step in the game
+            game_instance.step(action)
 
-                    # Get the agent to pick an action
-                    action = agent.select_action(game_state, all_actions, actions)
+            # Get the game reward
+            reward = game_instance.get_current_game_reward()
 
-                    # What is the index of the action when set against the entire list of actions?
-                    action_index = all_actions.index(action)
+            # Get the new game state
+            new_game_state = game_instance.get_state()
 
-                    # Take a step in the game
-                    game_instance.step(action)
+            # Create a memory tuple
+            memory_tuple = (game_state, action_index, reward, new_game_state)
 
-                    # Get the game reward
-                    reward = game_instance.get_current_game_reward()
+            # Add the memory tuple to the replay buffer
+            replay_memory.add(memory_tuple)
 
-                    # Get the new game state
-                    new_game_state = game_instance.get_state()
+            # Is the size of the replay memory more than 16?
+            if replay_memory.get_buffer_size() > 16:
+                if learn_steps < 4:
+                    # Increment the learn steps
+                    learn_steps += 1
+                else:
+                    # Reset the learn steps
+                    learn_steps = 0
+                    # Call the learn() method on the agent
+                    agent.learn(replay_memory)
 
-                    # Create a memory tuple
-                    memory_tuple = (game_state, action_index, reward, new_game_state)
+        # Check for the custom event that we set up to update the game board
+        if event.type == UPDATE_GAME_BOARD_EVENT:
 
-                    # Add the memory tuple to the replay buffer
-                    replay_memory.add(memory_tuple)
+            # Update the game state on the GUI
+            screen.fill(pygame.Color(WATER_TILE_COLOUR))
 
-                    # Is the size of the replay memory more than 16?
-                    if replay_memory.get_buffer_size() > 16:
-                        if learn_steps < 4:
-                            # Increment the learn steps
-                            learn_steps += 1
-                        else:
-                            # Reset the learn steps
-                            learn_steps = 0
-                            # Call the learn() method on the agent
-                            agent.learn(replay_memory)
+            # Get the game state once
+            game_state = game_instance.get_state()
 
-                    # -- UPDATE THE GAME UI --
+            # Get the type map from the game instance
+            type_map = game_state["tile_types"]
 
-                    # Update the game state on the GUI
-                    screen.fill(pygame.Color(WATER_TILE_COLOUR))
+            # Get the values map from the game instance
+            values_map = game_state["tile_values"]
 
-                    # Get the game state once
-                    game_state = game_instance.get_state()
+            # Get the vertex states from the game instance
+            vertex_states = game_state["vertex_states"]
 
-                    # Get the type map from the game instance
-                    type_map = game_state["tile_types"]
+            # Get the side states from the game instance
+            side_states = game_state["side_states"]
 
-                    # Get the values map from the game instance
-                    values_map = game_state["tile_values"]
+            # Get the number of current victory points from the game instance
+            victory_points = game_state["victory_points"]
 
-                    # Get the vertex states from the game instance
-                    vertex_states = game_state["vertex_states"]
+            # Get the number of resources from the current player's resource pool
+            num_lumber = game_state["num_lumber"]
+            num_grain = game_state["num_grain"]
+            num_ore = game_state["num_ore"]
+            num_wool = game_state["num_wool"]
+            num_brick = game_state["num_brick"]
 
-                    # Get the side states from the game instance
-                    side_states = game_state["side_states"]
+            # Draw the Board
 
-                    # Get the number of current victory points from the game instance
-                    victory_points = game_state["victory_points"]
+            # Get the points for each hexagon on the board
+            (
+                all_hex_points,
+                all_hex_centre_values,
+                all_settlement_points,
+                all_road_points,
+            ) = get_all_hex_points(
+                STARTING_HEX_CENTRE_X,
+                STARTING_HEX_CENTRE_Y,
+                HEX_RADIUS,
+                BOARD_DIMS,
+                vertex_states,
+                side_states,
+            )
 
-                    # Get the number of resources from the current player's resource pool
-                    num_lumber = game_state["num_lumber"]
-                    num_grain = game_state["num_grain"]
-                    num_ore = game_state["num_ore"]
-                    num_wool = game_state["num_wool"]
-                    num_brick = game_state["num_brick"]
+            # Draw each hexagon, with a border of 10 pixels
+            for hex_points in all_hex_points:
+                # Get the colour value for the current hexagon
+                fill_colour = get_colour_value_from_resource_name(type_map.pop(0))
+                # Draw the hexagon
+                pygame.draw.polygon(screen, pygame.Color(fill_colour), hex_points, 0)
+                # Draw the border
+                pygame.draw.polygon(screen, pygame.Color(BORDER_COLOUR), hex_points, 6)
 
-                    # Draw the Board
-
-                    # Get the points for each hexagon on the board
-                    (
-                        all_hex_points,
-                        all_hex_centre_values,
-                        all_settlement_points,
-                        all_road_points,
-                    ) = get_all_hex_points(
-                        STARTING_HEX_CENTRE_X,
-                        STARTING_HEX_CENTRE_Y,
-                        HEX_RADIUS,
-                        BOARD_DIMS,
-                        vertex_states,
-                        side_states,
-                    )
-
-                    # Draw each hexagon, with a border of 10 pixels
-                    for hex_points in all_hex_points:
-                        # Get the colour value for the current hexagon
-                        fill_colour = get_colour_value_from_resource_name(
-                            type_map.pop(0)
-                        )
-                        # Draw the hexagon
-                        pygame.draw.polygon(
-                            screen, pygame.Color(fill_colour), hex_points, 0
-                        )
-                        # Draw the border
-                        pygame.draw.polygon(
-                            screen, pygame.Color(BORDER_COLOUR), hex_points, 6
-                        )
-
-                        # Draw the value in the centre of each hexagon
-                        # Get the value for the current hexagon
-                        value = values_map.pop(0)
-                        # Get the centre points for the current hexagon
-                        centre_points = all_hex_centre_values.pop(0)
-                        # Skip the desert tile
-                        if value != 0:
-                            # Draw the text with font.render()
-                            # Is the number a six or an eight?
-                            if value == 6 or value == 8:
-                                text = font.render(
-                                    str(value), True, pygame.Color(RED_NUMBER_COLOUR)
-                                )
-                            else:
-                                text = font.render(
-                                    str(value), True, pygame.Color(NUMBER_COLOUR)
-                                )
-                            # Draw the text to the screen
-                            text_rect = text.get_rect(
-                                center=(centre_points[0], centre_points[1])
-                            )
-                            screen.blit(text, text_rect)
-
-                    # Draw the settlements
-                    # First, loop through each hex
-                    for hex in all_settlement_points:
-                        # Then, loop through each vertex in the hex
-                        for vertex in hex:
-                            # Calculate x and y of the top left corner
-                            x = vertex[0] - SETTLEMENT_RADIUS
-                            y = vertex[1] - SETTLEMENT_RADIUS
-                            # Draw the settlement
-                            pygame.draw.rect(
-                                screen,
-                                pygame.Color(SETTLEMENT_COLOUR),
-                                (x, y, SETTLEMENT_RADIUS * 2, SETTLEMENT_RADIUS * 2),
-                                0,
-                            )
-
-                    # Draw the roads
-                    # First, loop through each hex
-                    for hex in all_road_points:
-                        # Then, loop through each side in the hex
-                        for side in hex:
-                            # Draw the road
-                            pygame.draw.line(
-                                screen,
-                                pygame.Color(ROAD_COLOUR),
-                                (side[0], side[1]),
-                                (side[2], side[3]),
-                                6,
-                            )
-
-                    # Write the victory points to the screen
+                # Draw the value in the centre of each hexagon
+                # Get the value for the current hexagon
+                value = values_map.pop(0)
+                # Get the centre points for the current hexagon
+                centre_points = all_hex_centre_values.pop(0)
+                # Skip the desert tile
+                if value != 0:
                     # Draw the text with font.render()
-                    text = vp_font.render(
-                        "Victory Points: " + str(victory_points),
-                        True,
-                        pygame.Color(VP_COLOUR),
-                    )
+                    # Is the number a six or an eight?
+                    if value == 6 or value == 8:
+                        text = font.render(
+                            str(value), True, pygame.Color(RED_NUMBER_COLOUR)
+                        )
+                    else:
+                        text = font.render(
+                            str(value), True, pygame.Color(NUMBER_COLOUR)
+                        )
                     # Draw the text to the screen
-                    text_rect = text.get_rect(center=(90, 25))
+                    text_rect = text.get_rect(
+                        center=(centre_points[0], centre_points[1])
+                    )
                     screen.blit(text, text_rect)
 
-                    # Write the turn number just below the victory points
-                    text = font.render(
-                        "Turn: " + str(game_state["turn_number"]),
-                        True,
-                        pygame.Color(VP_COLOUR),
-                    )
-                    # Draw the text to the screen
-                    text_rect = text.get_rect(center=(90, 50))
-                    screen.blit(text, text_rect)
-
-                    # Get the most recent dice roll
-                    most_recent_dice_roll = game_instance.get_most_recent_roll()
-                    roll_value = most_recent_dice_roll[2]
-
-                    # Write the dice roll to the screen in the top right corner
-                    text = font.render(
-                        "Last Dice Roll: " + str(roll_value),
-                        True,
-                        pygame.Color(VP_COLOUR),
-                    )
-                    # Draw the text to the screen
-                    text_rect = text.get_rect(center=(SCREEN_WIDTH - 80, 25))
-                    screen.blit(text, text_rect)
-
-                    # Write up the resource texts
-                    resource_texts = [
-                        (f"Lumber: {num_lumber}"),
-                        (f"Grain: {num_grain}"),
-                        (f"Ore: {num_ore}"),
-                        (f"Wool: {num_wool}"),
-                        (f"Brick: {num_brick}"),
-                    ]
-
-                    # Load each of the resource icons
-                    lumber_icon = pygame.image.load("wood.png").convert_alpha()
-                    brick_icon = pygame.image.load("wall.png").convert_alpha()
-                    wool_icon = pygame.image.load("sheep.png").convert_alpha()
-                    grain_icon = pygame.image.load("wheat.png").convert_alpha()
-                    ore_icon = pygame.image.load("stone.png").convert_alpha()
-
-                    # List the icons
-                    icons = [lumber_icon, grain_icon, ore_icon, wool_icon, brick_icon]
-
-                    # Set up the resource box at the bottom of the screen
-                    box_height = 100
-                    box_y = SCREEN_HEIGHT - box_height
-                    box_color = (255, 255, 255)
-                    box_border_color = (0, 0, 0)
-                    box_border_width = 2
-                    box_rect = pygame.Rect(0, box_y, SCREEN_WIDTH, box_height)
-
-                    # Draw the box
-                    pygame.draw.rect(screen, box_color, box_rect)
+            # Draw the settlements
+            # First, loop through each hex
+            for hex in all_settlement_points:
+                # Then, loop through each vertex in the hex
+                for vertex in hex:
+                    # Calculate x and y of the top left corner
+                    x = vertex[0] - SETTLEMENT_RADIUS
+                    y = vertex[1] - SETTLEMENT_RADIUS
+                    # Draw the settlement
                     pygame.draw.rect(
-                        screen, box_border_color, box_rect, box_border_width
+                        screen,
+                        pygame.Color(SETTLEMENT_COLOUR),
+                        (x, y, SETTLEMENT_RADIUS * 2, SETTLEMENT_RADIUS * 2),
+                        0,
                     )
 
-                    # Work out the spacing between the resource texts
-                    font_size = 17
-                    text_spacing = (box_rect.width - font_size * 5) / 6
-                    text_surfaces = []
+            # Draw the roads
+            # First, loop through each hex
+            for hex in all_road_points:
+                # Then, loop through each side in the hex
+                for side in hex:
+                    # Draw the road
+                    pygame.draw.line(
+                        screen,
+                        pygame.Color(ROAD_COLOUR),
+                        (side[0], side[1]),
+                        (side[2], side[3]),
+                        6,
+                    )
 
-                    # Get the spacing between the icons
-                    icon_spacing = (
-                        box_rect.width - (font_size + icons[0].get_width()) * 5
-                    ) // 6
+            # Write the victory points to the screen
+            # Draw the text with font.render()
+            text = vp_font.render(
+                "Victory Points: " + str(victory_points),
+                True,
+                pygame.Color(VP_COLOUR),
+            )
+            # Draw the text to the screen
+            text_rect = text.get_rect(center=(90, 25))
+            screen.blit(text, text_rect)
 
-                    # Loop through the resource texts
-                    for i in range(len(resource_texts)):
-                        # Create the surface
-                        text_surface = res_font.render(
-                            resource_texts[i], True, (0, 0, 0)
-                        )
-                        text_rect = text_surface.get_rect()
-                        # Set the x position
-                        text_rect.x = (
-                            box_rect.x + text_spacing + (font_size + text_spacing) * i
-                        )
-                        # Set the y position
-                        text_rect.y = box_y + (box_height - font_size) // 2
-                        # Add the surface and rect to the list
-                        text_surfaces.append((text_surface, text_rect))
+            # Write the turn number just below the victory points
+            text = font.render(
+                "Turn: " + str(game_state["turn_number"]),
+                True,
+                pygame.Color(VP_COLOUR),
+            )
+            # Draw the text to the screen
+            text_rect = text.get_rect(center=(90, 50))
+            screen.blit(text, text_rect)
 
-                        icon_surface = icons[i]
-                        if icon_surface:
-                            icon_rect = icon_surface.get_rect()
-                            icon_rect.x = text_rect.x - 30
-                            icon_rect.y = text_rect.y
-                            screen.blit(icon_surface, icon_rect)
+            # Get the most recent dice roll
+            most_recent_dice_roll = game_instance.get_most_recent_roll()
+            roll_value = most_recent_dice_roll[2]
 
-                    # Blit the text surfaces onto the window
-                    for text_surface, text_rect in text_surfaces:
-                        screen.blit(text_surface, text_rect)
+            # Write the dice roll to the screen in the top right corner
+            text = font.render(
+                "Last Dice Roll: " + str(roll_value),
+                True,
+                pygame.Color(VP_COLOUR),
+            )
+            # Draw the text to the screen
+            text_rect = text.get_rect(center=(SCREEN_WIDTH - 80, 25))
+            screen.blit(text, text_rect)
 
-                    # Update the display using flip
-                    pygame.display.flip()
+            # Write up the resource texts
+            resource_texts = [
+                (f"Lumber: {num_lumber}"),
+                (f"Grain: {num_grain}"),
+                (f"Ore: {num_ore}"),
+                (f"Wool: {num_wool}"),
+                (f"Brick: {num_brick}"),
+            ]
 
-                    # Game over?
-                    game_over_flag = game_instance.get_game_over_flag()
-                    pulled_to_csv = False
+            # Load each of the resource icons
+            lumber_icon = pygame.image.load("wood.png").convert_alpha()
+            brick_icon = pygame.image.load("wall.png").convert_alpha()
+            wool_icon = pygame.image.load("sheep.png").convert_alpha()
+            grain_icon = pygame.image.load("wheat.png").convert_alpha()
+            ore_icon = pygame.image.load("stone.png").convert_alpha()
 
-                    if game_over_flag == True:
-                        if pulled_to_csv == False:
-                            replay_memory.save_buffer()
-                            print("Saved as JSON!")
-                        pulled_to_csv = True
+            # List the icons
+            icons = [lumber_icon, grain_icon, ore_icon, wool_icon, brick_icon]
 
-                        # Reset the game
-                        game_instance.reset()
+            # Set up the resource box at the bottom of the screen
+            box_height = 100
+            box_y = SCREEN_HEIGHT - box_height
+            box_color = (255, 255, 255)
+            box_border_color = (0, 0, 0)
+            box_border_width = 2
+            box_rect = pygame.Rect(0, box_y, SCREEN_WIDTH, box_height)
 
-                        # Start the game
-                        game_instance.start_game()
+            # Draw the box
+            pygame.draw.rect(screen, box_color, box_rect)
+            pygame.draw.rect(screen, box_border_color, box_rect, box_border_width)
+
+            # Work out the spacing between the resource texts
+            font_size = 17
+            text_spacing = (box_rect.width - font_size * 5) / 6
+            text_surfaces = []
+
+            # Get the spacing between the icons
+            icon_spacing = (
+                box_rect.width - (font_size + icons[0].get_width()) * 5
+            ) // 6
+
+            # Loop through the resource texts
+            for i in range(len(resource_texts)):
+                # Create the surface
+                text_surface = res_font.render(resource_texts[i], True, (0, 0, 0))
+                text_rect = text_surface.get_rect()
+                # Set the x position
+                text_rect.x = box_rect.x + text_spacing + (font_size + text_spacing) * i
+                # Set the y position
+                text_rect.y = box_y + (box_height - font_size) // 2
+                # Add the surface and rect to the list
+                text_surfaces.append((text_surface, text_rect))
+
+                icon_surface = icons[i]
+                if icon_surface:
+                    icon_rect = icon_surface.get_rect()
+                    icon_rect.x = text_rect.x - 30
+                    icon_rect.y = text_rect.y
+                    screen.blit(icon_surface, icon_rect)
+
+            # Blit the text surfaces onto the window
+            for text_surface, text_rect in text_surfaces:
+                screen.blit(text_surface, text_rect)
+
+            # Write the agent's name to the screen in the bottom left corner
+            text = sm_font.render(agent.name, True, pygame.Color(BORDER_COLOUR))
+            # Draw the text to the screen
+            text_rect = text.get_rect(center=(25, SCREEN_HEIGHT - 15))
+            screen.blit(text, text_rect)
+
+            # Update the display using flip
+            pygame.display.flip()
+
+            # Game over?
+            game_over_flag = game_instance.get_game_over_flag()
+            pulled_to_csv = False
+
+            if game_over_flag == True:
+                if pulled_to_csv == False:
+                    replay_memory.save_buffer()
+                    print("Saved as JSON!")
+                pulled_to_csv = True
+
+                # Reset the game
+                game_instance.reset()
+
+                # Start the game
+                game_instance.start_game()
+
+                # Agent saving
+                if AGENT_SELECTED == "Adam":
+                    # Save the model first
+                    agent.save_model(MODEL_PATH)

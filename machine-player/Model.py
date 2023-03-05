@@ -5,7 +5,7 @@ from StatePreprocessor import StatePreprocessor
 
 
 class CatanModel(nn.Module):
-    def __init__(self, input_size=278, output_size=246, hidden_size=64):
+    def __init__(self, input_size=278, output_size=249, hidden_size=64):
         super(CatanModel, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.relu1 = nn.ReLU()
@@ -61,6 +61,12 @@ class CatanModel(nn.Module):
         actions = torch.tensor(actions, dtype=torch.long)
         rewards = torch.tensor(rewards, dtype=torch.float32)
         next_states = torch.tensor(next_states, dtype=torch.float32)
+
+        # How big is the actions?
+        print(f"actions.size(): {actions.size()}")
+
+        # How big is the states?
+        print(f"states.size(): {states.size()}")
 
         # Calculate the q values using the states and actions provided
         # The use of gather() here is essentially a glorified for loop; it's a more efficient way of calculating the q values

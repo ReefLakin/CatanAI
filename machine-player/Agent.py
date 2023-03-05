@@ -41,3 +41,11 @@ class Agent:
     # Will be overwritten by child classes, so let's just pass
     def learn(self, memory):
         pass
+
+    # Method for loading the model
+    def load_model(self, path):
+        self.model.load(path)
+
+    # Method for saving the model
+    def save_model(self, path):
+        self.model.save(path)
