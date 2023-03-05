@@ -43,4 +43,4 @@ class Adam(Agent):
 
     # Method for learning
     def learn(self, memory):
-        self.model.learn(memory)
+        self.model.learn(memory, batch_size=64)
