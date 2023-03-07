@@ -67,7 +67,7 @@ game_instance = CatanGame()
 AGENT_SELECTED = "Adam"
 
 # REPLAY MEMORY
-replay_memory = ReplayMemory(1000)
+replay_memory = ReplayMemory(10000)
 
 
 # Helper Functions
@@ -250,7 +250,9 @@ vp_font = pygame.font.SysFont("Arial", 20, bold=True)
 if AGENT_SELECTED == "Adam":
     agent = Adam()
     MODEL_PATH = "adam.pth"
-    if os._exists(MODEL_PATH):
+    # Check if the "model.pth" file exists
+    if os.path.exists(MODEL_PATH):
+        print("Ahhh! I'm back!")
         agent.load_model(MODEL_PATH)
 else:
     agent = Randy()
@@ -271,7 +273,7 @@ while running:
 
     # If PLEASE_LORD_GIVE_ME_A_BREAK is true, make a small time delay
     if PLEASE_LORD_GIVE_ME_A_BREAK:
-        time.sleep(0.0000004)
+        time.sleep(0.04)
         PLEASE_LORD_GIVE_ME_A_BREAK = False
         pygame.event.post(take_action)
         pygame.event.post(update_game_board)
@@ -331,8 +333,8 @@ while running:
             # Add the memory tuple to the replay buffer
             replay_memory.add(memory_tuple)
 
-            # Is the size of the replay memory more than 16?
-            if replay_memory.get_buffer_size() > 16:
+            # Is the size of the replay memory more than 64?
+            if replay_memory.get_buffer_size() > 64:
                 if learn_steps < 4:
                     # Increment the learn steps
                     learn_steps += 1
@@ -589,7 +591,7 @@ while running:
 
             # Game over?
             game_over_flag = game_instance.get_game_over_flag()
-            pulled_to_csv = False
+            pulled_to_csv = True
 
             if game_over_flag == True:
                 if pulled_to_csv == False:

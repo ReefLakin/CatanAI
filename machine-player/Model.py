@@ -92,4 +92,5 @@ class CatanModel(nn.Module):
         torch.save(self.state_dict(), filename)
 
     def load(self, filename):
+        print("Loading model from file: " + filename)
         self.load_state_dict(torch.load(filename))

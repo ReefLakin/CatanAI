@@ -44,7 +44,9 @@ def get_default_type_map():
 if AGENT_SELECTED == "Adam":
     agent = Adam()
     MODEL_PATH = "adam.pth"
-    if os._exists(MODEL_PATH):
+    # Check if the "model.pth" file exists
+    if os.path.exists(MODEL_PATH):
+        print("Ahhh! I'm back!")
         agent.load_model(MODEL_PATH)
 else:
     agent = Randy()
