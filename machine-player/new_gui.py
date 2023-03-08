@@ -66,6 +66,9 @@ game_instance = CatanGame()
 # THE AGENT
 AGENT_SELECTED = "Adam"
 
+# NUMBER OF GAMES (Set to -1 for infinite)
+EPISODES = -1
+
 # REPLAY MEMORY
 replay_memory = ReplayMemory(10000)
 
@@ -268,12 +271,13 @@ game_instance.start_game()
 running = True
 PLEASE_LORD_GIVE_ME_A_BREAK = False
 learn_steps = 0
+games_played = 0
 
-while running:
+while running is True and games_played != EPISODES:
 
     # If PLEASE_LORD_GIVE_ME_A_BREAK is true, make a small time delay
     if PLEASE_LORD_GIVE_ME_A_BREAK:
-        time.sleep(0.004)
+        time.sleep(0.00004)
         PLEASE_LORD_GIVE_ME_A_BREAK = False
         pygame.event.post(take_action)
         pygame.event.post(update_game_board)
@@ -601,13 +605,12 @@ while running:
 
             # Game over?
             game_over_flag = game_instance.get_game_over_flag()
-            pulled_to_csv = True
 
             if game_over_flag == True:
-                if pulled_to_csv == False:
-                    replay_memory.save_buffer()
+                games_played += 1  # Increment the number of games played
+                if games_played == EPISODES:
+                    replay_memory.save_buffer(AGENT_SELECTED)
                     print("Saved as JSON!")
-                pulled_to_csv = True
 
                 # Reset the game
                 game_instance.reset()

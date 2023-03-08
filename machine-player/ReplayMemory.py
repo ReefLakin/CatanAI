@@ -29,7 +29,7 @@ class ReplayMemory:
         return len(self.buffer)
 
     # Save the buffer to a file
-    def save_buffer(self):
+    def save_buffer(self, agent_name="Agent"):
 
         # Convert list of tuples to JSON
         json_data = json.dumps(self.buffer)
@@ -41,7 +41,7 @@ class ReplayMemory:
 
         # Get current date and time for file name
         now = datetime.now()
-        filename = now.strftime("%Y-%m-%d-%H-%M-%S") + ".json"
+        filename = agent_name + now.strftime("-%Y-%m-%d-%H-%M") + ".json"
 
         # Write JSON data to file
         with open(os.path.join(directory, filename), "w") as file:

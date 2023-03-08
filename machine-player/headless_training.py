@@ -27,6 +27,9 @@ game_instance = CatanGame()
 # THE AGENT
 AGENT_SELECTED = "Adam"
 
+# NUMBER OF GAMES (Set to -1 for infinite)
+EPISODES = -1
+
 # REPLAY MEMORY
 replay_memory = ReplayMemory(10000)
 
@@ -60,10 +63,10 @@ game_instance.start_game()
 
 # Variable to keep our game loop running
 running = True
-
 learn_steps = 0
+games_played = 0
 
-while running:
+while running is True and games_played != EPISODES:
 
     # Get the legal actions from the game instance
     actions = game_instance.get_legal_actions()
@@ -99,9 +102,6 @@ while running:
         game_over,
     )
 
-    # Print reward
-    print("Reward: ", reward)
-
     # Create a memory tuple
     memory_tuple = (game_state, action_index, reward, new_game_state)
 
@@ -121,13 +121,12 @@ while running:
 
     # Game over?
     game_over_flag = game_instance.get_game_over_flag()
-    pulled_to_csv = True
 
     if game_over_flag == True:
-        if pulled_to_csv == False:
-            replay_memory.save_buffer()
+        games_played += 1  # Increment the number of games played
+        if games_played == EPISODES:
+            replay_memory.save_buffer(AGENT_SELECTED)
             print("Saved as JSON!")
-        pulled_to_csv = True
 
         # Reset the game
         game_instance.reset()
