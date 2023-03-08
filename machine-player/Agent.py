@@ -49,3 +49,9 @@ class Agent:
     # Method for saving the model
     def save_model(self, path):
         self.model.save(path)
+
+    # Reward function
+    def reward(
+        self, state, action, next_state, legal_actions, all_possible_actions, done
+    ):
+        return 0

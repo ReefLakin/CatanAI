@@ -83,11 +83,24 @@ while running:
     # Take a step in the game
     game_instance.step(action)
 
-    # Get the game reward
-    reward = game_instance.get_current_game_reward()
-
     # Get the new game state
     new_game_state = game_instance.get_state()
+
+    # Get game over flag
+    game_over = game_instance.get_game_over_flag()
+
+    # Get the reward from the Agent
+    reward = agent.reward(
+        game_state,
+        action,
+        new_game_state,
+        actions,
+        all_actions,
+        game_over,
+    )
+
+    # Print reward
+    print("Reward: ", reward)
 
     # Create a memory tuple
     memory_tuple = (game_state, action_index, reward, new_game_state)

@@ -93,8 +93,7 @@ class CatanGame:
 
         # Is the action even legal?
         if action not in self.legal_actions:
-            reward = self.get_reward(action)
-            self.reward = self.reward + reward
+            pass
 
         # If the action is legal, is the action a 4:1 trade?
         elif action_parts[0] == "trade":
@@ -169,39 +168,12 @@ class CatanGame:
             # Distribute resources
             self.distribute_resources(roll)
 
-        # Update the reward
-        reward = self.get_reward(action)
-        self.reward = self.reward + reward
-
         # Is the game over?
         if self.victory_points >= 10:
             self.game_over = True
 
         # Update the legal actions
         self.set_legal_actions()
-
-    def get_reward(self, action):
-        # Return the reward for taking a given action
-        # Picking an illegal action will result in a reward of -1
-        # If the player has earned 10 VPs, they have won the game and will receive a reward of +300
-        if self.victory_points >= 10:
-            return 300
-        if action not in self.legal_actions:
-            return -1
-        else:
-            split_action = action.split("_")
-            # Building a road will net a reward of +3
-            if split_action[0] == "build" and split_action[1] == "road":
-                return 3
-            # Building a settlement will net a reward of +50
-            elif split_action[0] == "build" and split_action[1] == "settlement":
-                return 50
-            # Building a city will net a reward of +50
-            elif split_action[0] == "build" and split_action[1] == "city":
-                return 50
-            # Anything else will net a reward of 0
-            else:
-                return 0
 
     def get_current_game_reward(self):
         # Return the current game reward

@@ -273,7 +273,7 @@ while running:
 
     # If PLEASE_LORD_GIVE_ME_A_BREAK is true, make a small time delay
     if PLEASE_LORD_GIVE_ME_A_BREAK:
-        time.sleep(0.04)
+        time.sleep(0.004)
         PLEASE_LORD_GIVE_ME_A_BREAK = False
         pygame.event.post(take_action)
         pygame.event.post(update_game_board)
@@ -321,11 +321,21 @@ while running:
             # Take a step in the game
             game_instance.step(action)
 
-            # Get the game reward
-            reward = game_instance.get_current_game_reward()
-
             # Get the new game state
             new_game_state = game_instance.get_state()
+
+            # Get game over flag
+            game_over = game_instance.get_game_over_flag()
+
+            # Get the reward from the Agent
+            reward = agent.reward(
+                game_state,
+                action,
+                new_game_state,
+                actions,
+                all_actions,
+                game_over,
+            )
 
             # Create a memory tuple
             memory_tuple = (game_state, action_index, reward, new_game_state)
@@ -335,7 +345,7 @@ while running:
 
             # Is the size of the replay memory more than 64?
             if replay_memory.get_buffer_size() > 64:
-                if learn_steps < 4:
+                if learn_steps < 8:
                     # Increment the learn steps
                     learn_steps += 1
                 else:

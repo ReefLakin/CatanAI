@@ -18,7 +18,7 @@ import torch
 
 # Define the Adam class
 class Adam(Agent):
-    def __init__(self, exploration_rate=0.15):
+    def __init__(self, exploration_rate=0.1):
         # Set the exploration rate to the exploration rate passed to the constructor
         self.exploration_rate = exploration_rate
         # Set the model (use the default values for now)
@@ -43,4 +43,26 @@ class Adam(Agent):
 
     # Method for learning
     def learn(self, memory):
-        self.model.learn(memory, batch_size=64)
+        self.model.learn(memory, batch_size=32)
+
+    # Reward function
+    def reward(
+        self, state, action, next_state, legal_actions, all_possible_actions, done
+    ):
+        # Adam gets rewarded more for: reaching 10 VPs
+        # Adam gets moderately rewarded for: building roads, settlements, cities
+        # Adam gets mildly punished for: making illegal moves
+        if done == True:
+            return 300  # Victory reward
+        elif action not in legal_actions:
+            return -1  # Illegal move punishment
+        else:
+            split_action = action.split("_")
+            if split_action[0] == "build" and split_action[1] == "road":
+                return 3  # Road building reward
+            elif split_action[0] == "build" and split_action[1] == "settlement":
+                return 50  # Settlement building reward
+            elif split_action[0] == "build" and split_action[1] == "city":
+                return 50  # City building reward
+            else:
+                return 0  # Else, no reward
