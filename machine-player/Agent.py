@@ -51,7 +51,5 @@ class Agent:
         self.model.save(path)
 
     # Reward function
-    def reward(
-        self, state, action, next_state, legal_actions, all_possible_actions, done
-    ):
+    def reward(self, reward_information):
         return 0

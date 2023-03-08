@@ -92,15 +92,11 @@ while running is True and games_played != EPISODES:
     # Get game over flag
     game_over = game_instance.get_game_over_flag()
 
+    # Get reward information from the game instance
+    reward_information = game_instance.reward_information_request(action, actions)
+
     # Get the reward from the Agent
-    reward = agent.reward(
-        game_state,
-        action,
-        new_game_state,
-        actions,
-        all_actions,
-        game_over,
-    )
+    reward = agent.reward(reward_information)
 
     # Create a memory tuple
     memory_tuple = (game_state, action_index, reward, new_game_state)

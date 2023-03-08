@@ -46,12 +46,14 @@ class Adam(Agent):
         self.model.learn(memory, batch_size=32)
 
     # Reward function
-    def reward(
-        self, state, action, next_state, legal_actions, all_possible_actions, done
-    ):
+    def reward(self, reward_information):
         # Adam gets rewarded more for: reaching 10 VPs
         # Adam gets moderately rewarded for: building roads, settlements, cities
         # Adam gets mildly punished for: making illegal moves
+        legal_actions = reward_information["legal_actions"]
+        done = reward_information["game_over"]
+        action = reward_information["current_action"]
+
         if done == True:
             return 300  # Victory reward
         elif action not in legal_actions:

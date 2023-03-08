@@ -522,3 +522,15 @@ class CatanGame:
 
         # Set legal actions
         self.set_legal_actions()
+
+    def reward_information_request(self, action, legal_actions):
+        # The Agent will request a batch of information about the current game state
+        # Returns a dictionary of information
+
+        information = {
+            "legal_actions": legal_actions,
+            "current_action": action,
+            "game_over": self.game_over,
+        }
+
+        return information
