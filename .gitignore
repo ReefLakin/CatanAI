@@ -11,3 +11,6 @@ __pycache__/
 
 # NN files
 *.pth
+
+# CSV files within the training_session_data directory
+training_session_data/*.csv

@@ -2,6 +2,7 @@
 import torch.nn as nn
 import torch
 from StatePreprocessor import StatePreprocessor
+import numpy as np
 
 
 class CatanModel(nn.Module):
@@ -56,6 +57,12 @@ class CatanModel(nn.Module):
             state_preprocessor.preprocess_state(state) for state in next_states
         ]
 
+        # Normalise the states in the states list
+        states = [self.normalise_state(state) for state in states]
+
+        # Normalise the next states in the next_states list
+        next_states = [self.normalise_state(state) for state in next_states]
+
         # Convert the lists into tensors
         states = torch.tensor(states, dtype=torch.float32)
         actions = torch.tensor(actions, dtype=torch.long)
@@ -87,6 +94,10 @@ class CatanModel(nn.Module):
 
         # Update the weights
         self.optimiser.step()
+
+    def normalise_state(self, state):
+        # Normalise the state
+        return (state - np.min(state)) / (np.max(state) - np.min(state))
 
     def save(self, filename):
         torch.save(self.state_dict(), filename)

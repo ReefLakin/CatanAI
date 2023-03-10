@@ -55,16 +55,16 @@ class Adam(Agent):
         action = reward_information["current_action"]
 
         if done == True:
-            return 300  # Victory reward
+            return 100  # Victory reward
         elif action not in legal_actions:
-            return -1  # Illegal move punishment
+            return -2  # Illegal move punishment
         else:
             split_action = action.split("_")
             if split_action[0] == "build" and split_action[1] == "road":
-                return 3  # Road building reward
+                return 1  # Road building reward
             elif split_action[0] == "build" and split_action[1] == "settlement":
-                return 50  # Settlement building reward
+                return 10  # Settlement building reward
             elif split_action[0] == "build" and split_action[1] == "city":
-                return 50  # City building reward
+                return 10  # City building reward
             else:
                 return 0  # Else, no reward

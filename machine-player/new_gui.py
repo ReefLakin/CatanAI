@@ -380,7 +380,7 @@ while running is True and games_played != EPISODES:
             replay_memory.add(memory_tuple)
 
             # Is the size of the replay memory more than 64?
-            if replay_memory.get_buffer_size() > 64:
+            if replay_memory.get_buffer_size() > 32:
                 if learn_steps < 8:
                     # Increment the learn steps
                     learn_steps += 1

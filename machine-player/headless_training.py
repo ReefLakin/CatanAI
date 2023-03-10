@@ -34,7 +34,7 @@ game_instance = CatanGame()
 AGENT_SELECTED = "Adam"
 
 # NUMBER OF GAMES (Set to -1 for infinite)
-EPISODES = -1
+EPISODES = 1200
 
 # REPLAY MEMORY
 replay_memory = ReplayMemory(10000)
@@ -139,8 +139,8 @@ while running is True and games_played != EPISODES:
     replay_memory.add(memory_tuple)
 
     # Is the size of the replay memory more than 16?
-    if replay_memory.get_buffer_size() > 100:
-        if learn_steps < 6:
+    if replay_memory.get_buffer_size() > 32:
+        if learn_steps < 4:
             # Increment the learn steps
             learn_steps += 1
         else:
@@ -152,6 +152,9 @@ while running is True and games_played != EPISODES:
     # Game over?
     game_over_flag = game_instance.get_game_over_flag()
 
+    # Print the number of games played
+    print("Games played: " + str(games_played))
+
     if game_over_flag == True:
         # Append the CSV data to the arrays
         total_illegal_actions_attempted_list.append(total_illegal_actions_attempted)
@@ -162,7 +165,8 @@ while running is True and games_played != EPISODES:
 
         games_played += 1  # Increment the number of games played
         if games_played == EPISODES or games_played == 12000:
-            games_played = 0
+            if games_played == 12000:
+                games_played = 0
             replay_memory.save_buffer(AGENT_SELECTED)
 
             data = zip(
