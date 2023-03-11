@@ -245,3 +245,31 @@ class Board:
         for tile in self.board_tiles:
             vertex_states.append(tile.get_all_vertex_values_as_list())
         return vertex_states
+
+    # Get the tile currently holding the robber
+    def get_robber_tile(self):
+        for tile in self.board_tiles:
+            if tile.get_has_robber() == True:
+                return tile
+        return None
+
+    # Move the robber from current robber tile to a new tile
+    def move_robber(self, q, r, s):
+        # Get the current robber tile
+        current_robber_tile = self.get_robber_tile()
+        # Move the robber to the new tile
+        new_robber_tile = self.get_tile(q, r, s)
+        if current_robber_tile != None:
+            current_robber_tile.set_has_robber(False)
+        if new_robber_tile != None:
+            new_robber_tile.set_has_robber(True)
+
+    # Get a list of tiles (0 if there isn't a robber on the tile, 1 if there is)
+    def get_robber_states(self):
+        robber_states = []
+        for tile in self.board_tiles:
+            if tile.get_has_robber() == True:
+                robber_states.append(1)
+            else:
+                robber_states.append(0)
+        return robber_states

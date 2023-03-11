@@ -50,6 +50,7 @@ NUMBER_COLOUR = "#000000"
 RED_NUMBER_COLOUR = "#BF4444"
 VP_COLOUR = "#1B152E"
 CITY_GOLD_COLOUR = "#FFD700"
+ROBBER_COLOUR = "#C4BCA9"
 
 # SCREEN INFORMATION
 SCREEN_WIDTH = 880
@@ -70,7 +71,7 @@ CITY_RADIUS_INNER = HEX_RADIUS / 6
 game_instance = CatanGame()
 
 # THE AGENT
-AGENT_SELECTED = "Adam"
+AGENT_SELECTED = "Randy"
 
 # NUMBER OF GAMES (Set to -1 for infinite)
 EPISODES = -1
@@ -122,7 +123,7 @@ def get_hex_points(centre_x, centre_y, radius, vertex_states, side_states):
 
 # Collect the points for each hexagon on the board
 def get_all_hex_points(
-    centre_x, centre_y, radius, board_dims, vertex_states, side_states
+    centre_x, centre_y, radius, board_dims, vertex_states, side_states, robber_states
 ):
     x = centre_x
     y = centre_y
@@ -133,6 +134,8 @@ def get_all_hex_points(
     all_settlement_points = []
     all_road_points = []
     all_city_points = []
+    robber_points = []
+    robber_index = 0
 
     # Loops through each row of the board according to the dimensions
     for row in range(len(board_dims)):
@@ -145,6 +148,10 @@ def get_all_hex_points(
         for hex in range(hexesInRow):
             # Get the centre points for the current hexagon
             all_hex_centre_values.append([x, y])
+            # Does the robber occupy the current hexagon?
+            if robber_states[robber_index] == 1:
+                # Add the robber to the list
+                robber_points.append([x, y])
             # Pop the first element from the vertex data list
             current_hex_vert_data = vert_data.pop(0)
             # Pop the first element from the side data list
@@ -165,6 +172,9 @@ def get_all_hex_points(
             # Add the city points to the list
             all_city_points.append(city_points)
 
+            # Increase the robber_index by 1
+            robber_index += 1
+
         # Recalculate the y-position for the next row
         y += 3 / 4 * (radius * 2)
 
@@ -175,6 +185,7 @@ def get_all_hex_points(
         all_settlement_points,
         all_road_points,
         all_city_points,
+        robber_points,
     )
 
 
@@ -421,6 +432,9 @@ while running is True and games_played != EPISODES:
             num_wool = game_state["num_wool"]
             num_brick = game_state["num_brick"]
 
+            # Get the robber states
+            robber_states = game_state["robber_states"]
+
             # Draw the Board
 
             # Get the points for each hexagon on the board
@@ -430,6 +444,7 @@ while running is True and games_played != EPISODES:
                 all_settlement_points,
                 all_road_points,
                 all_city_points,
+                robber_points,
             ) = get_all_hex_points(
                 STARTING_HEX_CENTRE_X,
                 STARTING_HEX_CENTRE_Y,
@@ -437,6 +452,7 @@ while running is True and games_played != EPISODES:
                 BOARD_DIMS,
                 vertex_states,
                 side_states,
+                robber_states,
             )
 
             # Draw each hexagon, with a border of 10 pixels
@@ -526,6 +542,11 @@ while running is True and games_played != EPISODES:
                         (side[2], side[3]),
                         6,
                     )
+
+            # Draw the robber
+            # He'll just be a grey circle like the normal robber
+            for robber in robber_points:
+                pygame.draw.circle(screen, pygame.Color(ROBBER_COLOUR), robber, 15, 0)
 
             # Write the victory points to the screen
             # Draw the text with font.render()

@@ -67,5 +67,10 @@ class StatePreprocessor:
             # Add the board dimension to the new state list
             new_state_list.append(row)
 
+        # Loop over the robber points
+        for robber_point in state["robber_states"]:
+            # Add the robber point to the new state list
+            new_state_list.append(robber_point)
+
         # Return the new state list where None values are replaced with 0 (through list comprehension)
         return [0 if v is None else v for v in new_state_list]
