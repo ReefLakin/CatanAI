@@ -11,6 +11,7 @@ from CatanGame import CatanGame
 # AGENTS
 from Randy import Randy
 from Adam import Adam
+from Redmond import Redmond
 
 # REPLAY MEMORY
 from ReplayMemory import ReplayMemory
@@ -34,10 +35,10 @@ game_instance = CatanGame()
 AGENT_SELECTED = "Adam"
 
 # NUMBER OF GAMES (Set to -1 for infinite)
-EPISODES = 1200
+EPISODES = 10000
 
 # REPLAY MEMORY
-replay_memory = ReplayMemory(10000)
+replay_memory = ReplayMemory(4300)
 
 
 # Helper Functions
@@ -53,6 +54,13 @@ def get_default_type_map():
 if AGENT_SELECTED == "Adam":
     agent = Adam()
     MODEL_PATH = "adam.pth"
+    # Check if the "model.pth" file exists
+    if os.path.exists(MODEL_PATH):
+        print("Ahhh! I'm back!")
+        agent.load_model(MODEL_PATH)
+elif AGENT_SELECTED == "Redmond":
+    agent = Redmond()
+    MODEL_PATH = "redmond.pth"
     # Check if the "model.pth" file exists
     if os.path.exists(MODEL_PATH):
         print("Ahhh! I'm back!")
@@ -84,6 +92,7 @@ total_steps_taken_list = []
 total_reward_points_earned_list = []
 total_roads_built_list = []
 game_numbers_list = []
+turn_of_victory_list = []
 
 while running is True and games_played != EPISODES:
 
@@ -138,16 +147,14 @@ while running is True and games_played != EPISODES:
     # Add the memory tuple to the replay buffer
     replay_memory.add(memory_tuple)
 
-    # Is the size of the replay memory more than 16?
-    if replay_memory.get_buffer_size() > 32:
-        if learn_steps < 4:
-            # Increment the learn steps
-            learn_steps += 1
-        else:
-            # Reset the learn steps
-            learn_steps = 0
-            # Call the learn() method on the agent
-            agent.learn(replay_memory)
+    if learn_steps < 8:
+        # Increment the learn steps
+        learn_steps += 1
+    else:
+        # Reset the learn steps
+        learn_steps = 0
+        # Call the learn() method on the agent
+        agent.learn(replay_memory)
 
     # Game over?
     game_over_flag = game_instance.get_game_over_flag()
@@ -162,6 +169,7 @@ while running is True and games_played != EPISODES:
         total_reward_points_earned_list.append(total_reward_points_earned)
         total_roads_built_list.append(total_roads_built)
         game_numbers_list.append(games_played)
+        turn_of_victory_list.append(game_instance.get_turn_number())
 
         games_played += 1  # Increment the number of games played
         if games_played == EPISODES or games_played == 12000:
@@ -175,6 +183,7 @@ while running is True and games_played != EPISODES:
                 total_steps_taken_list,
                 total_reward_points_earned_list,
                 total_roads_built_list,
+                turn_of_victory_list,
             )
 
             # Get current date and time for file name
@@ -198,6 +207,7 @@ while running is True and games_played != EPISODES:
                         "Total steps taken",
                         "Total reward points",
                         "Roads built",
+                        "Turn where victory achieved",
                     ]
                 )
 
@@ -219,5 +229,8 @@ while running is True and games_played != EPISODES:
 
         # Agent saving
         if AGENT_SELECTED == "Adam":
+            # Save the model first
+            agent.save_model(MODEL_PATH)
+        elif AGENT_SELECTED == "Redmond":
             # Save the model first
             agent.save_model(MODEL_PATH)

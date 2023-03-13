@@ -39,6 +39,13 @@ class CatanModel(nn.Module):
         return x
 
     def learn(self, memory, batch_size=16, gamma=0.99):
+        # If the buffer if not full enough, return
+        if memory.get_buffer_size() < batch_size:
+            return
+
+        # Zero the gradients
+        self.optimiser.zero_grad()
+
         # Sample from the replay memory
         # This is a list of tuples in the format (state, action, reward, next_state)
         transitions = memory.sample(batch_size)
@@ -69,27 +76,25 @@ class CatanModel(nn.Module):
         rewards = torch.tensor(rewards, dtype=torch.float32)
         next_states = torch.tensor(next_states, dtype=torch.float32)
 
-        # Calculate the q values using the states and actions provided
-        # The use of gather() here is essentially a glorified for loop; it's a more efficient way of calculating the q values
-        q_values = self(states).gather(1, actions.unsqueeze(-1)).squeeze(-1)
+        # Get the Q values for the current states
+        q_values = self.forward(states)
 
-        # Use the Bellman equation to calculate the target q values
-        # reward: the tensor representing the reward for each transition
-        # gamma: the discount factor
-        # next_state: the tensor representing the next state for each transition
-        # max(1)[0]: the maximum q value for each transition
-        # detach(): detach the tensor from the computational graph
-        # targets: the target q values, as calculated by the Bellman equation on this line
-        targets = rewards + gamma * self(next_states).max(1)[0].detach()
+        # Get the Q values for the actions taken
+        q_values_for_actions_taken = q_values.gather(1, actions.unsqueeze(1)).squeeze(1)
+
+        # Get the Q values for the next states
+        next_q_values = self.forward(next_states)
+
+        # Get the maximum Q values for the next states
+        max_next_q_values = torch.max(next_q_values, dim=1)[0]
+
+        # Calculate the target Q values
+        target_q_values = rewards + gamma * max_next_q_values
 
         # Calculate the loss
-        # The loss is the mean squared error between the q values and the target q values
-        loss = nn.MSELoss()(q_values, targets)
+        loss = nn.MSELoss()(q_values_for_actions_taken, target_q_values)
 
-        # Zero the gradients
-        self.optimiser.zero_grad()
-
-        # Calculate the gradients
+        # Backpropagate the loss
         loss.backward()
 
         # Update the weights

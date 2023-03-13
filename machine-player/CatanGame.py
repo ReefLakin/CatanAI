@@ -81,6 +81,8 @@ class CatanGame:
         self.set_legal_actions()
         # Set the dice roll
         self.most_recent_roll = (0, 0, 0, "Dice haven't been rolled yet.")
+        # Set the number of resources generated with the last roll
+        self.most_recent_resources_generated = 0
 
     def get_board(self):
         # Return the game board
@@ -205,9 +207,9 @@ class CatanGame:
             "num_grain": self.resource_pool["grain"],
             "num_ore": self.resource_pool["ore"],
             "victory_points": self.victory_points,
-            "turn_number": self.turn_number,
             "tile_values": self.board.get_tile_numbers_in_a_list(),
             "robber_states": self.board.get_robber_states(),
+            "most_recent_roll": self.most_recent_roll[2],
         }
 
     def get_state_as_single_list(self):
@@ -461,6 +463,7 @@ class CatanGame:
     def distribute_resources(self, roll):
         # Distribute resources to players based on the given dice roll
         if roll != 7:
+            self.most_recent_resources_generated = 0
             tiles = self.board.get_board_tiles()
             for tile in tiles:
                 if tile.get_tile_value() == roll and tile.get_has_robber() == False:
@@ -477,6 +480,8 @@ class CatanGame:
 
                     # Give the correct resource to the player
                     self.resource_pool[resource_to_give] += resource_count
+
+                    self.most_recent_resources_generated += resource_count
 
     def get_all_possible_actions(self):
         # Return the list of all possible actions
@@ -573,6 +578,16 @@ class CatanGame:
             "legal_actions": legal_actions,
             "current_action": action,
             "game_over": self.game_over,
+            "red_tiles": self.get_list_of_red_tile_coords(),
+            "recent_resources_generated": self.most_recent_resources_generated,
         }
 
         return information
+
+    def get_turn_number(self):
+        # Return the current turn number
+        return self.turn_number
+
+    def get_list_of_red_tile_coords(self):
+        # Return a list of the coordinates of all red tiles
+        return self.board.get_list_of_red_tile_coords()

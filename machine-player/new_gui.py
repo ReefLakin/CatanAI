@@ -26,6 +26,7 @@ from CatanGame import CatanGame
 # AGENTS
 from Randy import Randy
 from Adam import Adam
+from Redmond import Redmond
 
 # REPLAY MEMORY
 from ReplayMemory import ReplayMemory
@@ -71,7 +72,7 @@ CITY_RADIUS_INNER = HEX_RADIUS / 6
 game_instance = CatanGame()
 
 # THE AGENT
-AGENT_SELECTED = "Randy"
+AGENT_SELECTED = "Adam"
 
 # NUMBER OF GAMES (Set to -1 for infinite)
 EPISODES = -1
@@ -274,6 +275,13 @@ if AGENT_SELECTED == "Adam":
     if os.path.exists(MODEL_PATH):
         print("Ahhh! I'm back!")
         agent.load_model(MODEL_PATH)
+elif AGENT_SELECTED == "Redmond":
+    agent = Redmond()
+    MODEL_PATH = "redmond.pth"
+    # Check if the "model.pth" file exists
+    if os.path.exists(MODEL_PATH):
+        print("Ahhh! I'm back!")
+        agent.load_model(MODEL_PATH)
 else:
     agent = Randy()
 
@@ -390,16 +398,14 @@ while running is True and games_played != EPISODES:
             # Add the memory tuple to the replay buffer
             replay_memory.add(memory_tuple)
 
-            # Is the size of the replay memory more than 64?
-            if replay_memory.get_buffer_size() > 32:
-                if learn_steps < 8:
-                    # Increment the learn steps
-                    learn_steps += 1
-                else:
-                    # Reset the learn steps
-                    learn_steps = 0
-                    # Call the learn() method on the agent
-                    agent.learn(replay_memory)
+            if learn_steps < 8:
+                # Increment the learn steps
+                learn_steps += 1
+            else:
+                # Reset the learn steps
+                learn_steps = 0
+                # Call the learn() method on the agent
+                agent.learn(replay_memory)
 
         # Check for the custom event that we set up to update the game board
         if event.type == UPDATE_GAME_BOARD_EVENT:
@@ -561,7 +567,7 @@ while running is True and games_played != EPISODES:
 
             # Write the turn number just below the victory points
             text = font.render(
-                "Turn: " + str(game_state["turn_number"]),
+                "Turn: " + str(game_instance.get_turn_number()),
                 True,
                 pygame.Color(VP_COLOUR),
             )
@@ -723,5 +729,8 @@ while running is True and games_played != EPISODES:
 
                 # Agent saving
                 if AGENT_SELECTED == "Adam":
-                    # Save the model first
+                    # Save the model
+                    agent.save_model(MODEL_PATH)
+                elif AGENT_SELECTED == "Redmond":
+                    # Save the model
                     agent.save_model(MODEL_PATH)

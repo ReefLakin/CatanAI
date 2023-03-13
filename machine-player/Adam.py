@@ -18,7 +18,7 @@ import torch
 
 # Define the Adam class
 class Adam(Agent):
-    def __init__(self, exploration_rate=0.1):
+    def __init__(self, exploration_rate=0.2):
         # Set the exploration rate to the exploration rate passed to the constructor
         self.exploration_rate = exploration_rate
         # Set the model (use the default values for now)
@@ -55,9 +55,9 @@ class Adam(Agent):
         action = reward_information["current_action"]
 
         if done == True:
-            return 100  # Victory reward
+            return 60  # Victory reward
         elif action not in legal_actions:
-            return -2  # Illegal move punishment
+            return 0  # Illegal move punishment
         else:
             split_action = action.split("_")
             if split_action[0] == "build" and split_action[1] == "road":
@@ -65,6 +65,6 @@ class Adam(Agent):
             elif split_action[0] == "build" and split_action[1] == "settlement":
                 return 10  # Settlement building reward
             elif split_action[0] == "build" and split_action[1] == "city":
-                return 10  # City building reward
+                return 16  # City building reward
             else:
                 return 0  # Else, no reward

@@ -53,3 +53,7 @@ class Agent:
     # Reward function
     def reward(self, reward_information):
         return 0
+
+    # Setter for the exploration rate
+    def set_exploration_rate(self, exploration_rate):
+        self.exploration_rate = exploration_rate

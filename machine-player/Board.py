@@ -273,3 +273,13 @@ class Board:
             else:
                 robber_states.append(0)
         return robber_states
+
+    # Get a list of all tile coords representing red tiles
+    def get_list_of_red_tile_coords(self):
+        red_tile_coords = []
+        for tile in self.board_tiles:
+            if tile.get_tile_value() == 6 or tile.get_tile_value() == 8:
+                red_tile_coords.append(
+                    [tile.get_q_coord(), tile.get_r_coord(), tile.get_s_coord()]
+                )
+        return red_tile_coords

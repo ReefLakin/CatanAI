@@ -8,9 +8,6 @@ class StatePreprocessor:
         # Victory points
         new_state_list.append(state["victory_points"])
 
-        # Turn number
-        new_state_list.append(state["turn_number"])
-
         # Total number of ore
         new_state_list.append(state["num_ore"])
 
@@ -25,6 +22,9 @@ class StatePreprocessor:
 
         # Total number of brick
         new_state_list.append(state["num_brick"])
+
+        # Recent roll
+        new_state_list.append(state["most_recent_roll"])
 
         # Loop over each tile for each side
         for tile in state["side_states"]:
