@@ -32,13 +32,13 @@ BOARD_DIMS = [3, 4, 5, 4, 3]
 game_instance = CatanGame()
 
 # THE AGENT
-AGENT_SELECTED = "Adam"
+AGENT_SELECTED = "Randy"
 
 # NUMBER OF GAMES (Set to -1 for infinite)
-EPISODES = 10000
+EPISODES = 900
 
 # REPLAY MEMORY
-replay_memory = ReplayMemory(4300)
+replay_memory = ReplayMemory(10000)
 
 
 # Helper Functions
@@ -94,6 +94,12 @@ total_roads_built_list = []
 game_numbers_list = []
 turn_of_victory_list = []
 
+# Information for file keeping
+now = datetime.now()
+filename = (
+    "training_session_data/" + AGENT_SELECTED + now.strftime("-%Y-%m-%d-%H-%M") + ".csv"
+)
+
 while running is True and games_played != EPISODES:
 
     # Get the legal actions from the game instance
@@ -147,7 +153,7 @@ while running is True and games_played != EPISODES:
     # Add the memory tuple to the replay buffer
     replay_memory.add(memory_tuple)
 
-    if learn_steps < 8:
+    if learn_steps < 5:
         # Increment the learn steps
         learn_steps += 1
     else:
@@ -172,7 +178,7 @@ while running is True and games_played != EPISODES:
         turn_of_victory_list.append(game_instance.get_turn_number())
 
         games_played += 1  # Increment the number of games played
-        if games_played == EPISODES or games_played == 12000:
+        if games_played == EPISODES or games_played % 100 == 0:
             if games_played == 12000:
                 games_played = 0
             replay_memory.save_buffer(AGENT_SELECTED)
@@ -186,34 +192,34 @@ while running is True and games_played != EPISODES:
                 turn_of_victory_list,
             )
 
-            # Get current date and time for file name
-            now = datetime.now()
-            filename = (
-                "training_session_data/"
-                + AGENT_SELECTED
-                + now.strftime("-%Y-%m-%d-%H-%M")
-                + ".csv"
-            )
+            # Check if file exists
+            if not os.path.isfile(filename):
+                # File does not exist, open for writing and write header row
+                with open(filename, "w", newline="") as csvfile:
+                    writer = csv.writer(csvfile)
+                    writer.writerow(
+                        [
+                            "Game number",
+                            "Total illegal actions attempted",
+                            "Total steps taken",
+                            "Total reward points",
+                            "Roads built",
+                            "Turn where victory achieved",
+                        ]
+                    )
 
-            # Open a file for writing
-            with open(filename, "w", newline="") as csvfile:
+            # Open the file for writing and write the data rows
+            with open(filename, "a", newline="") as csvfile:
                 writer = csv.writer(csvfile)
-
-                # Write the header row containing the array names
-                writer.writerow(
-                    [
-                        "Game number",
-                        "Total illegal actions attempted",
-                        "Total steps taken",
-                        "Total reward points",
-                        "Roads built",
-                        "Turn where victory achieved",
-                    ]
-                )
-
-                # Write the data rows
                 for row in data:
                     writer.writerow(row)
+
+            total_illegal_actions_attempted_list = []
+            total_steps_taken_list = []
+            total_reward_points_earned_list = []
+            total_roads_built_list = []
+            game_numbers_list = []
+            turn_of_victory_list = []
 
         # Reset the game
         game_instance.reset()
