@@ -1,0 +1,17 @@
+# Anything I don't want Git to track related to testing
+*.pyc
+*.pyo
+*.pyd
+*.so
+__pycache__/
+.coverage
+.cache
+/history
+.vscode/settings.json
+.DS_Store
+
+# NN files
+*.pth
+
+# CSV files within the training_session_data directory
+training_session_data/*.csv
