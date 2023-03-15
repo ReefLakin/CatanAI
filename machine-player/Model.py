@@ -28,7 +28,7 @@ class CatanModel(nn.Module):
                 nn.init.zeros_(m.bias)
 
         # Initialise the optimiser
-        self.optimiser = torch.optim.Adam(self.parameters(), lr=0.001)
+        self.optimiser = torch.optim.Adam(self.parameters(), lr=0.002)
 
     def forward(self, x):
         x = self.fc1(x)
@@ -38,7 +38,7 @@ class CatanModel(nn.Module):
         x = self.fc3(x)
         return x
 
-    def learn(self, memory, batch_size=16, gamma=0.99):
+    def learn(self, memory, batch_size=256, gamma=0.99):
         # If the buffer if not full enough, return
         if memory.get_buffer_size() < batch_size:
             return
@@ -64,11 +64,11 @@ class CatanModel(nn.Module):
             state_preprocessor.preprocess_state(state) for state in next_states
         ]
 
-        # Normalise the states in the states list
-        states = [self.normalise_state(state) for state in states]
+        # # Normalise the states in the states list
+        # states = [self.normalise_state(state) for state in states]
 
-        # Normalise the next states in the next_states list
-        next_states = [self.normalise_state(state) for state in next_states]
+        # # Normalise the next states in the next_states list
+        # next_states = [self.normalise_state(state) for state in next_states]
 
         # Convert the lists into tensors
         states = torch.tensor(states, dtype=torch.float32)

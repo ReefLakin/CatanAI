@@ -53,7 +53,7 @@ class Redmond(Agent):
         # Remond is not rewarded for: winning the game, or building roads
         # Remond is punished for: making illegal moves
         legal_actions = reward_information["legal_actions"]
-        resource_bonus = reward_information["recent_recources_generated"]
+        resource_bonus = reward_information["recent_resources_generated"]
         action = reward_information["current_action"]
         red_tiles = reward_information["red_tiles"]
 
@@ -92,3 +92,6 @@ class Redmond(Agent):
                     return 12 + resource_bonus  # Red bonus reward
 
             return 4 + resource_bonus  # Non-red reward
+
+        # Else
+        return 0

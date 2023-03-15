@@ -57,3 +57,7 @@ class Agent:
     # Setter for the exploration rate
     def set_exploration_rate(self, exploration_rate):
         self.exploration_rate = exploration_rate
+
+    # Getter for the exploration rate
+    def get_exploration_rate(self):
+        return self.exploration_rate

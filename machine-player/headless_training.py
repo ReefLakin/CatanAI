@@ -32,13 +32,19 @@ BOARD_DIMS = [3, 4, 5, 4, 3]
 game_instance = CatanGame()
 
 # THE AGENT
-AGENT_SELECTED = "Randy"
+AGENT_SELECTED = "Redmond"
 
 # NUMBER OF GAMES (Set to -1 for infinite)
-EPISODES = 900
+EPISODES = 10000
+
+# EPSILON REDUCTION RATE
+EPSILON_DECAY = 0.001
+
+# MIN EPSILON
+MIN_EPSILON = 0.1
 
 # REPLAY MEMORY
-replay_memory = ReplayMemory(10000)
+replay_memory = ReplayMemory(30000)
 
 
 # Helper Functions
@@ -59,7 +65,7 @@ if AGENT_SELECTED == "Adam":
         print("Ahhh! I'm back!")
         agent.load_model(MODEL_PATH)
 elif AGENT_SELECTED == "Redmond":
-    agent = Redmond()
+    agent = Redmond(exploration_rate=1)
     MODEL_PATH = "redmond.pth"
     # Check if the "model.pth" file exists
     if os.path.exists(MODEL_PATH):
@@ -153,7 +159,7 @@ while running is True and games_played != EPISODES:
     # Add the memory tuple to the replay buffer
     replay_memory.add(memory_tuple)
 
-    if learn_steps < 5:
+    if learn_steps < 20:
         # Increment the learn steps
         learn_steps += 1
     else:
@@ -220,6 +226,14 @@ while running is True and games_played != EPISODES:
             total_roads_built_list = []
             game_numbers_list = []
             turn_of_victory_list = []
+
+        # Get the agents current epsilon value
+        epsilon = agent.get_exploration_rate()
+
+        # If the epsilon value is greater than the minimum epsilon value, reduce it
+        if epsilon > MIN_EPSILON:
+            epsilon -= EPSILON_DECAY
+            agent.set_exploration_rate(epsilon)
 
         # Reset the game
         game_instance.reset()
