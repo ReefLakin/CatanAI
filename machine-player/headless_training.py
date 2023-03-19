@@ -38,13 +38,13 @@ AGENT_SELECTED = "Redmond"
 EPISODES = 10000
 
 # EPSILON REDUCTION RATE
-EPSILON_DECAY = 0.001
+EPSILON_DECAY = 0.0005
 
 # MIN EPSILON
 MIN_EPSILON = 0.1
 
 # REPLAY MEMORY
-replay_memory = ReplayMemory(30000)
+replay_memory = ReplayMemory(100000)
 
 
 # Helper Functions
@@ -99,6 +99,7 @@ total_reward_points_earned_list = []
 total_roads_built_list = []
 game_numbers_list = []
 turn_of_victory_list = []
+epsilon_list = []
 
 # Information for file keeping
 now = datetime.now()
@@ -159,7 +160,7 @@ while running is True and games_played != EPISODES:
     # Add the memory tuple to the replay buffer
     replay_memory.add(memory_tuple)
 
-    if learn_steps < 20:
+    if learn_steps < 3:
         # Increment the learn steps
         learn_steps += 1
     else:
@@ -182,6 +183,7 @@ while running is True and games_played != EPISODES:
         total_roads_built_list.append(total_roads_built)
         game_numbers_list.append(games_played)
         turn_of_victory_list.append(game_instance.get_turn_number())
+        epsilon_list.append(agent.get_exploration_rate())
 
         games_played += 1  # Increment the number of games played
         if games_played == EPISODES or games_played % 100 == 0:
@@ -196,6 +198,7 @@ while running is True and games_played != EPISODES:
                 total_reward_points_earned_list,
                 total_roads_built_list,
                 turn_of_victory_list,
+                epsilon_list,
             )
 
             # Check if file exists
@@ -211,6 +214,7 @@ while running is True and games_played != EPISODES:
                             "Total reward points",
                             "Roads built",
                             "Turn where victory achieved",
+                            "Epsilon",
                         ]
                     )
 
@@ -226,6 +230,7 @@ while running is True and games_played != EPISODES:
             total_roads_built_list = []
             game_numbers_list = []
             turn_of_victory_list = []
+            epsilon_list = []
 
         # Get the agents current epsilon value
         epsilon = agent.get_exploration_rate()

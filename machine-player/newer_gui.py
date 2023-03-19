@@ -1,39 +1,12 @@
-# path: machine-player/new_gui.py
+# path: machine-player/newer_gui.py
 
 # Imports
-
-# PYGAME
+from TrainingSession import TrainingSession
 import pygame
-
-# OS
-import os
-
-# TIME
 import time
-
-# MATH
 import math
 
-# DATETIME
-from datetime import datetime
-
-# CSV
-import csv
-
-# CATAN GAME
-from CatanGame import CatanGame
-
-# AGENTS
-from Randy import Randy
-from Adam import Adam
-from Redmond import Redmond
-
-# REPLAY MEMORY
-from ReplayMemory import ReplayMemory
-
-
-# Set Constants
-
+# Constants specific to the GUI version of the program
 # TILE COLOURS
 FIELD_TILE_COLOUR = "#f9c549"
 MOUNTAIN_TILE_COLOUR = "#534e5a"
@@ -57,9 +30,6 @@ ROBBER_COLOUR = "#C4BCA9"
 SCREEN_WIDTH = 880
 SCREEN_HEIGHT = 700
 
-# BOARD DIMENSIONS
-BOARD_DIMS = [3, 4, 5, 4, 3]
-
 # OTHER BOARD INFORMATION
 STARTING_HEX_CENTRE_X = 330
 STARTING_HEX_CENTRE_Y = 140
@@ -68,21 +38,8 @@ SETTLEMENT_RADIUS = HEX_RADIUS / 7
 CITY_RADIUS_OUTER = HEX_RADIUS / 5
 CITY_RADIUS_INNER = HEX_RADIUS / 6
 
-# THE ACTUAL BOARD
-game_instance = CatanGame()
-
-# THE AGENT
-AGENT_SELECTED = "Randy"
-
-# NUMBER OF GAMES (Set to -1 for infinite)
-EPISODES = -1
-
-# REPLAY MEMORY
-replay_memory = ReplayMemory(10000)
-
 
 # Helper Functions
-
 # Collect the points for a single hexagon
 def get_hex_points(centre_x, centre_y, radius, vertex_states, side_states):
     hex_points = []
@@ -190,12 +147,6 @@ def get_all_hex_points(
     )
 
 
-# Return the default type map associated with the default Catan board
-def get_default_type_map():
-    DEFAULT_TYPE_MAP = [1, 3, 4, 0, 2, 3, 2, 0, 4, 5, 4, 1, 4, 1, 0, 3, 2, 0, 3]
-    return DEFAULT_TYPE_MAP
-
-
 # Return the colour value associated with a given tile type id
 def get_colour_value_from_id(id):
     match id:
@@ -234,10 +185,18 @@ def get_colour_value_from_resource_name(name):
             return WATER_TILE_COLOUR
 
 
-# Setup the Pygame Window
+# !! Main Program
 
-# Initialise Pygame
-# Pygame's 'font' module is automatically initialised upon this call
+# # Training Session Options
+agent_to_set = "Randy"
+
+# Create a training session (with default parameters)
+training_session = TrainingSession(agent=agent_to_set)
+
+
+# # Pygame Window Setup
+
+# Call pygame.init() to initialise pygame
 pygame.init()
 
 # Custom events
@@ -267,55 +226,19 @@ res_font = pygame.font.SysFont("Arial", 17)
 sm_font = pygame.font.SysFont("Arial", 10)
 vp_font = pygame.font.SysFont("Arial", 20, bold=True)
 
-# Agent setup
-if AGENT_SELECTED == "Adam":
-    agent = Adam()
-    MODEL_PATH = "adam.pth"
-    # Check if the "model.pth" file exists
-    if os.path.exists(MODEL_PATH):
-        print("Ahhh! I'm back!")
-        agent.load_model(MODEL_PATH)
-elif AGENT_SELECTED == "Redmond":
-    agent = Redmond()
-    MODEL_PATH = "redmond.pth"
-    # Check if the "model.pth" file exists
-    if os.path.exists(MODEL_PATH):
-        print("Ahhh! I'm back!")
-        agent.load_model(MODEL_PATH)
-else:
-    agent = Randy()
 
+# # Game Loop
 
-# Start the game
-game_instance.start_game()
-
-
-# Game Loop
-
-# Variable to keep our game loop running
-running = True
+# Start the training session
+running = training_session.start()
 PLEASE_LORD_GIVE_ME_A_BREAK = False
-learn_steps = 0
-games_played = 0
 
-# Other data about the current session
-total_illegal_actions_attempted = 0
-total_steps_taken = 0
-total_reward_points_earned = 0
-total_roads_built = 0
-
-# Other data about the current session, but these are arrays
-total_illegal_actions_attempted_list = []
-total_steps_taken_list = []
-total_reward_points_earned_list = []
-total_roads_built_list = []
-game_numbers_list = []
-
-while running is True and games_played != EPISODES:
+# While the training session is running
+while running is True:
 
     # If PLEASE_LORD_GIVE_ME_A_BREAK is true, make a small time delay
     if PLEASE_LORD_GIVE_ME_A_BREAK:
-        time.sleep(0.00004)
+        time.sleep(0.004)
         PLEASE_LORD_GIVE_ME_A_BREAK = False
         pygame.event.post(take_action)
         pygame.event.post(update_game_board)
@@ -345,67 +268,13 @@ while running is True and games_played != EPISODES:
 
         # Check for the custom event that we set up to take action
         if event.type == TAKE_ACTION:
-            # Get the legal actions from the game instance
-            actions = game_instance.get_legal_actions()
 
-            # Get all possible actions from the game instance
-            all_actions = game_instance.get_all_possible_actions()
-
-            # Get the game state
-            game_state = game_instance.get_state()
-
-            # Get the agent to pick an action
-            action = agent.select_action(game_state, all_actions, actions)
-
-            # If the action is illegal, increment the illegal action counter
-            if action not in actions:
-                total_illegal_actions_attempted += 1
-            else:
-                # If the action is to build a road, increment the road counter
-                split_action = action.split("_")
-                if split_action[0] == "build" and split_action[1] == "road":
-                    total_roads_built += 1
-
-            # What is the index of the action when set against the entire list of actions?
-            action_index = all_actions.index(action)
-
-            # Take a step in the game
-            game_instance.step(action)
-
-            # Increment the total number of steps taken
-            total_steps_taken += 1
-
-            # Get the new game state
-            new_game_state = game_instance.get_state()
-
-            # Get game over flag
-            game_over = game_instance.get_game_over_flag()
-
-            # Get reward information from the game instance
-            reward_information = game_instance.reward_information_request(
-                action, actions
-            )
-
-            # Get the reward from the Agent
-            reward = agent.reward(reward_information)
-
-            # Increment the total reward points earned
-            total_reward_points_earned += reward
-
-            # Create a memory tuple
-            memory_tuple = (game_state, action_index, reward, new_game_state)
-
-            # Add the memory tuple to the replay buffer
-            replay_memory.add(memory_tuple)
-
-            if learn_steps < 8:
-                # Increment the learn steps
-                learn_steps += 1
-            else:
-                # Reset the learn steps
-                learn_steps = 0
-                # Call the learn() method on the agent
-                agent.learn(replay_memory)
+            (
+                running,
+                legal_actions,
+                chosen_action,
+                games_played,
+            ) = training_session.time_step()
 
         # Check for the custom event that we set up to update the game board
         if event.type == UPDATE_GAME_BOARD_EVENT:
@@ -413,8 +282,11 @@ while running is True and games_played != EPISODES:
             # Update the game state on the GUI
             screen.fill(pygame.Color(WATER_TILE_COLOUR))
 
+            # Get the game instance
+            game_instance = training_session.get_game_instance()
+
             # Get the game state once
-            game_state = game_instance.get_state()
+            game_state = training_session.get_game_state()
 
             # Get the type map from the game instance
             type_map = game_state["tile_types"]
@@ -455,7 +327,7 @@ while running is True and games_played != EPISODES:
                 STARTING_HEX_CENTRE_X,
                 STARTING_HEX_CENTRE_Y,
                 HEX_RADIUS,
-                BOARD_DIMS,
+                training_session.get_board_dims(),
                 vertex_states,
                 side_states,
                 robber_states,
@@ -654,83 +526,10 @@ while running is True and games_played != EPISODES:
                 screen.blit(text_surface, text_rect)
 
             # Write the agent's name to the screen in the bottom left corner
-            text = sm_font.render(agent.name, True, pygame.Color(BORDER_COLOUR))
+            text = sm_font.render(agent_to_set, True, pygame.Color(BORDER_COLOUR))
             # Draw the text to the screen
             text_rect = text.get_rect(center=(25, SCREEN_HEIGHT - 15))
             screen.blit(text, text_rect)
 
             # Update the display using flip
             pygame.display.flip()
-
-            # Game over?
-            game_over_flag = game_instance.get_game_over_flag()
-
-            if game_over_flag == True:
-                # Append the CSV data to the arrays
-                total_illegal_actions_attempted_list.append(
-                    total_illegal_actions_attempted
-                )
-                total_steps_taken_list.append(total_steps_taken)
-                total_reward_points_earned_list.append(total_reward_points_earned)
-                total_roads_built_list.append(total_roads_built)
-                game_numbers_list.append(games_played)
-
-                games_played += 1  # Increment the number of games played
-                if games_played == EPISODES:
-                    replay_memory.save_buffer(AGENT_SELECTED)
-
-                    data = zip(
-                        game_numbers_list,
-                        total_illegal_actions_attempted_list,
-                        total_steps_taken_list,
-                        total_reward_points_earned_list,
-                        total_roads_built_list,
-                    )
-
-                    # Get current date and time for file name
-                    now = datetime.now()
-                    filename = (
-                        "training_session_data/"
-                        + AGENT_SELECTED
-                        + now.strftime("-%Y-%m-%d-%H-%M")
-                        + ".csv"
-                    )
-
-                    # Open a file for writing
-                    with open(filename, "w", newline="") as csvfile:
-                        writer = csv.writer(csvfile)
-
-                        # Write the header row containing the array names
-                        writer.writerow(
-                            [
-                                "Game number",
-                                "Total illegal actions attempted",
-                                "Total steps taken",
-                                "Total reward points",
-                                "Roads built",
-                            ]
-                        )
-
-                        # Write the data rows
-                        for row in data:
-                            writer.writerow(row)
-
-                # Reset the game
-                game_instance.reset()
-
-                # Reset other data about the current session
-                total_illegal_actions_attempted = 0
-                total_steps_taken = 0
-                total_reward_points_earned = 0
-                total_roads_built = 0
-
-                # Start the game
-                game_instance.start_game()
-
-                # Agent saving
-                if AGENT_SELECTED == "Adam":
-                    # Save the model
-                    agent.save_model(MODEL_PATH)
-                elif AGENT_SELECTED == "Redmond":
-                    # Save the model
-                    agent.save_model(MODEL_PATH)

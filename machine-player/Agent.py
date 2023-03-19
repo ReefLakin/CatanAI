@@ -4,8 +4,23 @@ import random
 # Import the StatePreprocessor class
 from StatePreprocessor import StatePreprocessor
 
+# Import the numpy library
+import numpy as np
+
+# Import ReplayMemory
+from ReplayMemory import ReplayMemory
+
+# Import the CatanModel class
+from Model import CatanModel
+
 # Define the Agent class
 class Agent:
+    # Constructor
+    def __init__(self, exploration_rate=0.1):
+        self.exploration_rate = exploration_rate
+        self.model = CatanModel()
+        self.name = "Agent"
+        self.memory = ReplayMemory(100000)
 
     # Method for selecting an action
     def select_action(self, observation, all_possible_actions, legal_actions):
@@ -39,7 +54,7 @@ class Agent:
 
     # Method for learning
     # Will be overwritten by child classes, so let's just pass
-    def learn(self, memory):
+    def learn(self):
         pass
 
     # Method for loading the model
@@ -61,3 +76,10 @@ class Agent:
     # Getter for the exploration rate
     def get_exploration_rate(self):
         return self.exploration_rate
+
+    def normalise_state(self, state):
+        # Normalise the state
+        return (state - np.min(state)) / (np.max(state) - np.min(state))
+
+    def feed_memory(self, observation):
+        self.memory.add(observation)
