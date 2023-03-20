@@ -7,8 +7,13 @@ import numpy as np
 
 # Define the DeepQNetwork class
 class DeepQNetwork(nn.Module):
-    def __init__(self, lr, input_dims, fc1_dims, fc2_dims, n_actions):
+    def __init__(self):
         super(DeepQNetwork, self).__init__()
+        lr = 0.001
+        input_dims = (297,)
+        fc1_dims = 256
+        fc2_dims = 256
+        n_actions = 382
         self.input_dims = input_dims
         self.fc1_dims = fc1_dims
         self.fc2_dims = fc2_dims

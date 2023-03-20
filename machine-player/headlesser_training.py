@@ -7,7 +7,7 @@ from TrainingSession import TrainingSession
 # !! Main Program
 
 # # Training Session Options
-agent_to_set = "Adam"
+agent_to_set = "Phil"
 
 # Create a training session (with default parameters)
 training_session = TrainingSession(agent=agent_to_set)

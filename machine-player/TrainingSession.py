@@ -8,6 +8,7 @@ from datetime import datetime
 from CatanGame import CatanGame
 from Randy import Randy
 from Adam import Adam
+from Phil import Phil
 from Redmond import Redmond
 
 # Define the TrainingSession class
@@ -102,7 +103,12 @@ class TrainingSession:
             )
 
             # Feed the memory tuple to the agent
-            self.AGENT.feed_memory(memory_tuple)
+            if self.AGENT_SELECTED == "Phil":
+                self.AGENT.store_transition(
+                    game_state, chosen_action, reward, new_game_state, game_over
+                )
+            else:
+                self.AGENT.feed_memory(memory_tuple)
 
             # Increment the steps until call learning
             self.steps_until_call_learning += 1
@@ -207,6 +213,15 @@ class TrainingSession:
                 print("So, you've awoken me again...\nRedmond reporting for duty!")
                 self.AGENT.load_model(self.MODEL_PATH)
                 agent_already_exists = True
+        elif self.AGENT_SELECTED == "Phil":
+            self.AGENT = Phil(
+                gamma=0.9,
+                epsilon=1.0,
+                lr=0.001,
+                input_dims=(297,),
+                batch_size=64,
+                n_action=382,
+            )
         else:
             self.AGENT = Randy()
 

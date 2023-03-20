@@ -28,13 +28,7 @@ class Phil:
         self.action_space = [i for i in range(self.n_actions)]
         self.mem_size = max_mem_size
         self.mem_cntr = 0
-        self.Q_eval = DeepQNetwork(
-            self.lr,
-            self.n_actions,
-            input_dims=self.input_dims,
-            fc1_dims=256,
-            fc2_dims=256,
-        )
+        self.Q_eval = DeepQNetwork()
         self.state_memory = np.zeros(
             (self.mem_size, *self.input_dims), dtype=np.float32
         )
@@ -93,3 +87,33 @@ class Phil:
         self.epsilon = (
             self.epsilon - self.eps_dec if self.epsilon > self.eps_min else self.eps_min
         )
+
+    # Reward function
+    def reward(self, reward_information):
+        # Phil gets rewarded more for: reaching 10 VPs
+        # Phil gets moderately rewarded for: building roads, settlements, cities
+        # Phil gets mildly punished for: making illegal moves
+        legal_actions = reward_information["legal_actions"]
+        done = reward_information["game_over"]
+        action = reward_information["current_action"]
+
+        if done == True:
+            return 80  # Victory reward
+        elif action not in legal_actions:
+            return -1  # Illegal move punishment
+        else:
+            split_action = action.split("_")
+            if split_action[0] == "build" and split_action[1] == "road":
+                return 10  # Road building reward
+            elif split_action[0] == "build" and split_action[1] == "settlement":
+                return 30  # Settlement building reward
+            elif split_action[0] == "build" and split_action[1] == "city":
+                return 35  # City building reward
+            else:
+                return 0  # Else, no reward
+
+    def get_exploration_rate(self):
+        return self.epsilon
+
+    def set_exploration_rate(self, epsilon):
+        pass
