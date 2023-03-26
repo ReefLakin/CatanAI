@@ -9,11 +9,12 @@ class CatanGame:
         # Initialize the game board and other necessary variables here
         self.reset()
 
-    def reset(self):
+    def reset(self, number_of_players=1):
         # Reset the game board to its starting state
         # For now, we will use the default board
         # Later, we will add the ability to specify a custom board
         board_dims = [3, 4, 5, 4, 3]
+        self.number_of_players = number_of_players
         tile_values = [10, 2, 9, 12, 6, 4, 10, 9, 11, 0, 3, 8, 8, 3, 4, 5, 5, 6, 11]
         tile_types = [
             "ore",
@@ -64,7 +65,10 @@ class CatanGame:
         # Create the board
         self.board = Board(board_dims, tiles)
         # Set up the resource pool
-        self.resource_pool = {"lumber": 0, "brick": 0, "wool": 0, "grain": 0, "ore": 0}
+        self.resource_pool = [
+            {"lumber": 0, "brick": 0, "wool": 0, "grain": 0, "ore": 0}
+            for i in range(number_of_players)
+        ]
         # Set up the player's VP count
         self.victory_points = 0
         # Set up the turn number
@@ -88,7 +92,7 @@ class CatanGame:
         # Return the game board
         return self.board
 
-    def step(self, action):
+    def step(self, action, player_number=1):
         # Print the action taken to the console along with turn number
         print("Turn " + str(self.turn_number) + ": " + action)
 
@@ -102,12 +106,12 @@ class CatanGame:
         # If the action is legal, is the action a 4:1 trade?
         elif action_parts[0] == "trade":
             # Reduce the traded resource by 4
-            self.resource_pool[action_parts[5]] = (
-                self.resource_pool[action_parts[5]] - 4
+            self.resource_pool[player_number - 1][action_parts[5]] = (
+                self.resource_pool[player_number - 1][action_parts[5]] - 4
             )
             # Increase the received resource by 1
-            self.resource_pool[action_parts[6]] = (
-                self.resource_pool[action_parts[6]] + 1
+            self.resource_pool[player_number - 1][action_parts[6]] = (
+                self.resource_pool[player_number - 1][action_parts[6]] + 1
             )
 
         # If the action is legal, is it a road build?
@@ -121,8 +125,12 @@ class CatanGame:
             )
 
             # Remove 1 lumber and 1 brick from the resource pool
-            self.resource_pool["lumber"] = self.resource_pool["lumber"] - 1
-            self.resource_pool["brick"] = self.resource_pool["brick"] - 1
+            self.resource_pool[player_number - 1]["lumber"] = (
+                self.resource_pool[player_number - 1]["lumber"] - 1
+            )
+            self.resource_pool[player_number - 1]["brick"] = (
+                self.resource_pool[player_number - 1]["brick"] - 1
+            )
 
         # If the action is legal, is it a settlement build?
         elif action_parts[0] == "build" and action_parts[1] == "settlement":
@@ -138,10 +146,18 @@ class CatanGame:
             self.victory_points = self.victory_points + 1
 
             # Remove 1 lumber, 1 brick, 1 wool, and 1 grain from the resource pool
-            self.resource_pool["lumber"] = self.resource_pool["lumber"] - 1
-            self.resource_pool["brick"] = self.resource_pool["brick"] - 1
-            self.resource_pool["wool"] = self.resource_pool["wool"] - 1
-            self.resource_pool["grain"] = self.resource_pool["grain"] - 1
+            self.resource_pool[player_number - 1]["lumber"] = (
+                self.resource_pool[player_number - 1]["lumber"] - 1
+            )
+            self.resource_pool[player_number - 1]["brick"] = (
+                self.resource_pool[player_number - 1]["brick"] - 1
+            )
+            self.resource_pool[player_number - 1]["wool"] = (
+                self.resource_pool[player_number - 1]["wool"] - 1
+            )
+            self.resource_pool[player_number - 1]["grain"] = (
+                self.resource_pool[player_number - 1]["grain"] - 1
+            )
 
         # If the action is legal, is it a city build?
         elif action_parts[0] == "build" and action_parts[1] == "city":
@@ -157,8 +173,12 @@ class CatanGame:
             self.victory_points = self.victory_points + 1
 
             # Remove 2 grain and 3 ore from the resource pool
-            self.resource_pool["grain"] = self.resource_pool["grain"] - 2
-            self.resource_pool["ore"] = self.resource_pool["ore"] - 3
+            self.resource_pool[player_number - 1]["grain"] = (
+                self.resource_pool[player_number - 1]["grain"] - 2
+            )
+            self.resource_pool[player_number - 1]["ore"] = (
+                self.resource_pool[player_number - 1]["ore"] - 3
+            )
 
         # If the action is legal, is it a simple end turn?
         elif action == "end_turn":
@@ -193,7 +213,7 @@ class CatanGame:
         # Return the current game reward
         return self.reward
 
-    def get_state(self):
+    def get_state(self, player_number=1):
         # Build a dictionary of state information, which includes all of the tile state info, player resources, VPs and turn number.
         # This info is purposely in a human-readable state, but will likely be preprocessed before being fed to the DQN.
         return {
@@ -201,11 +221,11 @@ class CatanGame:
             "vertex_states": self.board.get_vertex_states(),
             "board_dims": self.board.get_board_dims(),
             "tile_types": self.board.get_tile_types_in_a_list(),
-            "num_brick": self.resource_pool["brick"],
-            "num_lumber": self.resource_pool["lumber"],
-            "num_wool": self.resource_pool["wool"],
-            "num_grain": self.resource_pool["grain"],
-            "num_ore": self.resource_pool["ore"],
+            "num_brick": self.resource_pool[player_number - 1]["brick"],
+            "num_lumber": self.resource_pool[player_number - 1]["lumber"],
+            "num_wool": self.resource_pool[player_number - 1]["wool"],
+            "num_grain": self.resource_pool[player_number - 1]["grain"],
+            "num_ore": self.resource_pool[player_number - 1]["ore"],
             "victory_points": self.victory_points,
             "tile_values": self.board.get_tile_numbers_in_a_list(),
             "robber_states": self.board.get_robber_states(),
@@ -230,7 +250,7 @@ class CatanGame:
         # Total number of tiles
         listed_state.append(len(current_state["tile_types"]))
 
-    def set_legal_actions(self):
+    def set_legal_actions(self, player_number=1):
         # Return a list of legal actions given the current state of the game
         self.legal_actions = []
         # Loop over each action from the set of all possible actions
@@ -265,20 +285,22 @@ class CatanGame:
                 if (
                     action_parts[0] == "build" and action_parts[1] == "settlement"
                 ) and (
-                    self.resource_pool["brick"] < 1
-                    or self.resource_pool["wool"] < 1
-                    or self.resource_pool["lumber"] < 1
-                    or self.resource_pool["grain"] < 1
+                    self.resource_pool[player_number - 1]["brick"] < 1
+                    or self.resource_pool[player_number - 1]["wool"] < 1
+                    or self.resource_pool[player_number - 1]["lumber"] < 1
+                    or self.resource_pool[player_number - 1]["grain"] < 1
                 ):
                     continue
                 # If the player does not have enough resources to build a road, skip this action; consider it cut from the list of legal actions
                 elif (action_parts[0] == "build" and action_parts[1] == "road") and (
-                    self.resource_pool["brick"] < 1 or self.resource_pool["lumber"] < 1
+                    self.resource_pool[player_number - 1]["brick"] < 1
+                    or self.resource_pool[player_number - 1]["lumber"] < 1
                 ):
                     continue
                 # If the player does not have enough resources to build a city, skip this action; consider it cut from the list of legal actions
                 elif (action_parts[0] == "build" and action_parts[1] == "city") and (
-                    self.resource_pool["grain"] < 2 or self.resource_pool["ore"] < 3
+                    self.resource_pool[player_number - 1]["grain"] < 2
+                    or self.resource_pool[player_number - 1]["ore"] < 3
                 ):
                     continue
                 # If the location already has a settlement on it, skip this action; consider it cut from the list of legal actions
@@ -363,7 +385,7 @@ class CatanGame:
                     and action_parts[3] == "for"
                     and action_parts[4] == "1"
                 ):
-                    if self.resource_pool[action_parts[5]] < 4:
+                    if self.resource_pool[player_number - 1][action_parts[5]] < 4:
                         continue
                     else:
                         self.legal_actions.append(action)
@@ -479,7 +501,7 @@ class CatanGame:
                     resource_to_give = tile.get_type()
 
                     # Give the correct resource to the player
-                    self.resource_pool[resource_to_give] += resource_count
+                    self.resource_pool[0][resource_to_give] += resource_count
 
                     self.most_recent_resources_generated += resource_count
 
@@ -535,9 +557,9 @@ class CatanGame:
         # Set victory points to 5
         self.victory_points = 5
         # Give the player 3 brick, 1 ore and 2 lumber
-        self.resource_pool["brick"] = 3
-        self.resource_pool["ore"] = 1
-        self.resource_pool["lumber"] = 2
+        self.resource_pool[0]["brick"] = 3
+        self.resource_pool[0]["ore"] = 1
+        self.resource_pool[0]["lumber"] = 2
 
     def get_game_over_flag(self):
         # Return the game over flag
