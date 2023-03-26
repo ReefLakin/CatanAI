@@ -180,39 +180,39 @@ class Board:
             return False
 
     # Build a road at a location, given the q, r, s coordinates and the direction
-    def build_road(self, q, r, s, direction):
+    def build_road(self, q, r, s, direction, player=1):
         # Build the road on the specified tile
         tile = self.get_tile(q, r, s)
-        tile.build_road(direction)
+        tile.build_road(direction, player)
         # Build a road on the neighbouring tile, if it exists
         neighbour_tile = self.shared_side_location(q, r, s, direction)
         if neighbour_tile != None:
             opposite_direction = tile.get_opposite_side_direction(direction)
-            neighbour_tile.build_road(opposite_direction)
+            neighbour_tile.build_road(opposite_direction, player)
 
     # Build a settlement at a location, given the q, r, s coordinates and the direction
-    def build_settlement(self, q, r, s, direction):
+    def build_settlement(self, q, r, s, direction, player=1):
         # Build the settlement on the specified tile
         tile = self.get_tile(q, r, s)
-        tile.build_settlement(direction)
+        tile.build_settlement(direction, player)
         # Build a settlement on the neighbouring tiles, if they exist
         neighbour_tiles = self.shared_vertex_location(q, r, s, direction)
         direction_array = tile.get_opposite_vertex_directions(direction)
         for i in range(0, len(neighbour_tiles)):
             if neighbour_tiles[i] != None:
-                neighbour_tiles[i].build_settlement(direction_array[i])
+                neighbour_tiles[i].build_settlement(direction_array[i], player)
 
     # Build a city at a location, given the q, r, s coordinates and the direction
-    def build_city(self, q, r, s, direction):
+    def build_city(self, q, r, s, direction, player=1):
         # Build the city on the specified tile
         tile = self.get_tile(q, r, s)
-        tile.build_city(direction)
+        tile.build_city(direction, player)
         # Build a city on the neighbouring tiles, if they exist
         neighbour_tiles = self.shared_vertex_location(q, r, s, direction)
         direction_array = tile.get_opposite_vertex_directions(direction)
         for i in range(0, len(neighbour_tiles)):
             if neighbour_tiles[i] != None:
-                neighbour_tiles[i].build_city(direction_array[i])
+                neighbour_tiles[i].build_city(direction_array[i], player)
 
     # Get the tile types of all tiles
     def get_tile_types_in_a_list(self):
@@ -229,7 +229,7 @@ class Board:
         return tile_values
 
     # Get the state of all edges on the board
-    # 0 = no road, 1 = road
+    # None = no road, 1 = road
     # Edges that are shared by two tiles are listed twice
     def get_side_states(self):
         side_states = []
@@ -238,13 +238,31 @@ class Board:
         return side_states
 
     # Get the state of all vertices on the board
-    # 0 = no settlement, 1 = settlement
+    # None = no settlement, 1 = settlement
     # Vertices that are shared by two or more tiles are listed possibly two or three times
     def get_vertex_states(self):
         vertex_states = []
         for tile in self.board_tiles:
             vertex_states.append(tile.get_all_vertex_values_as_list())
         return vertex_states
+
+    # Get the owners of all the edges (roads) on the board
+    # None = no road, 1 = player 1, 2 = player 2, etc.
+    # Edges that are shared by two tiles are listed twice
+    def get_side_owners(self):
+        side_owners = []
+        for tile in self.board_tiles:
+            side_owners.append(tile.get_all_side_owners_as_list())
+        return side_owners
+
+    # Get the owners of all the vertices (settlements and cities) on the board
+    # None = no settlement, 1 = player 1, 2 = player 2, etc.
+    # Vertices that are shared by two or more tiles are listed possibly two or three times
+    def get_vertex_owners(self):
+        vertex_owners = []
+        for tile in self.board_tiles:
+            vertex_owners.append(tile.get_all_vertex_owners_as_list())
+        return vertex_owners
 
     # Get the tile currently holding the robber
     def get_robber_tile(self):

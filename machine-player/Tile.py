@@ -257,36 +257,36 @@ class Tile:
             return None
 
     # Set the value of a specified vertex to 1 (settlement)
-    def build_settlement(self, direction):
+    def build_settlement(self, direction, player=1):
         if direction == "northwest":
-            self.vert_northwest = Township()
+            self.vert_northwest = Township(owner=player)
         elif direction == "north":
-            self.vert_north = Township()
+            self.vert_north = Township(owner=player)
         elif direction == "northeast":
-            self.vert_northeast = Township()
+            self.vert_northeast = Township(owner=player)
         elif direction == "southeast":
-            self.vert_southeast = Township()
+            self.vert_southeast = Township(owner=player)
         elif direction == "south":
-            self.vert_south = Township()
+            self.vert_south = Township(owner=player)
         elif direction == "southwest":
-            self.vert_southwest = Township()
+            self.vert_southwest = Township(owner=player)
         else:
             return None
 
     # Set the value of a specified vertex to 2 (city)
-    def build_city(self, direction):
+    def build_city(self, direction, player=1):
         if direction == "northwest":
-            self.vert_northwest = Township(type=2)
+            self.vert_northwest = Township(type=2, owner=player)
         elif direction == "north":
-            self.vert_north = Township(type=2)
+            self.vert_north = Township(type=2, owner=player)
         elif direction == "northeast":
-            self.vert_northeast = Township(type=2)
+            self.vert_northeast = Township(type=2, owner=player)
         elif direction == "southeast":
-            self.vert_southeast = Township(type=2)
+            self.vert_southeast = Township(type=2, owner=player)
         elif direction == "south":
-            self.vert_south = Township(type=2)
+            self.vert_south = Township(type=2, owner=player)
         elif direction == "southwest":
-            self.vert_southwest = Township(type=2)
+            self.vert_southwest = Township(type=2, owner=player)
         else:
             return None
 
@@ -308,19 +308,19 @@ class Tile:
             return None
 
     # Set the value of a specified side to 1 (road)
-    def build_road(self, direction):
+    def build_road(self, direction, player=1):
         if direction == "northwest":
-            self.side_northwest = Road()
+            self.side_northwest = Road(owner=player)
         elif direction == "northeast":
-            self.side_northeast = Road()
+            self.side_northeast = Road(owner=player)
         elif direction == "east":
-            self.side_east = Road()
+            self.side_east = Road(owner=player)
         elif direction == "southeast":
-            self.side_southeast = Road()
+            self.side_southeast = Road(owner=player)
         elif direction == "southwest":
-            self.side_southwest = Road()
+            self.side_southwest = Road(owner=player)
         elif direction == "west":
-            self.side_west = Road()
+            self.side_west = Road(owner=player)
 
     # Return the neighbouring verticies of a specified vertex
     def get_neighbouring_verticies(self, direction):
@@ -445,6 +445,29 @@ class Tile:
             self.vert_southwest,
             self.vert_northwest,
             self.vert_north,
+        ]
+
+    # Return a list of all the side owners of this tile
+    # Should start from east and go clockwise
+    def get_all_side_owners_as_list(self):
+        return [
+            self.side_east.get_owner() if self.side_east != None else None,
+            self.side_southeast.get_owner() if self.side_southeast != None else None,
+            self.side_southwest.get_owner() if self.side_southwest != None else None,
+            self.side_west.get_owner() if self.side_west != None else None,
+            self.side_northwest.get_owner() if self.side_northwest != None else None,
+            self.side_northeast.get_owner() if self.side_northeast != None else None,
+        ]
+
+    # Return a list of all the vertex owners of this tile
+    def get_all_vertex_owners_as_list(self):
+        return [
+            self.vert_northeast.get_owner() if self.vert_northeast != None else None,
+            self.vert_southeast.get_owner() if self.vert_southeast != None else None,
+            self.vert_south.get_owner() if self.vert_south != None else None,
+            self.vert_southwest.get_owner() if self.vert_southwest != None else None,
+            self.vert_northwest.get_owner() if self.vert_northwest != None else None,
+            self.vert_north.get_owner() if self.vert_north != None else None,
         ]
 
 

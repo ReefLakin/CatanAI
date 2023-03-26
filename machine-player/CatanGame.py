@@ -218,7 +218,9 @@ class CatanGame:
         # This info is purposely in a human-readable state, but will likely be preprocessed before being fed to the DQN.
         return {
             "side_states": self.board.get_side_states(),
+            "side_owners": self.board.get_side_owners(),
             "vertex_states": self.board.get_vertex_states(),
+            "vertex_owners": self.board.get_vertex_owners(),
             "board_dims": self.board.get_board_dims(),
             "tile_types": self.board.get_tile_types_in_a_list(),
             "num_brick": self.resource_pool[player_number - 1]["brick"],
@@ -560,12 +562,20 @@ class CatanGame:
         self.resource_pool[0]["brick"] = 3
         self.resource_pool[0]["ore"] = 1
         self.resource_pool[0]["lumber"] = 2
+        # Place the robber onto a tile
+        self.board.move_robber(2, -1, -1)
+        # Build a city for Player 2 at [0, 2, -2] north
+        self.board.build_city(0, 2, -2, "north", 2)
+        # Build a road for Player 2 at [0, 1, -1] east
+        self.board.build_road(0, 1, -1, "east", 2)
+        # Build a road for Player 2 at [0, 1, -1] southeast
+        self.board.build_road(0, 1, -1, "southeast", 2)
 
     def get_game_over_flag(self):
         # Return the game over flag
         return self.game_over
 
-    def start_game(self):
+    def start_game(self, number_of_players=1):
         # Set a flag so that the game knows the pre-game build phase has begun
         self.build_phase_active = True
 
@@ -613,3 +623,7 @@ class CatanGame:
     def get_list_of_red_tile_coords(self):
         # Return a list of the coordinates of all red tiles
         return self.board.get_list_of_red_tile_coords()
+
+    def get_number_of_players(self):
+        # Return the number of players
+        return self.number_of_players

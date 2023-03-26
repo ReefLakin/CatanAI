@@ -178,7 +178,7 @@ class TrainingSession:
             return self.running, legal_actions, chosen_action, self.games_played
 
     # Method for starting the game loop
-    def start(self):
+    def start(self, game_in_progress=False):
         # Variable to keep our game loop running
         self.running = True
         self.steps_until_call_learning = 0
@@ -186,8 +186,13 @@ class TrainingSession:
         # Set the filename for the data analysis file
         self.set_data_analysis_filename()
 
-        # Start the game instance
-        self.GAME_INSTANCE.start_game()
+        # Setup a game in progress if that is switched on
+        if game_in_progress:
+            self.GAME_INSTANCE.setup_game_in_progress()
+
+        else:
+            # Start the game instance
+            self.GAME_INSTANCE.start_game()
 
         # Return "running"
         return self.running

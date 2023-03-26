@@ -5,6 +5,7 @@ from TrainingSession import TrainingSession
 import pygame
 import time
 import math
+import numpy as np
 
 # Constants specific to the GUI version of the program
 # TILE COLOURS
@@ -26,6 +27,10 @@ VP_COLOUR = "#1B152E"
 CITY_GOLD_COLOUR = "#FFD700"
 ROBBER_COLOUR = "#C4BCA9"
 
+# PLAYER COLOURS
+PLAYER_1_COLOUR = "#FFFFFF"
+PLAYER_2_COLOUR = "#675df2"
+
 # SCREEN INFORMATION
 SCREEN_WIDTH = 880
 SCREEN_HEIGHT = 700
@@ -41,11 +46,16 @@ CITY_RADIUS_INNER = HEX_RADIUS / 6
 
 # Helper Functions
 # Collect the points for a single hexagon
-def get_hex_points(centre_x, centre_y, radius, vertex_states, side_states):
+def get_hex_points(
+    centre_x, centre_y, radius, vertex_states, vertex_owners, side_states, side_owners
+):
     hex_points = []
     settle_points = []
+    settle_owners = []
     city_points = []
+    city_owners = []
     road_points = []
+    road_owners = []
     # Make equiangular steps around the circle enclosing our hexagon
     for i in range(6):
         # Calculate the radian angle using complex maths
@@ -59,10 +69,14 @@ def get_hex_points(centre_x, centre_y, radius, vertex_states, side_states):
         # Also append x and y if the vertex is a settlement
         if vertex_states[i] == 1:
             settle_points.append([x, y])
+            # Add to the list of settlement owners
+            settle_owners.append(vertex_owners[i])
 
         # Also append x and y if the vertex is a city
         if vertex_states[i] == 2:
             city_points.append([x, y])
+            # Add to the list of city owners
+            city_owners.append(vertex_owners[i])
 
         # This part is a little more complex
         # Take the current coordinates and the next coordinates if the current side is a road
@@ -74,14 +88,32 @@ def get_hex_points(centre_x, centre_y, radius, vertex_states, side_states):
             y2 = centre_y + radius * math.sin(a)
             # Add all the points to the list
             road_points.append([x, y, x2, y2])
+            # Add to the list of road owners
+            road_owners.append(side_owners[i])
 
     # Return the list of points
-    return hex_points, settle_points, road_points, city_points
+    return (
+        hex_points,
+        settle_points,
+        settle_owners,
+        road_points,
+        road_owners,
+        city_points,
+        city_owners,
+    )
 
 
 # Collect the points for each hexagon on the board
 def get_all_hex_points(
-    centre_x, centre_y, radius, board_dims, vertex_states, side_states, robber_states
+    centre_x,
+    centre_y,
+    radius,
+    board_dims,
+    vertex_states,
+    vertex_owners,
+    side_states,
+    side_owners,
+    robber_states,
 ):
     x = centre_x
     y = centre_y
@@ -90,8 +122,11 @@ def get_all_hex_points(
     all_hex_points = []
     all_hex_centre_values = []
     all_settlement_points = []
+    all_settlement_owners = []
     all_road_points = []
+    all_road_owners = []
     all_city_points = []
+    all_city_owners = []
     robber_points = []
     robber_index = 0
 
@@ -110,13 +145,30 @@ def get_all_hex_points(
             if robber_states[robber_index] == 1:
                 # Add the robber to the list
                 robber_points.append([x, y])
-            # Pop the first element from the vertex data list
+            # Pop the next element from the vertex data list
             current_hex_vert_data = vert_data.pop(0)
-            # Pop the first element from the side data list
+            # Pop the next element from the side data list
             current_hex_side_data = side_data.pop(0)
+            # Pop the next element from the vertex and side owner lists
+            current_hex_vert_owners = vertex_owners.pop(0)
+            current_hex_side_owners = side_owners.pop(0)
             # Get the outer points for the current hexagon
-            hex_points, settle_points, road_points, city_points = get_hex_points(
-                x, y, radius, current_hex_vert_data, current_hex_side_data
+            (
+                hex_points,
+                settle_points,
+                settle_owners,
+                road_points,
+                road_owners,
+                city_points,
+                city_owners,
+            ) = get_hex_points(
+                x,
+                y,
+                radius,
+                current_hex_vert_data,
+                current_hex_vert_owners,
+                current_hex_side_data,
+                current_hex_side_owners,
             )
             # Recalculate the x-position for the next hexagon
             x += math.sqrt(3) * radius
@@ -129,6 +181,12 @@ def get_all_hex_points(
             all_road_points.append(road_points)
             # Add the city points to the list
             all_city_points.append(city_points)
+            # Add the settlement owners to the list
+            all_settlement_owners.append(settle_owners)
+            # Add the road owners to the list
+            all_road_owners.append(road_owners)
+            # Add the city owners to the list
+            all_city_owners.append(city_owners)
 
             # Increase the robber_index by 1
             robber_index += 1
@@ -141,8 +199,11 @@ def get_all_hex_points(
         all_hex_points,
         all_hex_centre_values,
         all_settlement_points,
+        all_settlement_owners,
         all_road_points,
+        all_road_owners,
         all_city_points,
+        all_city_owners,
         robber_points,
     )
 
@@ -183,6 +244,15 @@ def get_colour_value_from_resource_name(name):
             return DESERT_TILE_COLOUR
         case "water":
             return WATER_TILE_COLOUR
+
+
+# Return the player colour associated with the given player ID
+def get_player_colour_from_id(id):
+    match id:
+        case 1:
+            return PLAYER_1_COLOUR
+        case 2:
+            return PLAYER_2_COLOUR
 
 
 # !! Main Program
@@ -296,9 +366,11 @@ while running is True:
 
             # Get the vertex states from the game instance
             vertex_states = game_state["vertex_states"]
+            vertex_owners = game_state["vertex_owners"]
 
             # Get the side states from the game instance
             side_states = game_state["side_states"]
+            side_owners = game_state["side_owners"]
 
             # Get the number of current victory points from the game instance
             victory_points = game_state["victory_points"]
@@ -320,8 +392,11 @@ while running is True:
                 all_hex_points,
                 all_hex_centre_values,
                 all_settlement_points,
+                all_settlement_owners,
                 all_road_points,
+                all_road_owners,
                 all_city_points,
+                all_city_owners,
                 robber_points,
             ) = get_all_hex_points(
                 STARTING_HEX_CENTRE_X,
@@ -329,9 +404,20 @@ while running is True:
                 HEX_RADIUS,
                 training_session.get_board_dims(),
                 vertex_states,
+                vertex_owners,
                 side_states,
+                side_owners,
                 robber_states,
             )
+
+            # Completely flatten each of the ownership arrays
+            all_settlement_owners = [
+                item for sublist in all_settlement_owners for item in sublist
+            ]
+            all_road_owners = [item for sublist in all_road_owners for item in sublist]
+            all_city_owners = [item for sublist in all_city_owners for item in sublist]
+
+            print(all_settlement_owners)
 
             # Draw each hexagon, with a border of 10 pixels
             for hex_points in all_hex_points:
@@ -376,7 +462,9 @@ while running is True:
                     # Draw the settlement
                     pygame.draw.rect(
                         screen,
-                        pygame.Color(SETTLEMENT_COLOUR),
+                        pygame.Color(
+                            get_player_colour_from_id(all_settlement_owners.pop(0))
+                        ),
                         (x, y, SETTLEMENT_RADIUS * 2, SETTLEMENT_RADIUS * 2),
                         0,
                     )
@@ -402,7 +490,7 @@ while running is True:
                     # Draw the city (outer gold square)
                     pygame.draw.rect(
                         screen,
-                        pygame.Color(SETTLEMENT_COLOUR),
+                        pygame.Color(get_player_colour_from_id(all_city_owners.pop(0))),
                         (x, y, CITY_RADIUS_INNER * 2, CITY_RADIUS_INNER * 2),
                         0,
                     )
@@ -415,7 +503,7 @@ while running is True:
                     # Draw the road
                     pygame.draw.line(
                         screen,
-                        pygame.Color(ROAD_COLOUR),
+                        pygame.Color(get_player_colour_from_id(all_road_owners.pop(0))),
                         (side[0], side[1]),
                         (side[2], side[3]),
                         6,
