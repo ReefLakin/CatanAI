@@ -26,6 +26,10 @@ It will have the following methods:
 - an 'is_neighbouring_side' method which takes two ints and returns a bool
 """
 
+# Imports
+from Township import Township
+from Road import Road
+
 
 class Tile:
     # Constructor
@@ -255,34 +259,34 @@ class Tile:
     # Set the value of a specified vertex to 1 (settlement)
     def build_settlement(self, direction):
         if direction == "northwest":
-            self.vert_northwest = 1
+            self.vert_northwest = Township()
         elif direction == "north":
-            self.vert_north = 1
+            self.vert_north = Township()
         elif direction == "northeast":
-            self.vert_northeast = 1
+            self.vert_northeast = Township()
         elif direction == "southeast":
-            self.vert_southeast = 1
+            self.vert_southeast = Township()
         elif direction == "south":
-            self.vert_south = 1
+            self.vert_south = Township()
         elif direction == "southwest":
-            self.vert_southwest = 1
+            self.vert_southwest = Township()
         else:
             return None
 
     # Set the value of a specified vertex to 2 (city)
     def build_city(self, direction):
         if direction == "northwest":
-            self.vert_northwest = 2
+            self.vert_northwest = Township(type=2)
         elif direction == "north":
-            self.vert_north = 2
+            self.vert_north = Township(type=2)
         elif direction == "northeast":
-            self.vert_northeast = 2
+            self.vert_northeast = Township(type=2)
         elif direction == "southeast":
-            self.vert_southeast = 2
+            self.vert_southeast = Township(type=2)
         elif direction == "south":
-            self.vert_south = 2
+            self.vert_south = Township(type=2)
         elif direction == "southwest":
-            self.vert_southwest = 2
+            self.vert_southwest = Township(type=2)
         else:
             return None
 
@@ -306,17 +310,17 @@ class Tile:
     # Set the value of a specified side to 1 (road)
     def build_road(self, direction):
         if direction == "northwest":
-            self.side_northwest = 1
+            self.side_northwest = Road()
         elif direction == "northeast":
-            self.side_northeast = 1
+            self.side_northeast = Road()
         elif direction == "east":
-            self.side_east = 1
+            self.side_east = Road()
         elif direction == "southeast":
-            self.side_southeast = 1
+            self.side_southeast = Road()
         elif direction == "southwest":
-            self.side_southwest = 1
+            self.side_southwest = Road()
         elif direction == "west":
-            self.side_west = 1
+            self.side_west = Road()
 
     # Return the neighbouring verticies of a specified vertex
     def get_neighbouring_verticies(self, direction):

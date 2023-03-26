@@ -1,7 +1,12 @@
 class Township:
-    def __init__(self, owner, type):
+    def __init__(self, owner=1, type=1):
         self.owner = owner
         self.type = type  # 1 (settlement) or 2 (city)
+
+    def __eq__(self, other):
+        if isinstance(other, int):
+            return self.type == other
+        return False
 
     def get_owner(self):
         return self.owner
