@@ -494,16 +494,19 @@ class CatanGame:
 
                     # Get the number of resources to give
                     occupied = tile.get_occupied_verticies()
-                    resource_count = 0
-                    for vertex in occupied:
-                        if vertex == 1:
-                            resource_count += 1
-                        elif vertex == 2:
-                            resource_count += 2
-                    resource_to_give = tile.get_type()
+                    for player in range(self.number_of_players):
+                        resource_count = 0
+                        for vertex in occupied:
+                            if vertex == 1:
+                                if vertex.get_owner() == player + 1:
+                                    resource_count += 1
+                            elif vertex == 2:
+                                if vertex.get_owner() == player + 1:
+                                    resource_count += 2
+                        resource_to_give = tile.get_type()
 
-                    # Give the correct resource to the player
-                    self.resource_pool[0][resource_to_give] += resource_count
+                        # Give the correct resource to the player
+                        self.resource_pool[player][resource_to_give] += resource_count
 
                     self.most_recent_resources_generated += resource_count
 
