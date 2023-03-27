@@ -61,29 +61,33 @@ class TrainingSession:
                 player_id=self.player_turn_pointer
             )
             # Get the current state of the game instance
-            game_state = self.GAME_INSTANCE.get_state()
+            game_state = self.GAME_INSTANCE.get_state(self.player_turn_pointer)
 
             # Agent selects an action
-            chosen_action = self.AGENT.select_action(
+            chosen_action = self.PLAYER_QUEUE[self.player_turn_pointer].select_action(
                 game_state, all_actions, legal_actions
             )
 
             # If the action is illegal, increment the illegal action counter, else check if we need to increment the road counter
-            if chosen_action not in legal_actions:
-                self.game_data_dict["total_illegal_actions_attempted"] += 1
-            else:
-                split_action = chosen_action.split("_")
-                if split_action[0] == "build" and split_action[1] == "road":
-                    self.game_data_dict["total_roads_built"] += 1
+            # This is only if the AGENT is taking a turn, not any of the opponents
+            if self.player_turn_pointer == 0:
+                if chosen_action not in legal_actions:
+                    self.game_data_dict["total_illegal_actions_attempted"] += 1
+                else:
+                    split_action = chosen_action.split("_")
+                    if split_action[0] == "build" and split_action[1] == "road":
+                        self.game_data_dict["total_roads_built"] += 1
 
             # What is the index of the action when set against the entire list of actions?
             action_index = all_actions.index(chosen_action)
 
             # Take a step in the game
-            self.GAME_INSTANCE.step(chosen_action)
+            self.GAME_INSTANCE.step(chosen_action, self.player_turn_pointer)
 
             # Increment the total number of steps taken
-            self.game_data_dict["total_steps_taken"] += 1
+            # This is only if the AGENT is taking a turn, not any of the opponents
+            if self.player_turn_pointer == 0:
+                self.game_data_dict["total_steps_taken"] += 1
 
             # Get the new game state
             new_game_state = self.GAME_INSTANCE.get_state()
@@ -91,44 +95,46 @@ class TrainingSession:
             # Get the game over flag
             game_over = self.GAME_INSTANCE.get_game_over_flag()
 
-            # Get reward information from the game instance
-            reward_information = self.GAME_INSTANCE.reward_information_request(
-                chosen_action, legal_actions
-            )
+            if self.player_turn_pointer == 0:
 
-            # Get the reward from the Agent
-            reward = self.AGENT.reward(reward_information)
-
-            # Increment the total reward points earned
-            self.game_data_dict["total_reward_points_earned"] += reward
-
-            # Create a memory tuple
-            memory_tuple = (
-                game_state,
-                action_index,
-                reward,
-                new_game_state,
-            )
-
-            # Feed the memory tuple to the agent
-            if self.AGENT_SELECTED == "Phil":
-                self.AGENT.store_transition(
-                    game_state, chosen_action, reward, new_game_state, game_over
+                # Get reward information from the game instance
+                reward_information = self.GAME_INSTANCE.reward_information_request(
+                    chosen_action, legal_actions
                 )
-            else:
-                self.AGENT.feed_memory(memory_tuple)
 
-            # Increment the steps until call learning
-            self.steps_until_call_learning += 1
+                # Get the reward from the Agent
+                reward = self.AGENT.reward(reward_information)
 
-            if self.learning_steps < self.LEARNING_INTERVAL:
-                # Increment the learn steps if we are not ready to learn
-                self.learning_steps += 1
-            else:
-                # Reset the learn steps if we are ready to learn
-                self.learning_steps = 0
-                # Call the learn() method on the agent
-                self.AGENT.learn()
+                # Increment the total reward points earned
+                self.game_data_dict["total_reward_points_earned"] += reward
+
+                # Create a memory tuple
+                memory_tuple = (
+                    game_state,
+                    action_index,
+                    reward,
+                    new_game_state,
+                )
+
+                # Feed the memory tuple to the agent
+                if self.AGENT_SELECTED == "Phil":
+                    self.AGENT.store_transition(
+                        game_state, chosen_action, reward, new_game_state, game_over
+                    )
+                else:
+                    self.AGENT.feed_memory(memory_tuple)
+
+                # Increment the steps until call learning
+                self.steps_until_call_learning += 1
+
+                if self.learning_steps < self.LEARNING_INTERVAL:
+                    # Increment the learn steps if we are not ready to learn
+                    self.learning_steps += 1
+                else:
+                    # Reset the learn steps if we are ready to learn
+                    self.learning_steps = 0
+                    # Call the learn() method on the agent
+                    self.AGENT.learn()
 
             # Complete some post-game tasks if the game is over
             if game_over:
@@ -183,6 +189,12 @@ class TrainingSession:
                 if self.AGENT_SELECTED == "Adam" or self.AGENT_SELECTED == "Redmond":
                     self.AGENT.save_model(self.MODEL_PATH)
 
+            # Increment the player turn pointer
+            # If the player turn pointer is greater than the number of players, reset it to 0
+            self.player_turn_pointer += 1
+            if self.player_turn_pointer >= self.NUMBER_OF_PLAYERS:
+                self.player_turn_pointer = 0
+
             return self.running, legal_actions, chosen_action, self.games_played
 
     # Method for starting the game loop
@@ -193,6 +205,7 @@ class TrainingSession:
 
         # Set the number of players
         self.NUMBER_OF_PLAYERS = players
+        self.player_turn_pointer = 0
 
         # Set the filename for the data analysis file
         self.set_data_analysis_filename()
