@@ -300,7 +300,7 @@ vp_font = pygame.font.SysFont("Arial", 20, bold=True)
 # # Game Loop
 
 # Start the training session
-running = training_session.start()
+running = training_session.start(players=2)
 PLEASE_LORD_GIVE_ME_A_BREAK = False
 
 # While the training session is running

@@ -37,6 +37,10 @@ class TrainingSession:
         self.MODEL_PATH = None
         self.set_agent(self.AGENT_SELECTED)
 
+        self.OPPONENT = Randy()
+        self.NUMBER_OF_PLAYERS = 1
+        self.PLAYER_QUEUE = [self.AGENT, self.OPPONENT]
+
         self.reset_game_data_dict()
         self.reset_game_session_data_dict()
         self.data_analysis_filename = None
@@ -163,10 +167,10 @@ class TrainingSession:
                     self.AGENT.set_exploration_rate(epsilon)
 
                 # Reset the game
-                self.GAME_INSTANCE.reset()
+                self.GAME_INSTANCE.reset(number_of_players=self.NUMBER_OF_PLAYERS)
 
                 # Start the new game
-                self.GAME_INSTANCE.start_game()
+                self.GAME_INSTANCE.start_game(number_of_players=self.NUMBER_OF_PLAYERS)
 
                 # Reset the game data dictionary
                 self.reset_game_data_dict()
@@ -178,10 +182,13 @@ class TrainingSession:
             return self.running, legal_actions, chosen_action, self.games_played
 
     # Method for starting the game loop
-    def start(self, game_in_progress=False):
+    def start(self, game_in_progress=False, players=1):
         # Variable to keep our game loop running
         self.running = True
         self.steps_until_call_learning = 0
+
+        # Set the number of players
+        self.NUMBER_OF_PLAYERS = players
 
         # Set the filename for the data analysis file
         self.set_data_analysis_filename()
@@ -192,7 +199,7 @@ class TrainingSession:
 
         else:
             # Start the game instance
-            self.GAME_INSTANCE.start_game()
+            self.GAME_INSTANCE.start_game(number_of_players=players)
 
         # Return "running"
         return self.running

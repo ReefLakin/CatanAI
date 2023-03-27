@@ -563,10 +563,15 @@ class CatanGame:
         return self.game_over
 
     def start_game(self, number_of_players=1):
+        # Call reset
+        self.reset(number_of_players)
+
         # Set a flag so that the game knows the pre-game build phase has begun
         self.build_phase_active = True
 
         # For now, we're going to build for the player to start the game
+
+        # We build in a fairly good spot for the first player:
 
         # Build a settlement at [1, -1, 0] northeast
         self.board.build_settlement(1, -1, 0, "northeast")
@@ -579,6 +584,23 @@ class CatanGame:
 
         # Set the victory points to 2
         self.victory_points[0] = 2
+
+        # Then we build for the second player if there is one
+
+        if number_of_players > 1:
+            self.number_of_players = number_of_players
+
+            # Build a settlement at [-1, 0, 1] southwest
+            self.board.build_settlement(-1, 0, 1, "southwest", 2)
+            # Build a road at [-1, 0, 1] west
+            self.board.build_road(-1, 0, 1, "west", 2)
+            # Build a settlement at [0, -1, 1] north
+            self.board.build_settlement(0, -1, 1, "north", 2)
+            # Build a road at [0, -1, 1] northeast
+            self.board.build_road(0, -1, 1, "northeast", 2)
+
+            # Set the victory points to 2
+            self.victory_points[1] = 2
 
         # Turn off the build phase flag
         self.build_phase_active = False
