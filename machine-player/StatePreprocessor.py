@@ -26,18 +26,36 @@ class StatePreprocessor:
         # Recent roll
         new_state_list.append(state["most_recent_roll"])
 
-        # Loop over each tile for each side
+        # Loop over each tile for each side (states)
         for tile in state["side_states"]:
             # Loop over each side
             for side in tile:
-                # Add the side to the new state list
+                if side == 1:
+                    new_state_list.append(1)
+                else:
+                    new_state_list.append(None)
+
+        # Loop over each tile for each side (owners)
+        for tile in state["side_owners"]:
+            # Loop over each side
+            for side in tile:
                 new_state_list.append(side)
 
-        # Loop over each tile for each vertex
+        # Loop over each tile for each vertex (states)
         for tile in state["vertex_states"]:
             # Loop over each vertex
             for vertex in tile:
-                # Add the vertex to the new state list
+                if vertex == 1:
+                    new_state_list.append(1)
+                elif vertex == 2:
+                    new_state_list.append(2)
+                else:
+                    new_state_list.append(None)
+
+        # Loop over each tile for each side (owners)
+        for tile in state["vertex_owners"]:
+            # Loop over each side
+            for vertex in tile:
                 new_state_list.append(vertex)
 
         # Loop over tile types

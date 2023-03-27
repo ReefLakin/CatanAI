@@ -50,6 +50,7 @@ class TrainingSession:
         self.running = False
         self.learning_steps = 0
         self.games_played = 0
+        self.wins_recorded_this_session = 0
 
     # Method for continuing the game loop
     def time_step(self):
@@ -141,6 +142,13 @@ class TrainingSession:
                 # Increment the number of games played
                 self.games_played += 1
 
+                # Get the current winner of the game
+                winner = self.GAME_INSTANCE.get_player_id_of_current_winner()
+
+                # If the winner is the agent, increment the wins recorded this session
+                if winner == 0:
+                    self.wins_recorded_this_session += 1
+
                 # Update the game session data dictionaries
                 self.game_session_data_dict[
                     "total_illegal_actions_attempted_list"
@@ -162,6 +170,9 @@ class TrainingSession:
                 )
                 self.game_session_data_dict["epsilon_list"].append(
                     self.AGENT.get_exploration_rate()
+                )
+                self.game_session_data_dict["wins"].append(
+                    (self.wins_recorded_this_session / self.games_played) * 100
                 )
 
                 # Output some game analysis to a .csv file
@@ -278,6 +289,7 @@ class TrainingSession:
             self.game_session_data_dict["total_roads_built_list"],
             self.game_session_data_dict["turn_of_victory_list"],
             self.game_session_data_dict["epsilon_list"],
+            self.game_session_data_dict["wins"],
         )
 
         # Check if file exists
@@ -294,6 +306,7 @@ class TrainingSession:
                         "Roads built",
                         "Turn where victory achieved",
                         "Epsilon",
+                        "Win percentage",
                     ]
                 )
 
@@ -330,6 +343,7 @@ class TrainingSession:
             "total_roads_built_list": [],
             "turn_of_victory_list": [],
             "epsilon_list": [],
+            "wins": [],
         }
 
     # Method for getting the game state

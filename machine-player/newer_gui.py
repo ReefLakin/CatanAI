@@ -258,7 +258,7 @@ def get_player_colour_from_id(id):
 # !! Main Program
 
 # # Training Session Options
-agent_to_set = "Randy"
+agent_to_set = "Adam"
 
 # Create a training session (with default parameters)
 training_session = TrainingSession(agent=agent_to_set)

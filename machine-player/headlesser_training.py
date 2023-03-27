@@ -7,7 +7,7 @@ from TrainingSession import TrainingSession
 # !! Main Program
 
 # # Training Session Options
-agent_to_set = "Phil"
+agent_to_set = "Adam"
 
 # Create a training session (with default parameters)
 training_session = TrainingSession(agent=agent_to_set)
@@ -16,7 +16,7 @@ training_session = TrainingSession(agent=agent_to_set)
 # # Game Loop
 
 # Start the training session
-running = training_session.start()
+running = training_session.start(players=2)
 
 # While the training session is running
 while running is True:

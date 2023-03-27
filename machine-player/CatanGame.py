@@ -636,3 +636,9 @@ class CatanGame:
     def get_number_of_players(self):
         # Return the number of players
         return self.number_of_players
+
+    def get_player_id_of_current_winner(self):
+        # Return the player ID of the current winner
+        for i in range(self.number_of_players):
+            if self.victory_points[i] >= 10:
+                return i

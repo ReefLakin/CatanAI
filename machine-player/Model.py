@@ -6,7 +6,7 @@ import numpy as np
 
 
 class CatanModel(nn.Module):
-    def __init__(self, input_size=297, output_size=382, hidden_size=64):
+    def __init__(self, input_size=525, output_size=382, hidden_size=64):
         super(CatanModel, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.relu1 = nn.ReLU()
@@ -64,11 +64,11 @@ class CatanModel(nn.Module):
             state_preprocessor.preprocess_state(state) for state in next_states
         ]
 
-        # Normalise the states in the states list
-        states = [self.normalise_state(state) for state in states]
+        # # Normalise the states in the states list
+        # states = [self.normalise_state(state) for state in states]
 
-        # Normalise the next states in the next_states list
-        next_states = [self.normalise_state(state) for state in next_states]
+        # # Normalise the next states in the next_states list
+        # next_states = [self.normalise_state(state) for state in next_states]
 
         # Convert the lists into tensors
         states = torch.tensor(states, dtype=torch.float32)

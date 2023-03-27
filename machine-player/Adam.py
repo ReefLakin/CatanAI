@@ -18,7 +18,7 @@ import torch
 
 # Define the Adam class
 class Adam(Agent):
-    def __init__(self, exploration_rate=0.1):
+    def __init__(self, exploration_rate=1):
         super().__init__(exploration_rate)
         self.name = "Adam"
 
