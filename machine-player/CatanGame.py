@@ -73,8 +73,6 @@ class CatanGame:
         self.victory_points = [0 for i in range(number_of_players)]
         # Set up the turn number
         self.turn_number = 1
-        # Set up the reward attribute
-        self.reward = 0
         # Set the game over flag
         self.game_over = False
         # Set the robbery_in_progress flag
@@ -122,6 +120,7 @@ class CatanGame:
                 int(action_parts[4]),
                 int(action_parts[5]),
                 action_parts[2],
+                player_number,
             )
 
             # Remove 1 lumber and 1 brick from the resource pool
@@ -140,6 +139,7 @@ class CatanGame:
                 int(action_parts[4]),
                 int(action_parts[5]),
                 action_parts[2],
+                player_number,
             )
 
             # Update the player's VP count
@@ -167,6 +167,7 @@ class CatanGame:
                 int(action_parts[4]),
                 int(action_parts[5]),
                 action_parts[2],
+                player_number,
             )
 
             # Update the player's VP count
@@ -208,10 +209,6 @@ class CatanGame:
 
         # Update the legal actions
         self.set_legal_actions()
-
-    def get_current_game_reward(self):
-        # Return the current game reward
-        return self.reward
 
     def get_state(self, player_number=1):
         # Build a dictionary of state information, which includes all of the tile state info, player resources, VPs and turn number.
