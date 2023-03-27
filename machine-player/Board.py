@@ -97,7 +97,7 @@ class Board:
             ]
 
     # Can a player place a road on a given side location?
-    def check_road_placement_legal(self, q, r, s, direction):
+    def check_road_placement_legal(self, q, r, s, direction, player=1):
         # Grab the tile
         tile = self.get_tile(q, r, s)
         # Check if the tile exists
@@ -108,8 +108,11 @@ class Board:
             return False
         # Check that the side has at least one neighbouring road
         neighbouring_roads = tile.get_neighbouring_sides(direction)
-        if 1 in neighbouring_roads:
-            return True
+        for road in neighbouring_roads:
+            if road == 1:
+                # Check that the road belongs to the player specified
+                if road.get_owner() == player:
+                    return True
         else:
             # Check that the tile which shares the side has at least one neighbouring road
             neighbour_tile = self.shared_side_location(q, r, s, direction)
@@ -120,13 +123,16 @@ class Board:
                 neighbour_tile_neighbouring_roads = (
                     neighbour_tile.get_neighbouring_sides(opposite_direction)
                 )
-                if 1 in neighbour_tile_neighbouring_roads:
-                    return True
+                for road in neighbour_tile_neighbouring_roads:
+                    if road == 1:
+                        # Check that the road belongs to the player specified
+                        if road.get_owner() == player:
+                            return True
                 else:
                     return False
 
     # Can a player place a settlement on a given vertex location?
-    def check_settlement_placement_legal(self, q, r, s, direction):
+    def check_settlement_placement_legal(self, q, r, s, direction, player=1):
         # Grab the tile
         tile = self.get_tile(q, r, s)
         # Check if the tile exists
@@ -151,20 +157,23 @@ class Board:
                 ):
                     return False
         # Next, we have to check that the proposed settlement location is connected to a road. First, check the tile in question
-        if tile.is_vertex_adjacent_to_road(direction) == True:
+        if tile.is_vertex_adjacent_to_road(direction, player) == True:
             return True
         # If that didn't come up true, all hope is not lost. Check the neighbouring tiles
         i = 0
         for tile in neighbouring_tiles:
             if tile != None:
-                if tile.is_vertex_adjacent_to_road(opposite_directions[i]) == True:
+                if (
+                    tile.is_vertex_adjacent_to_road(opposite_directions[i], player)
+                    == True
+                ):
                     return True
             i += 1
         # If we've made it this far, the settlement is not connected to a road so it cannot be placed
         return False
 
     # Can a player place a city on a given vertex location?
-    def check_city_placement_legal(self, q, r, s, direction):
+    def check_city_placement_legal(self, q, r, s, direction, player=1):
         # Get the tile to start
         tile = self.get_tile(q, r, s)
         # Check if the tile exists
@@ -175,7 +184,11 @@ class Board:
             return False
         # Check if a settlement exists on the vertex
         elif tile.get_vertex_from_direction(direction) == 1:
-            return True
+            # Check that the settlement belongs to the player specified
+            if tile.get_vertex_from_direction(direction).get_owner() == player:
+                return True
+            else:
+                return False
         else:
             return False
 

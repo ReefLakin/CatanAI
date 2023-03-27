@@ -417,8 +417,6 @@ while running is True:
             all_road_owners = [item for sublist in all_road_owners for item in sublist]
             all_city_owners = [item for sublist in all_city_owners for item in sublist]
 
-            print(all_settlement_owners)
-
             # Draw each hexagon, with a border of 10 pixels
             for hex_points in all_hex_points:
                 # Get the colour value for the current hexagon

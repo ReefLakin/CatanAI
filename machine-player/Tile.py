@@ -417,11 +417,14 @@ class Tile:
             return None
 
     # Check if a specified vertex is adjacent to a road
-    def is_vertex_adjacent_to_road(self, direction):
+    def is_vertex_adjacent_to_road(self, direction, player=1):
         adjacent_sides = self.get_adjacent_sides_of_vertex(direction)
         for side in adjacent_sides:
             if self.get_side_from_direction(side) == 1:
-                return True
+                if self.get_side_from_direction(side).get_owner() == player:
+                    return True
+                else:
+                    return False
         return False
 
     # Return a list of all the side values of this tile
