@@ -1,5 +1,5 @@
 class Township:
-    def __init__(self, owner=1, type=1):
+    def __init__(self, owner=0, type=1):
         self.owner = owner
         self.type = type  # 1 (settlement) or 2 (city)
 

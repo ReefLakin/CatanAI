@@ -1,5 +1,5 @@
 class Road:
-    def __init__(self, owner=1):
+    def __init__(self, owner=0):
         self.owner = owner
 
     # A road is equal to an integer if the integer is 1

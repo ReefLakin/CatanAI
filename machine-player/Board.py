@@ -97,7 +97,7 @@ class Board:
             ]
 
     # Can a player place a road on a given side location?
-    def check_road_placement_legal(self, q, r, s, direction, player=1):
+    def check_road_placement_legal(self, q, r, s, direction, player=0):
         # Grab the tile
         tile = self.get_tile(q, r, s)
         # Check if the tile exists
@@ -132,7 +132,7 @@ class Board:
                     return False
 
     # Can a player place a settlement on a given vertex location?
-    def check_settlement_placement_legal(self, q, r, s, direction, player=1):
+    def check_settlement_placement_legal(self, q, r, s, direction, player=0):
         # Grab the tile
         tile = self.get_tile(q, r, s)
         # Check if the tile exists
@@ -173,7 +173,7 @@ class Board:
         return False
 
     # Can a player place a city on a given vertex location?
-    def check_city_placement_legal(self, q, r, s, direction, player=1):
+    def check_city_placement_legal(self, q, r, s, direction, player=0):
         # Get the tile to start
         tile = self.get_tile(q, r, s)
         # Check if the tile exists
@@ -193,7 +193,7 @@ class Board:
             return False
 
     # Build a road at a location, given the q, r, s coordinates and the direction
-    def build_road(self, q, r, s, direction, player=1):
+    def build_road(self, q, r, s, direction, player=0):
         # Build the road on the specified tile
         tile = self.get_tile(q, r, s)
         tile.build_road(direction, player)
@@ -204,7 +204,7 @@ class Board:
             neighbour_tile.build_road(opposite_direction, player)
 
     # Build a settlement at a location, given the q, r, s coordinates and the direction
-    def build_settlement(self, q, r, s, direction, player=1):
+    def build_settlement(self, q, r, s, direction, player=0):
         # Build the settlement on the specified tile
         tile = self.get_tile(q, r, s)
         tile.build_settlement(direction, player)
@@ -216,7 +216,7 @@ class Board:
                 neighbour_tiles[i].build_settlement(direction_array[i], player)
 
     # Build a city at a location, given the q, r, s coordinates and the direction
-    def build_city(self, q, r, s, direction, player=1):
+    def build_city(self, q, r, s, direction, player=0):
         # Build the city on the specified tile
         tile = self.get_tile(q, r, s)
         tile.build_city(direction, player)

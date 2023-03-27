@@ -28,8 +28,8 @@ CITY_GOLD_COLOUR = "#FFD700"
 ROBBER_COLOUR = "#C4BCA9"
 
 # PLAYER COLOURS
-PLAYER_1_COLOUR = "#FFFFFF"
-PLAYER_2_COLOUR = "#675df2"
+PLAYER_0_COLOUR = "#FFFFFF"
+PLAYER_1_COLOUR = "#675df2"
 
 # SCREEN INFORMATION
 SCREEN_WIDTH = 880
@@ -249,10 +249,10 @@ def get_colour_value_from_resource_name(name):
 # Return the player colour associated with the given player ID
 def get_player_colour_from_id(id):
     match id:
+        case 0:
+            return PLAYER_0_COLOUR
         case 1:
             return PLAYER_1_COLOUR
-        case 2:
-            return PLAYER_2_COLOUR
 
 
 # !! Main Program

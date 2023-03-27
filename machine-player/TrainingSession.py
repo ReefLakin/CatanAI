@@ -41,6 +41,8 @@ class TrainingSession:
         self.NUMBER_OF_PLAYERS = 1
         self.PLAYER_QUEUE = [self.AGENT, self.OPPONENT]
 
+        self.player_turn_pointer = 0
+
         self.reset_game_data_dict()
         self.reset_game_session_data_dict()
         self.data_analysis_filename = None
@@ -55,7 +57,9 @@ class TrainingSession:
             # Get a list of all possible actions from the game instance, even if they are illegal
             all_actions = self.GAME_INSTANCE.get_all_possible_actions()
             # Get a list of all legal actions from the game instance
-            legal_actions = self.GAME_INSTANCE.get_legal_actions()
+            legal_actions = self.GAME_INSTANCE.get_legal_actions(
+                player_id=self.player_turn_pointer
+            )
             # Get the current state of the game instance
             game_state = self.GAME_INSTANCE.get_state()
 

@@ -257,7 +257,7 @@ class Tile:
             return None
 
     # Set the value of a specified vertex to 1 (settlement)
-    def build_settlement(self, direction, player=1):
+    def build_settlement(self, direction, player=0):
         if direction == "northwest":
             self.vert_northwest = Township(owner=player)
         elif direction == "north":
@@ -274,7 +274,7 @@ class Tile:
             return None
 
     # Set the value of a specified vertex to 2 (city)
-    def build_city(self, direction, player=1):
+    def build_city(self, direction, player=0):
         if direction == "northwest":
             self.vert_northwest = Township(type=2, owner=player)
         elif direction == "north":
@@ -308,7 +308,7 @@ class Tile:
             return None
 
     # Set the value of a specified side to 1 (road)
-    def build_road(self, direction, player=1):
+    def build_road(self, direction, player=0):
         if direction == "northwest":
             self.side_northwest = Road(owner=player)
         elif direction == "northeast":
@@ -417,7 +417,7 @@ class Tile:
             return None
 
     # Check if a specified vertex is adjacent to a road
-    def is_vertex_adjacent_to_road(self, direction, player=1):
+    def is_vertex_adjacent_to_road(self, direction, player=0):
         adjacent_sides = self.get_adjacent_sides_of_vertex(direction)
         for side in adjacent_sides:
             if self.get_side_from_direction(side) == 1:
