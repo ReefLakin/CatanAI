@@ -70,7 +70,7 @@ class CatanGame:
             for i in range(number_of_players)
         ]
         # Set up the player's VP count
-        self.victory_points = 0
+        self.victory_points = [0 for i in range(number_of_players)]
         # Set up the turn number
         self.turn_number = 1
         # Set up the reward attribute
@@ -143,7 +143,7 @@ class CatanGame:
             )
 
             # Update the player's VP count
-            self.victory_points = self.victory_points + 1
+            self.victory_points[player_number - 1] += 1
 
             # Remove 1 lumber, 1 brick, 1 wool, and 1 grain from the resource pool
             self.resource_pool[player_number - 1]["lumber"] = (
@@ -170,7 +170,7 @@ class CatanGame:
             )
 
             # Update the player's VP count
-            self.victory_points = self.victory_points + 1
+            self.victory_points[player_number - 1] += 1
 
             # Remove 2 grain and 3 ore from the resource pool
             self.resource_pool[player_number - 1]["grain"] = (
@@ -203,7 +203,7 @@ class CatanGame:
             self.robbery_in_progress = False
 
         # Is the game over?
-        if self.victory_points >= 10:
+        if self.victory_points[player_number - 1] >= 10:
             self.game_over = True
 
         # Update the legal actions
@@ -228,29 +228,11 @@ class CatanGame:
             "num_wool": self.resource_pool[player_number - 1]["wool"],
             "num_grain": self.resource_pool[player_number - 1]["grain"],
             "num_ore": self.resource_pool[player_number - 1]["ore"],
-            "victory_points": self.victory_points,
+            "victory_points": self.victory_points[player_number - 1],
             "tile_values": self.board.get_tile_numbers_in_a_list(),
             "robber_states": self.board.get_robber_states(),
             "most_recent_roll": self.most_recent_roll[2],
         }
-
-    def get_state_as_single_list(self):
-        # Build a list of state information
-        # This is put in one array and can be used for replay memory or preprocessing, etc.
-        listed_state = []
-        current_state = self.get_state()
-
-        # Victory points
-        listed_state.append(current_state["victory_points"])
-
-        # Turn number
-        listed_state.append(current_state["turn_number"])
-
-        # Rows in board
-        listed_state.append(len(current_state["board_dims"]))
-
-        # Total number of tiles
-        listed_state.append(len(current_state["tile_types"]))
 
     def set_legal_actions(self):
         # Set legal actions for each player in the game
@@ -564,7 +546,7 @@ class CatanGame:
         # Build a settlement at [-1, 1, 0] northwest
         self.board.build_road(-1, 1, 0, "northwest")
         # Set victory points to 5
-        self.victory_points = 5
+        self.victory_points[0] = 3
         # Give the player 3 brick, 1 ore and 2 lumber
         self.resource_pool[0]["brick"] = 3
         self.resource_pool[0]["ore"] = 1
@@ -577,6 +559,7 @@ class CatanGame:
         self.board.build_road(0, 1, -1, "east", 2)
         # Build a road for Player 2 at [0, 1, -1] southeast
         self.board.build_road(0, 1, -1, "southeast", 2)
+        self.victory_points[1] = 2
 
     def get_game_over_flag(self):
         # Return the game over flag
@@ -598,7 +581,7 @@ class CatanGame:
         self.board.build_road(-1, 1, 0, "southeast")
 
         # Set the victory points to 2
-        self.victory_points = 2
+        self.victory_points[0] = 2
 
         # Turn off the build phase flag
         self.build_phase_active = False
