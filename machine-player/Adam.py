@@ -26,8 +26,8 @@ class Adam(Agent):
     def select_action_exploit(self, observation, all_possible_actions, legal_actions):
         # Preprocess the state information
         observation_processed = self.preprocess_state(observation)
-        # Normalise the states in the states list
-        observation_processed = self.normalise_state(observation_processed)
+        # # Normalise the states in the states list
+        # observation_processed = self.normalise_state(observation_processed)
         # # Convert the observation to a tensor
         # observation_processed = torch.tensor(observation_processed, dtype=torch.float32)
         # # Pass the observation through the model

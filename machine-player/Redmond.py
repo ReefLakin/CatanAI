@@ -18,7 +18,7 @@ import torch
 
 # Define the Redmond class
 class Redmond(Agent):
-    def __init__(self, exploration_rate=0.1):
+    def __init__(self, exploration_rate=1.0):
         super().__init__(exploration_rate)
         self.name = "Redmond"
 
@@ -26,8 +26,8 @@ class Redmond(Agent):
     def select_action_exploit(self, observation, all_possible_actions, legal_actions):
         # Preprocess the state information
         observation_processed = self.preprocess_state(observation)
-        # Normalise the states in the states list
-        observation_processed = self.normalise_state(observation_processed)
+        # # Normalise the states in the states list
+        # observation_processed = self.normalise_state(observation_processed)
         # Convert the observation to a tensor
         observation_processed = torch.tensor(observation_processed, dtype=torch.float32)
         # Pass the observation through the model
@@ -72,17 +72,22 @@ class Redmond(Agent):
 
     # Reward function
     def reward(self, reward_information):
-        # Redmond gets rewarded for: building a settlement or city on red tiles (6 and 8)
+        # Redmond gets rewarded for: building a settlement or city on red tiles (6 and 8), winning the game
         # Redmond gets a small reward for: generating resources
         # Redmond gets slightly less reward for: building settlements and cities on non-red tiles
-        # Remond is not rewarded for: winning the game, or building roads
+        # Remond is not rewarded for: building roads
         # Remond is punished for: making illegal moves
         legal_actions = reward_information["legal_actions"]
         resource_bonus = reward_information["recent_resources_generated"]
         action = reward_information["current_action"]
         red_tiles = reward_information["red_tiles"]
+        done = reward_information["game_over"]
 
         split_action_parts = action.split("_")
+
+        # Game over reward
+        if done:
+            return 60
 
         # Illegal move penalty
         if action not in legal_actions:
