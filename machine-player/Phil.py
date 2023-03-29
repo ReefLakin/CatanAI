@@ -1,7 +1,10 @@
 # Imports
 import numpy as np
-import DeepQNetwork as DeepQNetwork
+from DeepQNetwork import DeepQNetwork
 import torch as T
+
+# Import the StatePreprocessor class
+from StatePreprocessor import StatePreprocessor
 
 # Define the Phil class
 class Phil:
@@ -15,7 +18,7 @@ class Phil:
         n_action,
         max_mem_size=100000,
         eps_end=0.01,
-        eps_dec=5e-4,
+        eps_dec=0.00001,
     ):
         self.gamma = gamma
         self.epsilon = epsilon
@@ -41,6 +44,8 @@ class Phil:
 
     def store_transition(self, state, action, reward, state_, done):
         index = self.mem_cntr % self.mem_size
+        state = self.preprocess_state(state)
+        state_ = self.preprocess_state(state_)
         self.state_memory[index] = state
         self.new_state_memory[index] = state_
         self.reward_memory[index] = reward
@@ -50,6 +55,7 @@ class Phil:
 
     def select_action(self, observation, all_possible_actions, legal_actions):
         if np.random.random() > self.epsilon:
+            observation = self.preprocess_state(observation)
             state = T.tensor([observation], dtype=T.float).to(self.Q_eval.device)
             actions = self.Q_eval.forward(state)
             action = T.argmax(actions).item()
@@ -117,3 +123,12 @@ class Phil:
 
     def set_exploration_rate(self, epsilon):
         pass
+
+    # Preprocess the state information passed to the select_action method
+    def preprocess_state(self, state):
+        # Define a new state preprocessor
+        state_preprocessor = StatePreprocessor()
+        # Preprocess the state
+        new_state_list = state_preprocessor.preprocess_state(state)
+        # Return the new state list
+        return new_state_list

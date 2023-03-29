@@ -119,8 +119,10 @@ class TrainingSession:
 
                 # Feed the memory tuple to the agent
                 if self.AGENT_SELECTED == "Phil":
+                    # Find the index of the action in the list of all actions
+                    action_with_idx = all_actions.index(chosen_action)
                     self.AGENT.store_transition(
-                        game_state, chosen_action, reward, new_game_state, game_over
+                        game_state, action_with_idx, reward, new_game_state, game_over
                     )
                 else:
                     self.AGENT.feed_memory(memory_tuple)
@@ -258,7 +260,7 @@ class TrainingSession:
                 gamma=0.9,
                 epsilon=1.0,
                 lr=0.001,
-                input_dims=(297,),
+                input_dims=(525,),
                 batch_size=64,
                 n_action=382,
             )

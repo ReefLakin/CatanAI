@@ -16,6 +16,10 @@ from Model import CatanModel
 # Import the torch library
 import torch
 
+# Some settings
+NORMALISE_STATES = False
+LEGAL_ACTIONS_ONLY = True
+
 # Define the Adam class
 class Adam(Agent):
     def __init__(self, exploration_rate=1):
@@ -24,44 +28,50 @@ class Adam(Agent):
 
     # In this version of Adam's action selecting, only legal actions are considered
     def select_action_exploit(self, observation, all_possible_actions, legal_actions):
-        # Preprocess the state information
-        observation_processed = self.preprocess_state(observation)
-        # # Normalise the states in the states list
-        # observation_processed = self.normalise_state(observation_processed)
-        # # Convert the observation to a tensor
-        # observation_processed = torch.tensor(observation_processed, dtype=torch.float32)
-        # # Pass the observation through the model
-        # action_options = self.model.forward(observation_processed)
-        # # Acquire the singular action with the highest value
-        # action_as_idx = torch.argmax(action_options).item()
-        # # Get the actual action from the action index
-        # action = all_possible_actions[action_as_idx]
-        # # Return the action
-        # return action
 
-        # Convert the observation to a tensor
+        # Preprocessing
+        observation_processed = self.preprocess_state(observation)
+
+        # Normalising
+        if NORMALISE_STATES:
+            observation_processed = self.normalise_state(observation_processed)
+
+        # Tensor conversion
         observation_processed = torch.tensor(observation_processed, dtype=torch.float32)
-        # Pass the observation through the model
+
+        # Forward pass
         action_options = self.model.forward(observation_processed)
-        # Get the indices of legal actions
-        legal_action_indices = [
-            i
-            for i in range(len(all_possible_actions))
-            if all_possible_actions[i] in legal_actions
-        ]
-        # Convert action_options from a tensor to a list
-        action_options = action_options.tolist()
-        # Loop through all the action options
-        # If the action is not legal, set its value to -50
-        # Otherwise, leave it alone
-        for i in range(len(action_options)):
-            if i not in legal_action_indices:
-                action_options[i] = -50
-        # Get the index of the highest value in the action options list
-        action_as_idx = action_options.index(max(action_options))
-        # Get the actual action from the action index
-        action = all_possible_actions[action_as_idx]
-        # Return the legal action
+
+        if LEGAL_ACTIONS_ONLY:
+
+            # Legal action indicies collection
+            legal_action_indices = [
+                i
+                for i in range(len(all_possible_actions))
+                if all_possible_actions[i] in legal_actions
+            ]
+            # Convert action_options from a tensor to a list
+            action_options = action_options.tolist()
+            # Loop through all the action options
+            # If the action is not legal, set its value to -50
+            # Otherwise, leave it alone
+            for i in range(len(action_options)):
+                if i not in legal_action_indices:
+                    action_options[i] = -50
+            # Get the index of the highest value in the action options list
+            action_as_idx = action_options.index(max(action_options))
+            # Get the actual action from the action index
+            action = all_possible_actions[action_as_idx]
+            # Return the legal action
+
+        else:
+
+            # Acquire the singular action with the highest value
+            action_as_idx = torch.argmax(action_options).item()
+            # Get the actual action from the action index
+            action = all_possible_actions[action_as_idx]
+
+        # Action return
         return action
 
     # Method for learning

@@ -10,7 +10,7 @@ class DeepQNetwork(nn.Module):
     def __init__(self):
         super(DeepQNetwork, self).__init__()
         lr = 0.001
-        input_dims = (297,)
+        input_dims = (525,)
         fc1_dims = 256
         fc2_dims = 256
         n_actions = 382
