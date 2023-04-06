@@ -51,7 +51,7 @@ class CatanModel(nn.Module):
         transitions = memory.sample(batch_size)
 
         # Convert the list of tuples into separate lists
-        states, actions, rewards, next_states = zip(*transitions)
+        states, actions, rewards, next_states, dones = zip(*transitions)
 
         # Create a new state preprocessor
         state_preprocessor = StatePreprocessor()
@@ -75,6 +75,7 @@ class CatanModel(nn.Module):
         actions = torch.tensor(actions, dtype=torch.long)
         rewards = torch.tensor(rewards, dtype=torch.float32)
         next_states = torch.tensor(next_states, dtype=torch.float32)
+        dones = torch.tensor(dones, dtype=torch.long)
 
         # Get the Q values for the current states
         q_values = self.forward(states)
@@ -89,7 +90,7 @@ class CatanModel(nn.Module):
         max_next_q_values = torch.max(next_q_values, dim=1)[0]
 
         # Calculate the target Q values
-        target_q_values = rewards + gamma * max_next_q_values
+        target_q_values = rewards + gamma * max_next_q_values * (1 - dones)
 
         # Calculate the loss
         loss = nn.MSELoss()(q_values_for_actions_taken, target_q_values)

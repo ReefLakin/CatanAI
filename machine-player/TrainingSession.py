@@ -109,13 +109,13 @@ class TrainingSession:
                 # Increment the total reward points earned
                 self.game_data_dict["total_reward_points_earned"] += reward
 
+                # Set the value of 'done' for the memory tuple
+                done = 0
+                if game_over:
+                    done = 1
+
                 # Create a memory tuple
-                memory_tuple = (
-                    game_state,
-                    action_index,
-                    reward,
-                    new_game_state,
-                )
+                memory_tuple = (game_state, action_index, reward, new_game_state, done)
 
                 # Feed the memory tuple to the agent
                 if self.AGENT_SELECTED == "Phil":
