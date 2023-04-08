@@ -137,7 +137,10 @@ class TrainingSession:
                     # Reset the learn steps if we are ready to learn
                     self.learning_steps = 0
                     # Call the learn() method on the agent
-                    self.AGENT.learn()
+                    loss = self.AGENT.learn()
+                    # Add the loss to the game data dictionary only if it is not None
+                    if loss is not None:
+                        self.game_data_dict["loss"].append(loss)
 
             # Complete some post-game tasks if the game is over
             if game_over:
@@ -150,6 +153,15 @@ class TrainingSession:
                 # If the winner is the agent, increment the wins recorded this session
                 if winner == 0:
                     self.wins_recorded_this_session += 1
+
+                # Calculate the average loss for the last game
+                loss_list = self.game_data_dict["loss"]
+                if len(loss_list) > 0:
+                    print(loss_list)
+                    average_loss = sum(loss_list) / len(loss_list)
+
+                else:
+                    average_loss = 0
 
                 # Update the game session data dictionaries
                 self.game_session_data_dict[
@@ -176,6 +188,7 @@ class TrainingSession:
                 self.game_session_data_dict["wins"].append(
                     (self.wins_recorded_this_session / self.games_played) * 100
                 )
+                self.game_session_data_dict["average_loss"].append(average_loss)
 
                 # Output some game analysis to a .csv file
                 if self.games_played == self.EPISODES or self.games_played % 100 == 0:
@@ -292,6 +305,7 @@ class TrainingSession:
             self.game_session_data_dict["turn_of_victory_list"],
             self.game_session_data_dict["epsilon_list"],
             self.game_session_data_dict["wins"],
+            self.game_session_data_dict["average_loss"],
         )
 
         # Check if file exists
@@ -309,6 +323,7 @@ class TrainingSession:
                         "Turn where victory achieved",
                         "Epsilon",
                         "Win percentage",
+                        "Average loss",
                     ]
                 )
 
@@ -333,6 +348,7 @@ class TrainingSession:
             "total_steps_taken": 0,
             "total_reward_points_earned": 0,
             "total_roads_built": 0,
+            "loss": [],
         }
 
     # Reset the game session data dictionary
@@ -346,6 +362,7 @@ class TrainingSession:
             "turn_of_victory_list": [],
             "epsilon_list": [],
             "wins": [],
+            "average_loss": [],
         }
 
     # Method for getting the game state

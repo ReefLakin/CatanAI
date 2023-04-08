@@ -101,6 +101,9 @@ class CatanModel(nn.Module):
         # Update the weights
         self.optimiser.step()
 
+        # Return the loss as a float
+        return loss.item()
+
     def normalise_state(self, state):
         # Normalise the state
         return (state - np.min(state)) / (np.max(state) - np.min(state))

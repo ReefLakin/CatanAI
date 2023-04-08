@@ -76,7 +76,8 @@ class Adam(Agent):
 
     # Method for learning
     def learn(self):
-        self.model.learn(self.memory, batch_size=32)
+        loss = self.model.learn(self.memory, batch_size=32)
+        return loss
 
     # Reward function
     def reward(self, reward_information):
