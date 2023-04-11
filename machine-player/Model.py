@@ -12,6 +12,7 @@ class CatanModel(nn.Module):
         self.relu1 = nn.ReLU()
         self.fc2 = nn.Linear(hidden_size, hidden_size)
         self.relu2 = nn.ReLU()
+        self.dr1 = nn.Dropout(p=0.2)
         self.fc3 = nn.Linear(hidden_size, output_size)
 
         # Initialise weights with the He uniform method
@@ -28,13 +29,14 @@ class CatanModel(nn.Module):
                 nn.init.zeros_(m.bias)
 
         # Initialise the optimiser
-        self.optimiser = torch.optim.Adam(self.parameters(), lr=0.001)
+        self.optimiser = torch.optim.Adam(self.parameters(), lr=0.002)
 
     def forward(self, x):
         x = self.fc1(x)
         x = self.relu1(x)
         x = self.fc2(x)
         x = self.relu2(x)
+        x = self.dr1(x)
         x = self.fc3(x)
         return x
 
