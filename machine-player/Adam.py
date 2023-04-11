@@ -44,25 +44,22 @@ class Adam(Agent):
 
         if LEGAL_ACTIONS_ONLY:
 
-            # Legal action indicies collection
-            legal_action_indices = [
-                i
-                for i in range(len(all_possible_actions))
-                if all_possible_actions[i] in legal_actions
-            ]
-            # Convert action_options from a tensor to a list
-            action_options = action_options.tolist()
-            # Loop through all the action options
-            # If the action is not legal, set its value to -50
-            # Otherwise, leave it alone
+            # Create a list of legal action indices
+            legal_action_indices = []
+            for i in range(len(all_possible_actions)):
+                if all_possible_actions[i] in legal_actions:
+                    legal_action_indices.append(i)
+
+            # Acquire the legal action with the highest value
+            # Skip over the illegal actions
+            action_as_idx = -50
             for i in range(len(action_options)):
-                if i not in legal_action_indices:
-                    action_options[i] = -50
-            # Get the index of the highest value in the action options list
-            action_as_idx = action_options.index(max(action_options))
+                if i in legal_action_indices:
+                    if action_options[i] > action_options[action_as_idx]:
+                        action_as_idx = i
+
             # Get the actual action from the action index
             action = all_possible_actions[action_as_idx]
-            # Return the legal action
 
         else:
 
@@ -89,16 +86,16 @@ class Adam(Agent):
         action = reward_information["current_action"]
 
         if done == True:
-            return 80  # Victory reward
+            return 5  # Victory reward
         elif action not in legal_actions:
             return -1  # Illegal move punishment
         else:
             split_action = action.split("_")
             if split_action[0] == "build" and split_action[1] == "road":
-                return 10  # Road building reward
+                return 0.4  # Road building reward
             elif split_action[0] == "build" and split_action[1] == "settlement":
-                return 30  # Settlement building reward
+                return 1  # Settlement building reward
             elif split_action[0] == "build" and split_action[1] == "city":
-                return 35  # City building reward
+                return 1  # City building reward
             else:
                 return 0  # Else, no reward

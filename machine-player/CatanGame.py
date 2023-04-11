@@ -13,6 +13,7 @@ class CatanGame:
         # Reset the game board to its starting state
         # For now, we will use the default board
         # Later, we will add the ability to specify a custom board
+        self.game_phase = "main"
         board_dims = [3, 4, 5, 4, 3]
         self.number_of_players = number_of_players
         tile_values = [10, 2, 9, 12, 6, 4, 10, 9, 11, 0, 3, 8, 8, 3, 4, 5, 5, 6, 11]
@@ -75,8 +76,6 @@ class CatanGame:
         self.turn_number = 1
         # Set the game over flag
         self.game_over = False
-        # Set the robbery_in_progress flag
-        self.robbery_in_progress = False
         # Set all possible actions
         self.set_all_possible_actions()
         # Set the legal actions
@@ -200,8 +199,8 @@ class CatanGame:
                 int(action_parts[2]), int(action_parts[3]), int(action_parts[4])
             )
 
-            # Set the robbery_in_progress flag
-            self.robbery_in_progress = False
+            # Set the game phase back to "main"
+            self.game_phase = "main"
 
         # Is the game over?
         if self.victory_points[player_id] >= 10:
@@ -232,153 +231,145 @@ class CatanGame:
         }
 
     def set_legal_actions(self):
-        # Set legal actions for each player in the game
+
+        # Reset the legal actions list, which is a list of lists, one for each player
         self.legal_actions = [[] for i in range(self.number_of_players)]
-        # PLEASE NOTE: player_number here is 0-indexed
+
+        # Compile the list of legal actions for each player
         for player_id in range(self.number_of_players):
-            # Loop over each action from the set of all possible actions
-            for action in self.all_actions:
-                # Split the action into its parts
-                action_parts = action.split("_")
 
-                if self.robbery_in_progress == True:
-                    # Get the tile coordinates where the robber is currently located
-                    robber_tile = self.board.get_robber_tile()
-                    robber_tile_q = robber_tile.get_q_coord()
-                    robber_tile_r = robber_tile.get_r_coord()
-                    robber_tile_s = robber_tile.get_s_coord()
+            # Here, we need to determine the current game "phase"
 
-                    # If the robber is in progress, the only legal action is to move the robber
-                    if action_parts[0] == "move" and action_parts[1] == "robber":
+            # "main" is the main game phase, where players can build roads, settlements, cities, and end their turn
+            if self.game_phase == "main":
 
-                        # Check that the robber is not being moved to the same tile
-                        if (
-                            robber_tile_q == int(action_parts[2])
-                            and robber_tile_r == int(action_parts[3])
-                            and robber_tile_s == int(action_parts[4])
-                        ):
-                            continue
+                self.set_legal_actions_phase_main(player_id)
 
-                        else:
-                            self.legal_actions[player_id].append(action)
+            # "robber" is the phase where the robber is in progress, and players can only move the robber
+            elif self.game_phase == "robber":
 
-                else:
+                self.set_legal_actions_phase_robber(player_id)
 
-                    # Does the player have enough resources to build a settlement?
-                    if (
-                        action_parts[0] == "build" and action_parts[1] == "settlement"
-                    ) and (
-                        self.resource_pool[player_id]["brick"] < 1
-                        or self.resource_pool[player_id]["wool"] < 1
-                        or self.resource_pool[player_id]["lumber"] < 1
-                        or self.resource_pool[player_id]["grain"] < 1
-                    ):
-                        continue
-                    # Does the player have enough resources to build a road?
-                    elif (
-                        action_parts[0] == "build" and action_parts[1] == "road"
-                    ) and (
-                        self.resource_pool[player_id]["brick"] < 1
-                        or self.resource_pool[player_id]["lumber"] < 1
-                    ):
-                        continue
-                    # Does the player have enough resources to build a city?
-                    elif (
-                        action_parts[0] == "build" and action_parts[1] == "city"
-                    ) and (
-                        self.resource_pool[player_id]["grain"] < 2
-                        or self.resource_pool[player_id]["ore"] < 3
-                    ):
-                        continue
-                    # Does the proposed settlement location already have a settlement on it?
-                    elif action_parts[0] == "build" and action_parts[1] == "settlement":
-                        direction = action_parts[2]
-                        q_coord = int(action_parts[3])
-                        r_coord = int(action_parts[4])
-                        s_coord = int(action_parts[5])
-                        tile = self.board.get_tile(q_coord, r_coord, s_coord)
-                        # Raise an error if the tile is not found; that shouldn't happen here
-                        if tile is None:
-                            raise ValueError(
-                                "Tile not found at coordinates ({}, {}, {})".format(
-                                    q_coord, r_coord, s_coord
-                                )
-                            )
-                        vert_val = tile.get_vertex_from_direction(direction)
-                        if vert_val is not None:
-                            continue
-                        else:
-                            # Is the settlement placement legal?
-                            settlement_legal = (
-                                self.board.check_settlement_placement_legal(
-                                    q_coord,
-                                    r_coord,
-                                    s_coord,
-                                    direction,
-                                    player_id,
-                                )
-                            )
-                            if settlement_legal == False:
-                                continue
-                            else:
-                                self.legal_actions[player_id].append(action)
-                    # Does the proposed road location already have a road on it?
-                    elif action_parts[0] == "build" and action_parts[1] == "road":
-                        direction = action_parts[2]
-                        q_coord = int(action_parts[3])
-                        r_coord = int(action_parts[4])
-                        s_coord = int(action_parts[5])
-                        tile = self.board.get_tile(q_coord, r_coord, s_coord)
-                        # Raise an error if the tile is not found; that shouldn't happen here
-                        if tile is None:
-                            raise ValueError(
-                                "Tile not found at coordinates ({}, {}, {})".format(
-                                    q_coord, r_coord, s_coord
-                                )
-                            )
-                        side_val = tile.get_side_from_direction(direction)
-                        if side_val is not None:
-                            continue
-                        else:
-                            # Is the road placement legal?
-                            road_legal = self.board.check_road_placement_legal(
-                                q_coord, r_coord, s_coord, direction, player_id
-                            )
-                            if road_legal == False:
-                                continue
-                            else:
-                                self.legal_actions[player_id].append(action)
-                    # Is the proposed city location already a city or an illegal build?
-                    elif action_parts[0] == "build" and action_parts[1] == "city":
-                        direction = action_parts[2]
-                        q_coord = int(action_parts[3])
-                        r_coord = int(action_parts[4])
-                        s_coord = int(action_parts[5])
-                        tile = self.board.get_tile(q_coord, r_coord, s_coord)
-                        city_legal = self.board.check_city_placement_legal(
+    def set_legal_actions_phase_main(self, player_id):
+
+        # Iterate across all actions and split them into their parts
+        for action in self.all_actions:
+            action_parts = action.split("_")
+
+            # Settlement Building
+            if action_parts[0] == "build" and action_parts[1] == "settlement":
+
+                # The player must have enough resources to build a settlement
+                if (
+                    self.resource_pool[player_id]["brick"] >= 1
+                    and self.resource_pool[player_id]["wool"] >= 1
+                    and self.resource_pool[player_id]["lumber"] >= 1
+                    and self.resource_pool[player_id]["grain"] >= 1
+                ):
+
+                    # The proposed location must be empty
+                    direction = action_parts[2]
+                    q_coord = int(action_parts[3])
+                    r_coord = int(action_parts[4])
+                    s_coord = int(action_parts[5])
+                    tile = self.board.get_tile(q_coord, r_coord, s_coord)
+                    vert_val = tile.get_vertex_from_direction(direction)
+                    if vert_val is None:
+
+                        # The build must be legal
+                        settlement_legal = self.board.check_settlement_placement_legal(
                             q_coord, r_coord, s_coord, direction, player_id
                         )
-                        if city_legal == True:
+
+                        if settlement_legal == True:
                             self.legal_actions[player_id].append(action)
-                        else:
-                            continue
-                    # If the player tries to make a 4:1 trade with the bank, check if they have enough resources to make the trade
-                    elif (
-                        action_parts[0] == "trade"
-                        and action_parts[1] == "bank"
-                        and action_parts[2] == "4"
-                        and action_parts[3] == "for"
-                        and action_parts[4] == "1"
-                    ):
-                        if self.resource_pool[player_id][action_parts[5]] < 4:
-                            continue
-                        else:
+
+            # Road Building
+            elif action_parts[0] == "build" and action_parts[1] == "road":
+
+                # The player must have enough resources to build a road
+                if (
+                    self.resource_pool[player_id]["brick"] >= 1
+                    and self.resource_pool[player_id]["lumber"] >= 1
+                ):
+
+                    # The proposed location must be empty
+                    direction = action_parts[2]
+                    q_coord = int(action_parts[3])
+                    r_coord = int(action_parts[4])
+                    s_coord = int(action_parts[5])
+                    tile = self.board.get_tile(q_coord, r_coord, s_coord)
+                    side_val = tile.get_side_from_direction(direction)
+                    if side_val is None:
+
+                        # The build must be legal
+                        road_legal = self.board.check_road_placement_legal(
+                            q_coord, r_coord, s_coord, direction, player_id
+                        )
+
+                        if road_legal == True:
                             self.legal_actions[player_id].append(action)
-                    # At this stage, the action is legal, so add it to the list of legal actions
-                    else:
-                        # If the action doesn't contain the word "robber" it's legal
-                        if "robber" not in action:
-                            self.legal_actions[player_id].append(action)
+
+            # City Building
+            elif action_parts[0] == "build" and action_parts[1] == "city":
+
+                # The player must have enough resources to build a city
+                if (
+                    self.resource_pool[player_id]["ore"] >= 3
+                    and self.resource_pool[player_id]["grain"] >= 2
+                ):
+
+                    # The build must be legal
+                    direction = action_parts[2]
+                    q_coord = int(action_parts[3])
+                    r_coord = int(action_parts[4])
+                    s_coord = int(action_parts[5])
+
+                    city_legal = self.board.check_city_placement_legal(
+                        q_coord, r_coord, s_coord, direction, player_id
+                    )
+
+                    if city_legal == True:
+                        self.legal_actions[player_id].append(action)
+
+            # 4:1 Trade with the Bank
+            elif (
+                action_parts[0] == "trade"
+                and action_parts[1] == "bank"
+                and action_parts[2] == "4"
+                and action_parts[3] == "for"
+                and action_parts[4] == "1"
+            ):
+                if self.resource_pool[player_id][action_parts[5]] >= 4:
+                    self.legal_actions[player_id].append(action)
+
+            # End Turn
+            elif action_parts[0] == "end" and action_parts[1] == "turn":
+                self.legal_actions[player_id].append(action)
+
+    def set_legal_actions_phase_robber(self, player_id):
+
+        # Iterate across all actions and split them into their parts
+        for action in self.all_actions:
+            action_parts = action.split("_")
+
+            # Get the tile coordinates where the robber is currently located
+            robber_tile = self.board.get_robber_tile()
+            robber_tile_q = robber_tile.get_q_coord()
+            robber_tile_r = robber_tile.get_r_coord()
+            robber_tile_s = robber_tile.get_s_coord()
+
+            # During the "robber" phase, the only legal action is to move the robber
+            if action_parts[0] == "move" and action_parts[1] == "robber":
+
+                # The robber can't be moved onto the same tile
+                # Add all other tiles as potential spots for the robber to move to
+                if (
+                    robber_tile_q == int(action_parts[2])
+                    and robber_tile_r == int(action_parts[3])
+                    and robber_tile_s == int(action_parts[4])
+                ) != True:
+                    self.legal_actions[player_id].append(action)
 
     def get_legal_actions(self, player_id):
         # Return the list of legal actions
@@ -501,8 +492,8 @@ class CatanGame:
         # Roll the dice and return the result
         dice_1 = random.randint(1, 6)
         dice_2 = random.randint(1, 6)
-        # Print the roll to the console
-        print(f"Rolled a {dice_1} and a {dice_2} for a total of {dice_1 + dice_2}")
+        # Print the roll to the console (let's turn that off for now)
+        # print(f"Rolled a {dice_1} and a {dice_2} for a total of {dice_1 + dice_2}")
         # Store the roll in the game state
         self.most_recent_roll = (
             dice_1,
@@ -512,7 +503,8 @@ class CatanGame:
         )
         total = dice_1 + dice_2
         if total == 7:
-            self.robbery_in_progress = True
+            # 7 was rolled; set the game phase to "robber"
+            self.game_phase = "robber"
         return total
 
     def get_most_recent_roll(self):
