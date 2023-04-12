@@ -365,6 +365,7 @@ class Tile:
         return True
 
     # Return the opposite side direction of a specified direction
+    # NOTE: Not opposite on the same tile, but opposite on the board (adjacent tiles)
     def get_opposite_side_direction(self, direction):
         if direction == "northwest":
             return "southeast"
@@ -382,6 +383,7 @@ class Tile:
             return None
 
     # Return the 2 opposite vertex directions of a specified direction
+    # NOTE: Not opposite on the same tile, but opposite on the board (adjacent tiles)
     # This needs to be in a clockwise order to work with higher level functions; possibly change this later
     def get_opposite_vertex_directions(self, direction):
         if direction == "northwest":

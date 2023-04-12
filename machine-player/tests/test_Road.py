@@ -1,7 +1,6 @@
 # !/usr/bin/env python3
 
 # Unit test suite for the Road class
-# The Road class file is kept one directory up from the tests directory
 
 import os
 import sys
