@@ -18,9 +18,9 @@ class TrainingSession:
         self,
         agent="Randy",
         games=10000,
-        epsilon_dec=0.0005,
+        epsilon_dec=0.00008,
         min_epsilon=0.1,
-        learning_interval=4,
+        learning_interval=6,
         board_dims=[3, 4, 5, 4, 3],
     ):
 
