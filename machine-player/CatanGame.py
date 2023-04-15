@@ -72,6 +72,8 @@ class CatanGame:
         ]
         # Set up the player's VP count
         self.victory_points = [0 for i in range(number_of_players)]
+        # Keep a count of the road total for each player
+        self.road_total = [0 for i in range(number_of_players)]
         # Set up the turn number
         self.turn_number = 1
         # Set the game over flag
@@ -555,50 +557,27 @@ class CatanGame:
         return self.game_over
 
     def start_game(self, number_of_players=1):
-        # Call reset
+
+        # Reset the game state
         self.reset(number_of_players)
+
+        # Set the game phase to "build"
+        self.game_phase = "build"
 
         # Set a flag so that the game knows the pre-game build phase has begun
         self.build_phase_active = True
 
-        # For now, we're going to build for the player to start the game
-
-        # We build in a fairly good spot for the first player:
-
-        # Build a settlement at [1, -1, 0] northeast
-        self.board.build_settlement(1, -1, 0, "northeast")
-        # Build a road at [1, -1, 0] east
-        self.board.build_road(1, -1, 0, "east")
-        # Build a settlement at [-1, 1, 0] south
-        self.board.build_settlement(-1, 1, 0, "south")
-        # Build a road at [-1, 1, 0] southeast
-        self.board.build_road(-1, 1, 0, "southeast")
-
-        # Set the victory points to 2
-        self.victory_points[0] = 2
-
-        # Then we build for the second player if there is one
-
-        if number_of_players > 1:
-            self.number_of_players = number_of_players
-
-            # Build a settlement at [-1, 0, 1] southwest
-            self.board.build_settlement(-1, 0, 1, "southwest", 1)
-            # Build a road at [-1, 0, 1] west
-            self.board.build_road(-1, 0, 1, "west", 1)
-            # Build a settlement at [0, -1, 1] north
-            self.board.build_settlement(0, -1, 1, "north", 1)
-            # Build a road at [0, -1, 1] northeast
-            self.board.build_road(0, -1, 1, "northeast", 1)
-
-            # Set the victory points to 2
-            self.victory_points[1] = 2
-
-        # Turn off the build phase flag
-        self.build_phase_active = False
-
-        # Place the robber onto the central desert tile
+        # Move the robber to the central desert tile
         self.board.move_robber(0, 0, 0)
+
+        # Randomly build settlements and roads for all players
+        for player in range(self.number_of_players):
+            self.build_settlement_and_road_randomly(player)
+        for player in range(self.number_of_players):
+            self.build_settlement_and_road_randomly(player)
+
+        # Set the game phase to "main"
+        self.game_phase = "main"
 
         # Set legal actions
         self.set_legal_actions()
@@ -634,3 +613,63 @@ class CatanGame:
         for i in range(self.number_of_players):
             if self.victory_points[i] >= 10:
                 return i
+
+    def build_settlement_and_road_randomly(self, player_id):
+
+        # Function to support random starting positions at the beginning of the game
+        build_complete = False
+
+        while build_complete == False:
+
+            rand_tile = None
+            # Pick a random tile
+            while rand_tile is None:
+                rand_q = random.randint(-2, 2)
+                rand_r = random.randint(-2, 2)
+                rand_s = random.randint(-2, 2)
+                rand_tile = self.board.get_tile(rand_q, rand_r, rand_s)
+
+            # Pick a random vertex
+            rand_direction = random.choice(
+                [
+                    "north",
+                    "northeast",
+                    "southeast",
+                    "south",
+                    "southwest",
+                    "northwest",
+                ]
+            )
+
+            # Check if the vertex is occupied
+            vertex_occupied = self.board.is_vertex_occupied(
+                rand_q, rand_r, rand_s, rand_direction
+            )
+
+            if vertex_occupied == False:
+
+                # Is it a legal spot to build?
+                distance_rule_validation = self.board.validate_distance_rule(
+                    rand_q, rand_r, rand_s, rand_direction
+                )
+
+                if distance_rule_validation == True:
+
+                    # Build the settlement
+                    self.board.build_settlement(
+                        rand_q, rand_r, rand_s, rand_direction, player_id
+                    )
+
+                    # Build an adjacent road
+                    self.board.build_random_adjacent_road(
+                        rand_q, rand_r, rand_s, rand_direction, player_id
+                    )
+
+                    # Add a road
+                    self.road_total[player_id] += 1
+
+                    # Add a victory point
+                    self.victory_points[player_id] += 1
+
+                    # Build complete
+                    build_complete = True

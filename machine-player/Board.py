@@ -9,6 +9,7 @@ It will have the following methods:
 """
 
 import Tile
+import random
 
 
 class Board:
@@ -314,3 +315,58 @@ class Board:
                     [tile.get_q_coord(), tile.get_r_coord(), tile.get_s_coord()]
                 )
         return red_tile_coords
+
+    # Given a tile and a direction, return if that tile is occupied already
+    def is_vertex_occupied(self, q, r, s, direction):
+        tile = self.get_tile(q, r, s)
+        if tile.get_vertex_from_direction(direction) != None:
+            return True
+        else:
+            return False
+
+    # Make a distance rule check
+    def validate_distance_rule(self, q, r, s, direction):
+
+        # Get the tile
+        tile = self.get_tile(q, r, s)
+
+        # Check if the tile exists
+        if tile == None:
+            return False
+
+        # Check on the immediately tile if the distance rule is violated
+        if tile.satisfies_distance_rule(direction) == False:
+            return False
+
+        # Then check on the neighbouring tiles
+        opposite_directions = tile.get_opposite_vertex_directions(direction)
+        neighbouring_tiles = self.shared_vertex_location(q, r, s, direction)
+        for i in range(2):
+            if neighbouring_tiles[i] != None:
+                if (
+                    neighbouring_tiles[i].satisfies_distance_rule(
+                        opposite_directions[i]
+                    )
+                    == False
+                ):
+                    return False
+
+        # If we get here, the distance rule is satisfied
+        return True
+
+    # Build a road randomly adjacent to a vertex location
+    def build_random_adjacent_road(self, q, r, s, direction, player):
+
+        # Get the tile
+        tile = self.get_tile(q, r, s)
+
+        # Get the adjacent sides
+        direction_possible = tile.get_adjacent_sides_of_vertex(direction)
+
+        # Shuffle the direction possibilities
+        random.shuffle(direction_possible)
+
+        if tile.get_side_from_direction(direction_possible[0]) == None:
+            self.build_road(q, r, s, direction_possible[0], player)
+        else:
+            self.build_road(q, r, s, direction_possible[1], player)

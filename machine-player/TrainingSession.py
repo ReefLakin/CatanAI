@@ -157,7 +157,6 @@ class TrainingSession:
                 # Calculate the average loss for the last game
                 loss_list = self.game_data_dict["loss"]
                 if len(loss_list) > 0:
-                    print(loss_list)
                     average_loss = sum(loss_list) / len(loss_list)
 
                 else:
