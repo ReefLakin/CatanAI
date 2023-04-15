@@ -98,7 +98,7 @@ class Board:
             ]
 
     # Can a player place a road on a given side location?
-    def check_road_placement_legal(self, q, r, s, direction, player=0):
+    def check_road_placement_legal(self, q, r, s, direction, player=0, starting=False):
         # Grab the tile
         tile = self.get_tile(q, r, s)
         # Check if the tile exists
@@ -107,33 +107,44 @@ class Board:
         # Check if a road already exists on the side
         if tile.get_side_from_direction(direction) is not None:
             return False
-        # Check that the side has at least one neighbouring road
-        neighbouring_roads = tile.get_neighbouring_sides(direction)
-        for road in neighbouring_roads:
-            if road == 1:
-                # Check that the road belongs to the player specified
-                if road.get_owner() == player:
-                    return True
-        else:
-            # Check that the tile which shares the side has at least one neighbouring road
-            neighbour_tile = self.shared_side_location(q, r, s, direction)
-            if neighbour_tile == None:
-                return False
+        # If this is normal gameplay, following the following rules
+        if starting == False:
+            # Check that the side has at least one neighbouring road
+            neighbouring_roads = tile.get_neighbouring_sides(direction)
+            for road in neighbouring_roads:
+                if road == 1:
+                    # Check that the road belongs to the player specified
+                    if road.get_owner() == player:
+                        return True
             else:
-                opposite_direction = tile.get_opposite_side_direction(direction)
-                neighbour_tile_neighbouring_roads = (
-                    neighbour_tile.get_neighbouring_sides(opposite_direction)
-                )
-                for road in neighbour_tile_neighbouring_roads:
-                    if road == 1:
-                        # Check that the road belongs to the player specified
-                        if road.get_owner() == player:
-                            return True
-                else:
+                # Check that the tile which shares the side has at least one neighbouring road
+                neighbour_tile = self.shared_side_location(q, r, s, direction)
+                if neighbour_tile == None:
                     return False
+                else:
+                    opposite_direction = tile.get_opposite_side_direction(direction)
+                    neighbour_tile_neighbouring_roads = (
+                        neighbour_tile.get_neighbouring_sides(opposite_direction)
+                    )
+                    for road in neighbour_tile_neighbouring_roads:
+                        if road == 1:
+                            # Check that the road belongs to the player specified
+                            if road.get_owner() == player:
+                                return True
+                    else:
+                        return False
+        # If this is the initial placement of roads, following the following rules
+        else:
+            # Check that the side has at least one neighbouring settlement
+            if tile.is_side_adjacent_to_settlement(direction, player):
+                return True
+            else:
+                return False
 
     # Can a player place a settlement on a given vertex location?
-    def check_settlement_placement_legal(self, q, r, s, direction, player=0):
+    def check_settlement_placement_legal(
+        self, q, r, s, direction, player=0, starting=False
+    ):
         # Grab the tile
         tile = self.get_tile(q, r, s)
         # Check if the tile exists
@@ -157,6 +168,9 @@ class Board:
                     == False
                 ):
                     return False
+        # If 'starting' is true, we don't need to check that the settlement is connected to a road
+        if starting == True:
+            return True
         # Next, we have to check that the proposed settlement location is connected to a road. First, check the tile in question
         if tile.is_vertex_adjacent_to_road(direction, player) == True:
             return True

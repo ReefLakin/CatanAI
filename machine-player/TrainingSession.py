@@ -214,11 +214,12 @@ class TrainingSession:
                 if self.AGENT_SELECTED == "Adam" or self.AGENT_SELECTED == "Redmond":
                     self.AGENT.save_model(self.MODEL_PATH)
 
-            # Increment the player turn pointer
+            # Increment the player turn pointer if the action selected is to end the turn
             # If the player turn pointer is greater than the number of players, reset it to 0
-            self.player_turn_pointer += 1
-            if self.player_turn_pointer >= self.NUMBER_OF_PLAYERS:
-                self.player_turn_pointer = 0
+            if chosen_action == "end_turn":
+                self.player_turn_pointer += 1
+                if self.player_turn_pointer >= self.NUMBER_OF_PLAYERS:
+                    self.player_turn_pointer = 0
 
             return self.running, legal_actions, chosen_action, self.games_played
 

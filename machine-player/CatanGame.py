@@ -15,6 +15,7 @@ class CatanGame:
         # Later, we will add the ability to specify a custom board
         self.game_phase = "main"
         board_dims = [3, 4, 5, 4, 3]
+        self.pregame_build_turn_tracker = 0
         self.number_of_players = number_of_players
         tile_values = [10, 2, 9, 12, 6, 4, 10, 9, 11, 0, 3, 8, 8, 3, 4, 5, 5, 6, 11]
         tile_types = [
@@ -75,7 +76,7 @@ class CatanGame:
         # Keep a count of the road total for each player
         self.road_total = [0 for i in range(number_of_players)]
         # Set up the turn number
-        self.turn_number = 1
+        self.turn_number = 0
         # Set the game over flag
         self.game_over = False
         # Set all possible actions
@@ -86,6 +87,8 @@ class CatanGame:
         self.most_recent_roll = (0, 0, 0, "Dice haven't been rolled yet.")
         # Set the number of resources generated with the last roll
         self.most_recent_resources_generated = 0
+        # Set the most recent action
+        self.most_recent_action = "No action has been taken yet."
 
     def get_board(self):
         # Return the game board
@@ -94,6 +97,9 @@ class CatanGame:
     def step(self, action, player_id=0):
         # Print the action taken to the console along with turn number
         print("Turn " + str(self.turn_number) + ": " + action)
+
+        # Set the most recent action
+        self.most_recent_action = action
 
         # Take a step in the game by applying the given action
         action_parts = action.split("_")
@@ -124,13 +130,22 @@ class CatanGame:
                 player_id,
             )
 
+            # Increase the player's road total
+            self.road_total[player_id] += 1
+
             # Remove 1 lumber and 1 brick from the resource pool
-            self.resource_pool[player_id]["lumber"] = (
-                self.resource_pool[player_id]["lumber"] - 1
-            )
-            self.resource_pool[player_id]["brick"] = (
-                self.resource_pool[player_id]["brick"] - 1
-            )
+            # Unless the phase is "build"
+            if self.game_phase != "build":
+                self.resource_pool[player_id]["lumber"] = (
+                    self.resource_pool[player_id]["lumber"] - 1
+                )
+                self.resource_pool[player_id]["brick"] = (
+                    self.resource_pool[player_id]["brick"] - 1
+                )
+
+            # If it's the "build" phase, initial player tracker should increase
+            if self.game_phase == "build":
+                self.increase_pregame_player_tracker()
 
         # If the action is legal, is it a settlement build?
         elif action_parts[0] == "build" and action_parts[1] == "settlement":
@@ -147,18 +162,20 @@ class CatanGame:
             self.victory_points[player_id] += 1
 
             # Remove 1 lumber, 1 brick, 1 wool, and 1 grain from the resource pool
-            self.resource_pool[player_id]["lumber"] = (
-                self.resource_pool[player_id]["lumber"] - 1
-            )
-            self.resource_pool[player_id]["brick"] = (
-                self.resource_pool[player_id]["brick"] - 1
-            )
-            self.resource_pool[player_id]["wool"] = (
-                self.resource_pool[player_id]["wool"] - 1
-            )
-            self.resource_pool[player_id]["grain"] = (
-                self.resource_pool[player_id]["grain"] - 1
-            )
+            # Unless the phase is "build"
+            if self.game_phase != "build":
+                self.resource_pool[player_id]["lumber"] = (
+                    self.resource_pool[player_id]["lumber"] - 1
+                )
+                self.resource_pool[player_id]["brick"] = (
+                    self.resource_pool[player_id]["brick"] - 1
+                )
+                self.resource_pool[player_id]["wool"] = (
+                    self.resource_pool[player_id]["wool"] - 1
+                )
+                self.resource_pool[player_id]["grain"] = (
+                    self.resource_pool[player_id]["grain"] - 1
+                )
 
         # If the action is legal, is it a city build?
         elif action_parts[0] == "build" and action_parts[1] == "city":
@@ -185,14 +202,28 @@ class CatanGame:
         # If the action is legal, is it a simple end turn?
         elif action == "end_turn":
 
-            # Update the turn number
-            self.turn_number = self.turn_number + 1
+            # Game phase should be 'main' if all players have placed their initial settlements
+            if self.game_phase == "build":
 
-            # Roll the dice
-            roll = self.dice_roll()
+                # Check everyone has at least two victory points
+                if all(v >= 2 for v in self.victory_points):
+                    # Check everyone has at least two roads
+                    if all(r >= 2 for r in self.road_total):
+                        # Set the game phase to 'main'
+                        self.game_phase = "main"
+                        # Set the turn number to 1
+                        self.turn_number = 1
 
-            # Distribute resources
-            self.distribute_resources(roll)
+            else:
+
+                # Update the turn number
+                self.turn_number = self.turn_number + 1
+
+                # Roll the dice
+                roll = self.dice_roll()
+
+                # Distribute resources
+                self.distribute_resources(roll)
 
         # If the action is legal, is it a robber move?
         elif action_parts[0] == "move" and action_parts[1] == "robber":
@@ -251,6 +282,11 @@ class CatanGame:
             elif self.game_phase == "robber":
 
                 self.set_legal_actions_phase_robber(player_id)
+
+            # "build" is the pre-game build phase, where players place their initial settlements and roads
+            elif self.game_phase == "build":
+
+                self.set_legal_actions_phase_build(player_id)
 
     def set_legal_actions_phase_main(self, player_id):
 
@@ -372,6 +408,120 @@ class CatanGame:
                     and robber_tile_s == int(action_parts[4])
                 ) != True:
                     self.legal_actions[player_id].append(action)
+
+    def set_legal_actions_phase_build(self, player_id):
+
+        # Iterate across all actions and split them into their parts
+        for action in self.all_actions:
+            action_parts = action.split("_")
+
+            victory_points = self.victory_points[player_id]
+            road_total = self.road_total[player_id]
+
+            # Settlement Building
+            if action_parts[0] == "build" and action_parts[1] == "settlement":
+
+                # The initial player tracker must equal the current player
+                if self.pregame_build_turn_tracker == player_id:
+
+                    # If the player has 0 victory points and 0 roads
+                    # or if they have 1 victory point and 1 road, build a starting settlement
+                    if (victory_points == 0 and road_total == 0) or (
+                        victory_points == 1 and road_total == 1
+                    ):
+
+                        # The proposed location must be empty
+                        direction = action_parts[2]
+                        q_coord = int(action_parts[3])
+                        r_coord = int(action_parts[4])
+                        s_coord = int(action_parts[5])
+                        tile = self.board.get_tile(q_coord, r_coord, s_coord)
+                        vert_val = tile.get_vertex_from_direction(direction)
+                        if vert_val is None:
+
+                            # The build must be legal
+                            settlement_legal = (
+                                self.board.check_settlement_placement_legal(
+                                    q_coord,
+                                    r_coord,
+                                    s_coord,
+                                    direction,
+                                    player_id,
+                                    starting=True,
+                                )
+                            )
+
+                            if settlement_legal == True:
+                                self.legal_actions[player_id].append(action)
+
+            # Road Building
+            elif action_parts[0] == "build" and action_parts[1] == "road":
+
+                # The initial player tracker must equal the current player
+                if self.pregame_build_turn_tracker == player_id:
+
+                    # If the player has 1 victory point and 0 roads,
+                    # or if they have 2 victory points and 1 road, build a starting road
+                    if (victory_points == 1 and road_total == 0) or (
+                        victory_points == 2 and road_total == 1
+                    ):
+
+                        # The tile must be adjacent to the most recently placed settlement
+                        direction = action_parts[2]
+                        q_coord = int(action_parts[3])
+                        r_coord = int(action_parts[4])
+                        s_coord = int(action_parts[5])
+
+                        last_split = self.most_recent_action.split("_")
+                        last_direction = last_split[2]
+                        last_q_coord = int(last_split[3])
+                        last_r_coord = int(last_split[4])
+                        last_s_coord = int(last_split[5])
+
+                        acceptable_q_coords = [last_q_coord]
+                        acceptable_r_coords = [last_r_coord]
+                        acceptable_s_coords = [last_s_coord]
+
+                        adjacent_tiles = self.board.shared_vertex_location(
+                            last_q_coord, last_r_coord, last_s_coord, last_direction
+                        )
+
+                        if adjacent_tiles is not None:
+                            for tile in adjacent_tiles:
+                                if tile is not None:
+                                    acceptable_q_coords.append(tile.get_q_coord())
+                                    acceptable_r_coords.append(tile.get_r_coord())
+                                    acceptable_s_coords.append(tile.get_s_coord())
+
+                            if (
+                                q_coord in acceptable_q_coords
+                                and r_coord in acceptable_r_coords
+                                and s_coord in acceptable_s_coords
+                            ):
+
+                                # The proposed location must be empty
+                                tile = self.board.get_tile(q_coord, r_coord, s_coord)
+                                side_val = tile.get_side_from_direction(direction)
+                                if side_val is None:
+
+                                    # The build must be legal
+                                    road_legal = self.board.check_road_placement_legal(
+                                        q_coord,
+                                        r_coord,
+                                        s_coord,
+                                        direction,
+                                        player_id,
+                                        starting=True,
+                                    )
+
+                                    if road_legal == True:
+                                        self.legal_actions[player_id].append(action)
+
+            # Anything Else? (End Turn)
+            else:
+                if self.pregame_build_turn_tracker != player_id:
+                    if action_parts[0] == "end" and action_parts[1] == "turn":
+                        self.legal_actions[player_id].append(action)
 
     def get_legal_actions(self, player_id):
         # Return the list of legal actions
@@ -570,14 +720,18 @@ class CatanGame:
         # Move the robber to the central desert tile
         self.board.move_robber(0, 0, 0)
 
-        # Randomly build settlements and roads for all players
-        for player in range(self.number_of_players):
-            self.build_settlement_and_road_randomly(player)
-        for player in range(self.number_of_players):
-            self.build_settlement_and_road_randomly(player)
+        # Switch this on or off: settlements placed randomly at the start of the game
+        PLACE_RANDOMLY = False
+        if PLACE_RANDOMLY:
 
-        # Set the game phase to "main"
-        self.game_phase = "main"
+            # Randomly build settlements and roads for all players
+            for player in range(self.number_of_players):
+                self.build_settlement_and_road_randomly(player)
+            for player in range(self.number_of_players):
+                self.build_settlement_and_road_randomly(player)
+
+            # Set the game phase to "main"
+            self.game_phase = "main"
 
         # Set legal actions
         self.set_legal_actions()
@@ -673,3 +827,8 @@ class CatanGame:
 
                     # Build complete
                     build_complete = True
+
+    def increase_pregame_player_tracker(self):
+        self.pregame_build_turn_tracker += 1
+        if self.pregame_build_turn_tracker == self.number_of_players:
+            self.pregame_build_turn_tracker = 0

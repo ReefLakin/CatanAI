@@ -429,6 +429,15 @@ class Tile:
                     return False
         return False
 
+    # Check if a specified side is adjacent to a settlement
+    def is_side_adjacent_to_settlement(self, direction, player=0):
+        adjacent_vertices = self.get_neighbouring_verticies_of_side(direction)
+        for vertex in adjacent_vertices:
+            if vertex == 1:
+                if vertex.get_owner() == player:
+                    return True
+        return False
+
     # Return a list of all the side values of this tile
     # Should start from east and go clockwise
     def get_all_side_values_as_list(self):
@@ -474,6 +483,23 @@ class Tile:
             self.vert_northwest.get_owner() if self.vert_northwest != None else None,
             self.vert_north.get_owner() if self.vert_north != None else None,
         ]
+
+    # Return the contents of the two verticies neighbouring a specified side
+    def get_neighbouring_verticies_of_side(self, direction):
+        if direction == "northwest":
+            return [self.vert_north, self.vert_northwest]
+        elif direction == "northeast":
+            return [self.vert_northeast, self.vert_north]
+        elif direction == "east":
+            return [self.vert_northeast, self.vert_southeast]
+        elif direction == "southeast":
+            return [self.vert_south, self.vert_southeast]
+        elif direction == "southwest":
+            return [self.vert_southwest, self.vert_south]
+        elif direction == "west":
+            return [self.vert_southwest, self.vert_northwest]
+        else:
+            return None
 
 
 # To do: Add type hints to getters and setters
