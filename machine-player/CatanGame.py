@@ -17,7 +17,9 @@ class CatanGame:
         board_dims = [3, 4, 5, 4, 3]
         self.pregame_build_turn_tracker = 0
         self.number_of_players = number_of_players
-        tile_values = [10, 2, 9, 12, 6, 4, 10, 9, 11, 0, 3, 8, 8, 3, 4, 5, 5, 6, 11]
+        # Get tile values
+        tile_value_mode = "crazy"
+        tile_values = self.generate_tile_values(tile_value_mode)
         tile_types = [
             "ore",
             "wool",
@@ -727,7 +729,7 @@ class CatanGame:
 
         # Switch this on or off: settlements placed randomly at the start of the game
         PLACE_RANDOMLY = False
-        NO_CHOICE_ALLOWED = False
+        NO_CHOICE_ALLOWED = True
         if PLACE_RANDOMLY:
 
             # Randomly build settlements and roads for all players
@@ -876,3 +878,34 @@ class CatanGame:
         self.pregame_build_turn_tracker += 1
         if self.pregame_build_turn_tracker == self.number_of_players:
             self.pregame_build_turn_tracker = 0
+
+    def generate_tile_values(self, mode):
+        # Generate the values for each tile
+        # mode = "vanilla", "balanced", "crazy"
+
+        standard_list = [10, 2, 9, 12, 6, 4, 10, 9, 11, 0, 3, 8, 8, 3, 4, 5, 5, 6, 11]
+
+        if mode == "vanilla":
+            return standard_list
+
+        elif mode == "balanced":
+            # Shuffle the list
+            random.shuffle(standard_list)
+            # Ensure that 0 is always in position 9
+            if standard_list.index(0) != 9:
+                location_of_zero = standard_list.index(0)
+                other_number = standard_list[9]
+                standard_list[9] = 0
+                standard_list[location_of_zero] = other_number
+            return standard_list
+
+        elif mode == "crazy":
+            # Generate 19 random numbers between 2 and 12
+            crazy_list = []
+            for i in range(19):
+                crazy_list.append(random.choice([2, 3, 4, 5, 6, 8, 9, 10, 11, 12]))
+            crazy_list[9] = 0
+            return crazy_list
+
+        else:
+            return standard_list
