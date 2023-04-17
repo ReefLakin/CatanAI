@@ -23,9 +23,11 @@ class TrainingSession:
         min_epsilon=0.1,
         learning_interval=3,
         board_dims=[3, 4, 5, 4, 3],
+        opponent="Randy",
     ):
 
         self.AGENT_SELECTED = agent
+        self.OPPONENT_SELECTED = opponent
         self.EPISODES = games
         self.EPSILON_DECAY = epsilon_dec
         self.MIN_EPSILON = min_epsilon
@@ -38,7 +40,8 @@ class TrainingSession:
         self.MODEL_PATH = None
         self.set_agent(self.AGENT_SELECTED)
 
-        self.OPPONENT = Randy()
+        self.OPPONENT = None
+        self.set_opponent(self.OPPONENT_SELECTED)
         self.NUMBER_OF_PLAYERS = 1
         self.PLAYER_QUEUE = [self.AGENT, self.OPPONENT]
 
@@ -293,6 +296,28 @@ class TrainingSession:
 
         if agent_already_exists:
             self.AGENT.set_exploration_rate(self.MIN_EPSILON)
+
+    # Method for loading an opponent into the training session
+    def set_opponent(self, opponent):
+        self.OPPONENT_SELECTED = opponent
+
+        opp_already_exists = False
+
+        if self.OPPONENT_SELECTED == "Adam":
+            self.OPPONENT = Adam(exploration_rate=1.0)
+            self.MODEL_PATH = "adam.pth"
+            # Check if the "adam.pth" file exists
+            if os.path.exists(self.MODEL_PATH):
+                print("Adam's opponent here! Ready to rumble!")
+                self.OPPONENT.load_model(self.MODEL_PATH)
+                opp_already_exists = True
+        else:
+            self.OPPONENT = Randy()
+
+        if opp_already_exists:
+            self.OPPONENT.set_exploration_rate(0)
+            # Set the opponent's model to evaluation mode
+            self.OPPONENT.model.eval()
 
     # Method for setting the filename for the data analysis file
     def set_data_analysis_filename(self):

@@ -259,9 +259,10 @@ def get_player_colour_from_id(id):
 
 # # Training Session Options
 agent_to_set = "Adam"
+opponent_to_set = "Adam"
 
 # Create a training session (with default parameters)
-training_session = TrainingSession(agent=agent_to_set)
+training_session = TrainingSession(agent=agent_to_set, opponent=opponent_to_set)
 
 
 # # Pygame Window Setup
