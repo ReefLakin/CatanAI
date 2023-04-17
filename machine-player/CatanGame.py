@@ -719,7 +719,7 @@ class CatanGame:
 
         # Switch this on or off: settlements placed randomly at the start of the game
         PLACE_RANDOMLY = False
-        NO_CHOICE_ALLOWED = True
+        NO_CHOICE_ALLOWED = False
         if PLACE_RANDOMLY:
 
             # Randomly build settlements and roads for all players

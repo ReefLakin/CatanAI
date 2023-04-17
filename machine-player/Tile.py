@@ -340,21 +340,94 @@ class Tile:
             return None
 
     # Return the neighbouring sides of a specified side
-    def get_neighbouring_sides(self, direction):
-        if direction == "northwest":
-            return [self.side_northeast, self.side_west]
-        elif direction == "northeast":
-            return [self.side_northwest, self.side_east]
-        elif direction == "east":
-            return [self.side_northeast, self.side_southeast]
-        elif direction == "southeast":
-            return [self.side_east, self.side_southwest]
-        elif direction == "southwest":
-            return [self.side_southeast, self.side_west]
-        elif direction == "west":
-            return [self.side_southwest, self.side_northwest]
+    # If opp_blocking is True, return the neighbouring sides that are not blocked by a settlement/city
+    def get_neighbouring_sides(self, direction, opp_blocking=False, player=0):
+        if opp_blocking == False:
+            if direction == "northwest":
+                return [self.side_northeast, self.side_west]
+            elif direction == "northeast":
+                return [self.side_northwest, self.side_east]
+            elif direction == "east":
+                return [self.side_northeast, self.side_southeast]
+            elif direction == "southeast":
+                return [self.side_east, self.side_southwest]
+            elif direction == "southwest":
+                return [self.side_southeast, self.side_west]
+            elif direction == "west":
+                return [self.side_southwest, self.side_northwest]
+            else:
+                return None
         else:
-            return None
+            sides_to_return = []
+            if direction == "northwest":
+                if self.vert_north == None:
+                    sides_to_return.append(self.side_northeast)
+                else:
+                    if self.vert_north.get_owner() == player:
+                        sides_to_return.append(self.side_northeast)
+                if self.vert_northwest == None:
+                    sides_to_return.append(self.side_west)
+                else:
+                    if self.vert_northwest.get_owner() == player:
+                        sides_to_return.append(self.side_west)
+            elif direction == "northeast":
+                if self.vert_north == None:
+                    sides_to_return.append(self.side_northwest)
+                else:
+                    if self.vert_north.get_owner() == player:
+                        sides_to_return.append(self.side_northwest)
+                if self.vert_northeast == None:
+                    sides_to_return.append(self.side_east)
+                else:
+                    if self.vert_northeast.get_owner() == player:
+                        sides_to_return.append(self.side_east)
+            elif direction == "east":
+                if self.vert_northeast == None:
+                    sides_to_return.append(self.side_northeast)
+                else:
+                    if self.vert_northeast.get_owner() == player:
+                        sides_to_return.append(self.side_northeast)
+                if self.vert_southeast == None:
+                    sides_to_return.append(self.side_southeast)
+                else:
+                    if self.vert_southeast.get_owner() == player:
+                        sides_to_return.append(self.side_southeast)
+            elif direction == "southeast":
+                if self.vert_southeast == None:
+                    sides_to_return.append(self.side_east)
+                else:
+                    if self.vert_southeast.get_owner() == player:
+                        sides_to_return.append(self.side_east)
+                if self.vert_south == None:
+                    sides_to_return.append(self.side_southwest)
+                else:
+                    if self.vert_south.get_owner() == player:
+                        sides_to_return.append(self.side_southwest)
+            elif direction == "southwest":
+                if self.vert_south == None:
+                    sides_to_return.append(self.side_southeast)
+                else:
+                    if self.vert_south.get_owner() == player:
+                        sides_to_return.append(self.side_southeast)
+                if self.vert_southwest == None:
+                    sides_to_return.append(self.side_west)
+                else:
+                    if self.vert_southwest.get_owner() == player:
+                        sides_to_return.append(self.side_west)
+            elif direction == "west":
+                if self.vert_southwest == None:
+                    sides_to_return.append(self.side_southwest)
+                else:
+                    if self.vert_southwest.get_owner() == player:
+                        sides_to_return.append(self.side_southwest)
+                if self.vert_northwest == None:
+                    sides_to_return.append(self.side_northwest)
+                else:
+                    if self.vert_northwest.get_owner() == player:
+                        sides_to_return.append(self.side_northwest)
+            else:
+                return None
+            return sides_to_return
 
     # Return a bool indicating whether or not placing on a specific vertex satisfies the distance rule
     def satisfies_distance_rule(self, direction):

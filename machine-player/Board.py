@@ -110,7 +110,9 @@ class Board:
         # If this is normal gameplay, following the following rules
         if starting == False:
             # Check that the side has at least one neighbouring road
-            neighbouring_roads = tile.get_neighbouring_sides(direction)
+            neighbouring_roads = tile.get_neighbouring_sides(
+                direction, opp_blocking=True, player=player
+            )
             for road in neighbouring_roads:
                 if road == 1:
                     # Check that the road belongs to the player specified
@@ -124,7 +126,9 @@ class Board:
                 else:
                     opposite_direction = tile.get_opposite_side_direction(direction)
                     neighbour_tile_neighbouring_roads = (
-                        neighbour_tile.get_neighbouring_sides(opposite_direction)
+                        neighbour_tile.get_neighbouring_sides(
+                            opposite_direction, opp_blocking=True, player=player
+                        )
                     )
                     for road in neighbour_tile_neighbouring_roads:
                         if road == 1:
