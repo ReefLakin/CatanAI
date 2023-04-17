@@ -308,7 +308,7 @@ while running is True:
 
     # If PLEASE_LORD_GIVE_ME_A_BREAK is true, make a small time delay
     if PLEASE_LORD_GIVE_ME_A_BREAK:
-        time.sleep(0.004)
+        time.sleep(0.007)
         PLEASE_LORD_GIVE_ME_A_BREAK = False
         pygame.event.post(take_action)
         pygame.event.post(update_game_board)

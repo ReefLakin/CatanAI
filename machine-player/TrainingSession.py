@@ -10,6 +10,7 @@ from Randy import Randy
 from Adam import Adam
 from Phil import Phil
 from Redmond import Redmond
+from Eugene import Eugene
 
 # Define the TrainingSession class
 class TrainingSession:
@@ -18,9 +19,9 @@ class TrainingSession:
         self,
         agent="Randy",
         games=10000,
-        epsilon_dec=0.00008,
+        epsilon_dec=0.0003,
         min_epsilon=0.1,
-        learning_interval=6,
+        learning_interval=3,
         board_dims=[3, 4, 5, 4, 3],
     ):
 
@@ -211,7 +212,11 @@ class TrainingSession:
                 self.reset_game_data_dict()
 
                 # Save the model's state dict
-                if self.AGENT_SELECTED == "Adam" or self.AGENT_SELECTED == "Redmond":
+                if (
+                    self.AGENT_SELECTED == "Adam"
+                    or self.AGENT_SELECTED == "Redmond"
+                    or self.AGENT_SELECTED == "Eugene"
+                ):
                     self.AGENT.save_model(self.MODEL_PATH)
 
             # Increment the player turn pointer if the action selected is to end the turn

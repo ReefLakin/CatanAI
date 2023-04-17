@@ -714,14 +714,12 @@ class CatanGame:
         # Set the game phase to "build"
         self.game_phase = "build"
 
-        # Set a flag so that the game knows the pre-game build phase has begun
-        self.build_phase_active = True
-
         # Move the robber to the central desert tile
         self.board.move_robber(0, 0, 0)
 
         # Switch this on or off: settlements placed randomly at the start of the game
         PLACE_RANDOMLY = False
+        NO_CHOICE_ALLOWED = True
         if PLACE_RANDOMLY:
 
             # Randomly build settlements and roads for all players
@@ -729,6 +727,44 @@ class CatanGame:
                 self.build_settlement_and_road_randomly(player)
             for player in range(self.number_of_players):
                 self.build_settlement_and_road_randomly(player)
+
+            # Set the game phase to "main"
+            self.game_phase = "main"
+
+        elif NO_CHOICE_ALLOWED:
+
+            # For now, we're going to build for the player to start the game
+
+            # We build in a fairly good spot for the first player:
+
+            # Build a settlement at [1, -1, 0] northeast
+            self.board.build_settlement(1, -1, 0, "northeast")
+            # Build a road at [1, -1, 0] east
+            self.board.build_road(1, -1, 0, "east")
+            # Build a settlement at [-1, 1, 0] south
+            self.board.build_settlement(-1, 1, 0, "south")
+            # Build a road at [-1, 1, 0] southeast
+            self.board.build_road(-1, 1, 0, "southeast")
+
+            # Set the victory points to 2
+            self.victory_points[0] = 2
+
+            # Then we build for the second player if there is one
+
+            if number_of_players > 1:
+                self.number_of_players = number_of_players
+
+                # Build a settlement at [-1, 0, 1] southwest
+                self.board.build_settlement(-1, 0, 1, "southwest", 1)
+                # Build a road at [-1, 0, 1] west
+                self.board.build_road(-1, 0, 1, "west", 1)
+                # Build a settlement at [0, -1, 1] north
+                self.board.build_settlement(0, -1, 1, "north", 1)
+                # Build a road at [0, -1, 1] northeast
+                self.board.build_road(0, -1, 1, "northeast", 1)
+
+                # Set the victory points to 2
+                self.victory_points[1] = 2
 
             # Set the game phase to "main"
             self.game_phase = "main"

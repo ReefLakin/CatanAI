@@ -11,7 +11,7 @@
 from Agent import Agent
 
 # Import the CatanModel class
-from Model import CatanModel
+from LSTMModel import LSTMCatanModel
 
 # Import the torch library
 import torch
@@ -21,10 +21,12 @@ NORMALISE_STATES = False
 LEGAL_ACTIONS_ONLY = True
 
 # Define the Adam class
-class Adam(Agent):
+class Eugene(Agent):
     def __init__(self, exploration_rate=1):
         super().__init__(exploration_rate)
-        self.name = "Adam"
+        self.name = "Eugene"
+        self.model = LSTMCatanModel()
+        self.hidden = self.model.init_hidden()
 
     # In this version of Adam's action selecting, only legal actions are considered
     def select_action_exploit(self, observation, all_possible_actions, legal_actions):
@@ -40,7 +42,10 @@ class Adam(Agent):
         observation_processed = torch.tensor(observation_processed, dtype=torch.float32)
 
         # Forward pass
-        action_options = self.model.forward(observation_processed)
+        action_options, hidden = self.model.forward(observation_processed, self.hidden)
+
+        # Update hidden state
+        self.hidden = hidden
 
         if LEGAL_ACTIONS_ONLY:
 
@@ -74,7 +79,7 @@ class Adam(Agent):
 
     # Method for learning
     def learn(self):
-        loss = self.model.learn(self.memory, batch_size=64)
+        loss = self.model.learn(self.memory, batch_size=32)
         return loss
 
     # Reward function
@@ -87,7 +92,7 @@ class Adam(Agent):
         action = reward_information["current_action"]
 
         if done == True:
-            return 16  # Victory reward
+            return 10  # Victory reward
         elif action not in legal_actions:
             return 0  # Illegal move punishment
         else:
@@ -95,8 +100,8 @@ class Adam(Agent):
             if split_action[0] == "build" and split_action[1] == "road":
                 return 0  # Road building reward
             elif split_action[0] == "build" and split_action[1] == "settlement":
-                return 4  # Settlement building reward
+                return 1  # Settlement building reward
             elif split_action[0] == "build" and split_action[1] == "city":
-                return 4  # City building reward
+                return 1  # City building reward
             else:
                 return 0  # Else, no reward
