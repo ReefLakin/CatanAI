@@ -226,7 +226,13 @@ class TrainingSession:
                 if self.player_turn_pointer >= self.NUMBER_OF_PLAYERS:
                     self.player_turn_pointer = 0
 
-            return self.running, legal_actions, chosen_action, self.games_played
+            return (
+                self.running,
+                legal_actions,
+                chosen_action,
+                self.games_played,
+                self.player_turn_pointer,
+            )
 
     # Method for starting the game loop
     def start(self, game_in_progress=False, players=1):

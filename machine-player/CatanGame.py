@@ -96,7 +96,15 @@ class CatanGame:
 
     def step(self, action, player_id=0):
         # Print the action taken to the console along with turn number
-        print("Turn " + str(self.turn_number) + ": " + action)
+        print(
+            "Turn "
+            + str(self.turn_number)
+            + ": "
+            + action
+            + "\nPlayer "
+            + str(player_id)
+            + "'s turn"
+        )
 
         # Set the most recent action
         self.most_recent_action = action

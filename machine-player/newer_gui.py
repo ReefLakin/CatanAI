@@ -293,8 +293,12 @@ pygame.display.set_caption("Catan Board")
 # Load a font
 font = pygame.font.SysFont("Arial", 18)
 res_font = pygame.font.SysFont("Arial", 17)
+opp_res_font = pygame.font.SysFont("Arial", 14)
 sm_font = pygame.font.SysFont("Arial", 10)
 vp_font = pygame.font.SysFont("Arial", 20, bold=True)
+
+# Set the current player
+current_player = 0
 
 
 # # Game Loop
@@ -344,6 +348,7 @@ while running is True:
                 legal_actions,
                 chosen_action,
                 games_played,
+                current_player,
             ) = training_session.time_step()
 
         # Check for the custom event that we set up to update the game board
@@ -384,6 +389,9 @@ while running is True:
 
             # Get the robber states
             robber_states = game_state["robber_states"]
+
+            # Get the game state from the opponent's point of view
+            opp_game_state = game_instance.get_state(player_id=1)
 
             # Draw the Board
 
@@ -523,6 +531,17 @@ while running is True:
             text_rect = text.get_rect(center=(90, 25))
             screen.blit(text, text_rect)
 
+            # Write the opponent's victory points to the screen
+            # Draw the text with font.render()
+            text = vp_font.render(
+                " / " + str(opp_game_state["victory_points"]),
+                True,
+                pygame.Color(PLAYER_1_COLOUR),
+            )
+            # Draw the text to the screen
+            text_rect = text.get_rect(center=(185, 25))
+            screen.blit(text, text_rect)
+
             # Write the turn number just below the victory points
             text = font.render(
                 "Turn: " + str(game_instance.get_turn_number()),
@@ -547,6 +566,17 @@ while running is True:
             text_rect = text.get_rect(center=(SCREEN_WIDTH - 80, 25))
             screen.blit(text, text_rect)
 
+            # Write who is currently playing to the screen in the top right corner
+            text = font.render(
+                "Current Player: " + str(current_player),
+                True,
+                pygame.Color(VP_COLOUR),
+            )
+
+            # Draw the text to the screen
+            text_rect = text.get_rect(center=(SCREEN_WIDTH - 80, 50))
+            screen.blit(text, text_rect)
+
             # Write up the resource texts
             resource_texts = [
                 (f"Lumber: {num_lumber}"),
@@ -554,6 +584,15 @@ while running is True:
                 (f"Ore: {num_ore}"),
                 (f"Wool: {num_wool}"),
                 (f"Brick: {num_brick}"),
+            ]
+
+            # List the opponent resource texts
+            opponent_resources = [
+                str(opp_game_state["num_lumber"]),
+                str(opp_game_state["num_grain"]),
+                str(opp_game_state["num_ore"]),
+                str(opp_game_state["num_wool"]),
+                str(opp_game_state["num_brick"]),
             ]
 
             # Load each of the resource icons
@@ -606,6 +645,24 @@ while running is True:
                     icon_rect.x = text_rect.x - 30
                     icon_rect.y = text_rect.y
                     screen.blit(icon_surface, icon_rect)
+
+            # Blit the text surfaces onto the window
+            for text_surface, text_rect in text_surfaces:
+                screen.blit(text_surface, text_rect)
+
+            # Loop through the opponent's resource texts
+            for i in range(len(opponent_resources)):
+                # Create the surface
+                text_surface = opp_res_font.render(
+                    opponent_resources[i], True, "#675df2"
+                )
+                text_rect = text_surface.get_rect()
+                # Set the x position
+                text_rect.x = box_rect.x + text_spacing + (font_size + text_spacing) * i
+                # Set the y position
+                text_rect.y = box_y + (box_height - font_size) // 2 + 20
+                # Add the surface and rect to the list
+                text_surfaces.append((text_surface, text_rect))
 
             # Blit the text surfaces onto the window
             for text_surface, text_rect in text_surfaces:

@@ -21,5 +21,11 @@ running = training_session.start(players=2)
 # While the training session is running
 while running is True:
 
-    running, legal_actions, chosen_action, games_played = training_session.time_step()
+    (
+        running,
+        legal_actions,
+        chosen_action,
+        games_played,
+        current_player,
+    ) = training_session.time_step()
     print(f"Game Number: {games_played} / Recent Action: {chosen_action}")
