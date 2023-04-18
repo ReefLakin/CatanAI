@@ -18,7 +18,7 @@ class CatanGame:
         self.pregame_build_turn_tracker = 0
         self.number_of_players = number_of_players
         # Get tile values
-        tile_value_mode = "crazy"
+        tile_value_mode = "balanced"
         tile_values = self.generate_tile_values(tile_value_mode)
         tile_types = [
             "ore",
@@ -729,7 +729,7 @@ class CatanGame:
 
         # Switch this on or off: settlements placed randomly at the start of the game
         PLACE_RANDOMLY = False
-        NO_CHOICE_ALLOWED = True
+        NO_CHOICE_ALLOWED = False
         if PLACE_RANDOMLY:
 
             # Randomly build settlements and roads for all players

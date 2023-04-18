@@ -315,7 +315,7 @@ class TrainingSession:
             self.OPPONENT = Randy()
 
         if opp_already_exists:
-            self.OPPONENT.set_exploration_rate(0)
+            self.OPPONENT.set_exploration_rate(0.0)
             # Set the opponent's model to evaluation mode
             self.OPPONENT.model.eval()
 
