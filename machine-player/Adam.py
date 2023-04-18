@@ -1,35 +1,27 @@
-# This class inherits from Agent
-# Adam is a one Agent who is able to play Catan
-# He is the first Agent I've created who is able to learn
-# His name is inspired by the Adam optimizer, but also the story of Creation in the Bible
-# Perhaps a bit cliché, but I like it
-# Adam can select any action, even if it is not legal
-# He is able to learn from his mistakes
-# By default, he will explore 10% of the time
+# Adam inherits from the Agent class
+# Adam is a machine player that uses a neural network to learn how to play Catan
+# His name is inspired by the Adam optimiser and Adam from The Bible
+# Cliché? Yes. But it's a good name
+# Unlike Randy, Adam can learn from his mistakes
 
-# Import the Agent class
+# Imports
 from Agent import Agent
-
-# Import the CatanModel class
-from Model import CatanModel
-
-# Import the torch library
 import torch
 
-# Some settings
+# High-level settings
 NORMALISE_STATES = False
 LEGAL_ACTIONS_ONLY = True
 
-# Define the Adam class
+# Class definition
 class Adam(Agent):
     def __init__(self, exploration_rate=1):
         super().__init__(exploration_rate)
         self.name = "Adam"
 
-    # In this version of Adam's action selecting, only legal actions are considered
+    # Overwrite the select_action_exploit method with Adam's own
     def select_action_exploit(self, observation, all_possible_actions, legal_actions):
 
-        # Preprocessing
+        # State preprocessing
         observation_processed = self.preprocess_state(observation)
 
         # Normalising
@@ -42,6 +34,7 @@ class Adam(Agent):
         # Forward pass
         action_options = self.model.forward(observation_processed)
 
+        # Adam has the option to only choose legal actions
         if LEGAL_ACTIONS_ONLY:
 
             # Create a list of legal action indices
@@ -79,24 +72,31 @@ class Adam(Agent):
 
     # Reward function
     def reward(self, reward_information):
-        # Adam gets rewarded more for: reaching 10 VPs
-        # Adam gets moderately rewarded for: building roads, settlements, cities
-        # Adam gets mildly punished for: making illegal moves
+        # These reward values tend to get adjusted during training
+        reward_victory = 16
+        reward_illegal_move = 0
+        reward_road_building = 0
+        reward_settlement_building = 4
+        reward_city_building = 4
+        reward_other = 0
+
+        # Extract information from the reward information dictionary
         legal_actions = reward_information["legal_actions"]
         done = reward_information["game_over"]
         action = reward_information["current_action"]
 
+        # Reward assignment
         if done == True:
-            return 16  # Victory reward
+            return reward_victory
         elif action not in legal_actions:
-            return 0  # Illegal move punishment
+            return reward_illegal_move
         else:
             split_action = action.split("_")
             if split_action[0] == "build" and split_action[1] == "road":
-                return 0  # Road building reward
+                return reward_road_building
             elif split_action[0] == "build" and split_action[1] == "settlement":
-                return 4  # Settlement building reward
+                return reward_settlement_building
             elif split_action[0] == "build" and split_action[1] == "city":
-                return 4  # City building reward
+                return reward_city_building
             else:
-                return 0  # Else, no reward
+                return reward_other
