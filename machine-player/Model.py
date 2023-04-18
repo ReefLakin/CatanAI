@@ -6,13 +6,15 @@ import numpy as np
 
 
 class CatanModel(nn.Module):
-    def __init__(self, input_size=297, output_size=382, hidden_size=64):
+    def __init__(self, input_size=525, output_size=382, hidden_size=32):
         super(CatanModel, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.relu1 = nn.ReLU()
         self.fc2 = nn.Linear(hidden_size, hidden_size)
         self.relu2 = nn.ReLU()
-        self.fc3 = nn.Linear(hidden_size, output_size)
+        self.fc3 = nn.Linear(hidden_size, hidden_size)
+        self.relu3 = nn.ReLU()
+        self.fc4 = nn.Linear(hidden_size, output_size)
 
         # Initialise weights with the He uniform method
         # Loop through all layers and initialise the weights
@@ -28,7 +30,7 @@ class CatanModel(nn.Module):
                 nn.init.zeros_(m.bias)
 
         # Initialise the optimiser
-        self.optimiser = torch.optim.Adam(self.parameters(), lr=0.002)
+        self.optimiser = torch.optim.Adam(self.parameters(), lr=0.004)
 
     def forward(self, x):
         x = self.fc1(x)
@@ -36,9 +38,11 @@ class CatanModel(nn.Module):
         x = self.fc2(x)
         x = self.relu2(x)
         x = self.fc3(x)
+        x = self.relu3(x)
+        x = self.fc4(x)
         return x
 
-    def learn(self, memory, batch_size=256, gamma=0.99):
+    def learn(self, memory, batch_size=128, gamma=0.99):
         # If the buffer if not full enough, return
         if memory.get_buffer_size() < batch_size:
             return
@@ -51,7 +55,7 @@ class CatanModel(nn.Module):
         transitions = memory.sample(batch_size)
 
         # Convert the list of tuples into separate lists
-        states, actions, rewards, next_states = zip(*transitions)
+        states, actions, rewards, next_states, dones = zip(*transitions)
 
         # Create a new state preprocessor
         state_preprocessor = StatePreprocessor()
@@ -75,6 +79,7 @@ class CatanModel(nn.Module):
         actions = torch.tensor(actions, dtype=torch.long)
         rewards = torch.tensor(rewards, dtype=torch.float32)
         next_states = torch.tensor(next_states, dtype=torch.float32)
+        dones = torch.tensor(dones, dtype=torch.long)
 
         # Get the Q values for the current states
         q_values = self.forward(states)
@@ -89,7 +94,7 @@ class CatanModel(nn.Module):
         max_next_q_values = torch.max(next_q_values, dim=1)[0]
 
         # Calculate the target Q values
-        target_q_values = rewards + gamma * max_next_q_values
+        target_q_values = rewards + gamma * max_next_q_values * (1 - dones)
 
         # Calculate the loss
         loss = nn.MSELoss()(q_values_for_actions_taken, target_q_values)
@@ -99,6 +104,9 @@ class CatanModel(nn.Module):
 
         # Update the weights
         self.optimiser.step()
+
+        # Return the loss as a float
+        return loss.item()
 
     def normalise_state(self, state):
         # Normalise the state

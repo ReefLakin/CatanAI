@@ -1,39 +1,13 @@
-# path: machine-player/new_gui.py
+# path: machine-player/newer_gui.py
 
 # Imports
-
-# PYGAME
+from TrainingSession import TrainingSession
 import pygame
-
-# OS
-import os
-
-# TIME
 import time
-
-# MATH
 import math
+import numpy as np
 
-# DATETIME
-from datetime import datetime
-
-# CSV
-import csv
-
-# CATAN GAME
-from CatanGame import CatanGame
-
-# AGENTS
-from Randy import Randy
-from Adam import Adam
-from Redmond import Redmond
-
-# REPLAY MEMORY
-from ReplayMemory import ReplayMemory
-
-
-# Set Constants
-
+# Constants specific to the GUI version of the program
 # TILE COLOURS
 FIELD_TILE_COLOUR = "#f9c549"
 MOUNTAIN_TILE_COLOUR = "#534e5a"
@@ -53,12 +27,13 @@ VP_COLOUR = "#1B152E"
 CITY_GOLD_COLOUR = "#FFD700"
 ROBBER_COLOUR = "#C4BCA9"
 
+# PLAYER COLOURS
+PLAYER_0_COLOUR = "#FFFFFF"
+PLAYER_1_COLOUR = "#675df2"
+
 # SCREEN INFORMATION
 SCREEN_WIDTH = 880
 SCREEN_HEIGHT = 700
-
-# BOARD DIMENSIONS
-BOARD_DIMS = [3, 4, 5, 4, 3]
 
 # OTHER BOARD INFORMATION
 STARTING_HEX_CENTRE_X = 330
@@ -68,27 +43,19 @@ SETTLEMENT_RADIUS = HEX_RADIUS / 7
 CITY_RADIUS_OUTER = HEX_RADIUS / 5
 CITY_RADIUS_INNER = HEX_RADIUS / 6
 
-# THE ACTUAL BOARD
-game_instance = CatanGame()
-
-# THE AGENT
-AGENT_SELECTED = "Adam"
-
-# NUMBER OF GAMES (Set to -1 for infinite)
-EPISODES = -1
-
-# REPLAY MEMORY
-replay_memory = ReplayMemory(10000)
-
 
 # Helper Functions
-
 # Collect the points for a single hexagon
-def get_hex_points(centre_x, centre_y, radius, vertex_states, side_states):
+def get_hex_points(
+    centre_x, centre_y, radius, vertex_states, vertex_owners, side_states, side_owners
+):
     hex_points = []
     settle_points = []
+    settle_owners = []
     city_points = []
+    city_owners = []
     road_points = []
+    road_owners = []
     # Make equiangular steps around the circle enclosing our hexagon
     for i in range(6):
         # Calculate the radian angle using complex maths
@@ -102,10 +69,14 @@ def get_hex_points(centre_x, centre_y, radius, vertex_states, side_states):
         # Also append x and y if the vertex is a settlement
         if vertex_states[i] == 1:
             settle_points.append([x, y])
+            # Add to the list of settlement owners
+            settle_owners.append(vertex_owners[i])
 
         # Also append x and y if the vertex is a city
         if vertex_states[i] == 2:
             city_points.append([x, y])
+            # Add to the list of city owners
+            city_owners.append(vertex_owners[i])
 
         # This part is a little more complex
         # Take the current coordinates and the next coordinates if the current side is a road
@@ -117,14 +88,32 @@ def get_hex_points(centre_x, centre_y, radius, vertex_states, side_states):
             y2 = centre_y + radius * math.sin(a)
             # Add all the points to the list
             road_points.append([x, y, x2, y2])
+            # Add to the list of road owners
+            road_owners.append(side_owners[i])
 
     # Return the list of points
-    return hex_points, settle_points, road_points, city_points
+    return (
+        hex_points,
+        settle_points,
+        settle_owners,
+        road_points,
+        road_owners,
+        city_points,
+        city_owners,
+    )
 
 
 # Collect the points for each hexagon on the board
 def get_all_hex_points(
-    centre_x, centre_y, radius, board_dims, vertex_states, side_states, robber_states
+    centre_x,
+    centre_y,
+    radius,
+    board_dims,
+    vertex_states,
+    vertex_owners,
+    side_states,
+    side_owners,
+    robber_states,
 ):
     x = centre_x
     y = centre_y
@@ -133,8 +122,11 @@ def get_all_hex_points(
     all_hex_points = []
     all_hex_centre_values = []
     all_settlement_points = []
+    all_settlement_owners = []
     all_road_points = []
+    all_road_owners = []
     all_city_points = []
+    all_city_owners = []
     robber_points = []
     robber_index = 0
 
@@ -153,13 +145,30 @@ def get_all_hex_points(
             if robber_states[robber_index] == 1:
                 # Add the robber to the list
                 robber_points.append([x, y])
-            # Pop the first element from the vertex data list
+            # Pop the next element from the vertex data list
             current_hex_vert_data = vert_data.pop(0)
-            # Pop the first element from the side data list
+            # Pop the next element from the side data list
             current_hex_side_data = side_data.pop(0)
+            # Pop the next element from the vertex and side owner lists
+            current_hex_vert_owners = vertex_owners.pop(0)
+            current_hex_side_owners = side_owners.pop(0)
             # Get the outer points for the current hexagon
-            hex_points, settle_points, road_points, city_points = get_hex_points(
-                x, y, radius, current_hex_vert_data, current_hex_side_data
+            (
+                hex_points,
+                settle_points,
+                settle_owners,
+                road_points,
+                road_owners,
+                city_points,
+                city_owners,
+            ) = get_hex_points(
+                x,
+                y,
+                radius,
+                current_hex_vert_data,
+                current_hex_vert_owners,
+                current_hex_side_data,
+                current_hex_side_owners,
             )
             # Recalculate the x-position for the next hexagon
             x += math.sqrt(3) * radius
@@ -172,6 +181,12 @@ def get_all_hex_points(
             all_road_points.append(road_points)
             # Add the city points to the list
             all_city_points.append(city_points)
+            # Add the settlement owners to the list
+            all_settlement_owners.append(settle_owners)
+            # Add the road owners to the list
+            all_road_owners.append(road_owners)
+            # Add the city owners to the list
+            all_city_owners.append(city_owners)
 
             # Increase the robber_index by 1
             robber_index += 1
@@ -184,16 +199,13 @@ def get_all_hex_points(
         all_hex_points,
         all_hex_centre_values,
         all_settlement_points,
+        all_settlement_owners,
         all_road_points,
+        all_road_owners,
         all_city_points,
+        all_city_owners,
         robber_points,
     )
-
-
-# Return the default type map associated with the default Catan board
-def get_default_type_map():
-    DEFAULT_TYPE_MAP = [1, 3, 4, 0, 2, 3, 2, 0, 4, 5, 4, 1, 4, 1, 0, 3, 2, 0, 3]
-    return DEFAULT_TYPE_MAP
 
 
 # Return the colour value associated with a given tile type id
@@ -234,10 +246,28 @@ def get_colour_value_from_resource_name(name):
             return WATER_TILE_COLOUR
 
 
-# Setup the Pygame Window
+# Return the player colour associated with the given player ID
+def get_player_colour_from_id(id):
+    match id:
+        case 0:
+            return PLAYER_0_COLOUR
+        case 1:
+            return PLAYER_1_COLOUR
 
-# Initialise Pygame
-# Pygame's 'font' module is automatically initialised upon this call
+
+# !! Main Program
+
+# # Training Session Options
+agent_to_set = "Adam"
+opponent_to_set = "Adam"
+
+# Create a training session (with default parameters)
+training_session = TrainingSession(agent=agent_to_set, opponent=opponent_to_set)
+
+
+# # Pygame Window Setup
+
+# Call pygame.init() to initialise pygame
 pygame.init()
 
 # Custom events
@@ -264,58 +294,26 @@ pygame.display.set_caption("Catan Board")
 # Load a font
 font = pygame.font.SysFont("Arial", 18)
 res_font = pygame.font.SysFont("Arial", 17)
+opp_res_font = pygame.font.SysFont("Arial", 14)
 sm_font = pygame.font.SysFont("Arial", 10)
 vp_font = pygame.font.SysFont("Arial", 20, bold=True)
 
-# Agent setup
-if AGENT_SELECTED == "Adam":
-    agent = Adam()
-    MODEL_PATH = "adam.pth"
-    # Check if the "model.pth" file exists
-    if os.path.exists(MODEL_PATH):
-        print("Ahhh! I'm back!")
-        agent.load_model(MODEL_PATH)
-elif AGENT_SELECTED == "Redmond":
-    agent = Redmond()
-    MODEL_PATH = "redmond.pth"
-    # Check if the "model.pth" file exists
-    if os.path.exists(MODEL_PATH):
-        print("Ahhh! I'm back!")
-        agent.load_model(MODEL_PATH)
-else:
-    agent = Randy()
+# Set the current player
+current_player = 0
 
 
-# Start the game
-game_instance.start_game()
+# # Game Loop
 
-
-# Game Loop
-
-# Variable to keep our game loop running
-running = True
+# Start the training session
+running = training_session.start(players=2)
 PLEASE_LORD_GIVE_ME_A_BREAK = False
-learn_steps = 0
-games_played = 0
 
-# Other data about the current session
-total_illegal_actions_attempted = 0
-total_steps_taken = 0
-total_reward_points_earned = 0
-total_roads_built = 0
-
-# Other data about the current session, but these are arrays
-total_illegal_actions_attempted_list = []
-total_steps_taken_list = []
-total_reward_points_earned_list = []
-total_roads_built_list = []
-game_numbers_list = []
-
-while running is True and games_played != EPISODES:
+# While the training session is running
+while running is True:
 
     # If PLEASE_LORD_GIVE_ME_A_BREAK is true, make a small time delay
     if PLEASE_LORD_GIVE_ME_A_BREAK:
-        time.sleep(0.00004)
+        time.sleep(0.01)
         PLEASE_LORD_GIVE_ME_A_BREAK = False
         pygame.event.post(take_action)
         pygame.event.post(update_game_board)
@@ -345,67 +343,14 @@ while running is True and games_played != EPISODES:
 
         # Check for the custom event that we set up to take action
         if event.type == TAKE_ACTION:
-            # Get the legal actions from the game instance
-            actions = game_instance.get_legal_actions()
 
-            # Get all possible actions from the game instance
-            all_actions = game_instance.get_all_possible_actions()
-
-            # Get the game state
-            game_state = game_instance.get_state()
-
-            # Get the agent to pick an action
-            action = agent.select_action(game_state, all_actions, actions)
-
-            # If the action is illegal, increment the illegal action counter
-            if action not in actions:
-                total_illegal_actions_attempted += 1
-            else:
-                # If the action is to build a road, increment the road counter
-                split_action = action.split("_")
-                if split_action[0] == "build" and split_action[1] == "road":
-                    total_roads_built += 1
-
-            # What is the index of the action when set against the entire list of actions?
-            action_index = all_actions.index(action)
-
-            # Take a step in the game
-            game_instance.step(action)
-
-            # Increment the total number of steps taken
-            total_steps_taken += 1
-
-            # Get the new game state
-            new_game_state = game_instance.get_state()
-
-            # Get game over flag
-            game_over = game_instance.get_game_over_flag()
-
-            # Get reward information from the game instance
-            reward_information = game_instance.reward_information_request(
-                action, actions
-            )
-
-            # Get the reward from the Agent
-            reward = agent.reward(reward_information)
-
-            # Increment the total reward points earned
-            total_reward_points_earned += reward
-
-            # Create a memory tuple
-            memory_tuple = (game_state, action_index, reward, new_game_state)
-
-            # Add the memory tuple to the replay buffer
-            replay_memory.add(memory_tuple)
-
-            if learn_steps < 8:
-                # Increment the learn steps
-                learn_steps += 1
-            else:
-                # Reset the learn steps
-                learn_steps = 0
-                # Call the learn() method on the agent
-                agent.learn(replay_memory)
+            (
+                running,
+                legal_actions,
+                chosen_action,
+                games_played,
+                current_player,
+            ) = training_session.time_step()
 
         # Check for the custom event that we set up to update the game board
         if event.type == UPDATE_GAME_BOARD_EVENT:
@@ -413,8 +358,11 @@ while running is True and games_played != EPISODES:
             # Update the game state on the GUI
             screen.fill(pygame.Color(WATER_TILE_COLOUR))
 
+            # Get the game instance
+            game_instance = training_session.get_game_instance()
+
             # Get the game state once
-            game_state = game_instance.get_state()
+            game_state = training_session.get_game_state()
 
             # Get the type map from the game instance
             type_map = game_state["tile_types"]
@@ -424,9 +372,11 @@ while running is True and games_played != EPISODES:
 
             # Get the vertex states from the game instance
             vertex_states = game_state["vertex_states"]
+            vertex_owners = game_state["vertex_owners"]
 
             # Get the side states from the game instance
             side_states = game_state["side_states"]
+            side_owners = game_state["side_owners"]
 
             # Get the number of current victory points from the game instance
             victory_points = game_state["victory_points"]
@@ -441,6 +391,9 @@ while running is True and games_played != EPISODES:
             # Get the robber states
             robber_states = game_state["robber_states"]
 
+            # Get the game state from the opponent's point of view
+            opp_game_state = game_instance.get_state(player_id=1)
+
             # Draw the Board
 
             # Get the points for each hexagon on the board
@@ -448,18 +401,30 @@ while running is True and games_played != EPISODES:
                 all_hex_points,
                 all_hex_centre_values,
                 all_settlement_points,
+                all_settlement_owners,
                 all_road_points,
+                all_road_owners,
                 all_city_points,
+                all_city_owners,
                 robber_points,
             ) = get_all_hex_points(
                 STARTING_HEX_CENTRE_X,
                 STARTING_HEX_CENTRE_Y,
                 HEX_RADIUS,
-                BOARD_DIMS,
+                training_session.get_board_dims(),
                 vertex_states,
+                vertex_owners,
                 side_states,
+                side_owners,
                 robber_states,
             )
+
+            # Completely flatten each of the ownership arrays
+            all_settlement_owners = [
+                item for sublist in all_settlement_owners for item in sublist
+            ]
+            all_road_owners = [item for sublist in all_road_owners for item in sublist]
+            all_city_owners = [item for sublist in all_city_owners for item in sublist]
 
             # Draw each hexagon, with a border of 10 pixels
             for hex_points in all_hex_points:
@@ -504,7 +469,9 @@ while running is True and games_played != EPISODES:
                     # Draw the settlement
                     pygame.draw.rect(
                         screen,
-                        pygame.Color(SETTLEMENT_COLOUR),
+                        pygame.Color(
+                            get_player_colour_from_id(all_settlement_owners.pop(0))
+                        ),
                         (x, y, SETTLEMENT_RADIUS * 2, SETTLEMENT_RADIUS * 2),
                         0,
                     )
@@ -530,7 +497,7 @@ while running is True and games_played != EPISODES:
                     # Draw the city (outer gold square)
                     pygame.draw.rect(
                         screen,
-                        pygame.Color(SETTLEMENT_COLOUR),
+                        pygame.Color(get_player_colour_from_id(all_city_owners.pop(0))),
                         (x, y, CITY_RADIUS_INNER * 2, CITY_RADIUS_INNER * 2),
                         0,
                     )
@@ -543,7 +510,7 @@ while running is True and games_played != EPISODES:
                     # Draw the road
                     pygame.draw.line(
                         screen,
-                        pygame.Color(ROAD_COLOUR),
+                        pygame.Color(get_player_colour_from_id(all_road_owners.pop(0))),
                         (side[0], side[1]),
                         (side[2], side[3]),
                         6,
@@ -563,6 +530,17 @@ while running is True and games_played != EPISODES:
             )
             # Draw the text to the screen
             text_rect = text.get_rect(center=(90, 25))
+            screen.blit(text, text_rect)
+
+            # Write the opponent's victory points to the screen
+            # Draw the text with font.render()
+            text = vp_font.render(
+                " / " + str(opp_game_state["victory_points"]),
+                True,
+                pygame.Color(PLAYER_1_COLOUR),
+            )
+            # Draw the text to the screen
+            text_rect = text.get_rect(center=(185, 25))
             screen.blit(text, text_rect)
 
             # Write the turn number just below the victory points
@@ -589,6 +567,17 @@ while running is True and games_played != EPISODES:
             text_rect = text.get_rect(center=(SCREEN_WIDTH - 80, 25))
             screen.blit(text, text_rect)
 
+            # Write who is currently playing to the screen in the top right corner
+            text = font.render(
+                "Current Player: " + str(current_player),
+                True,
+                pygame.Color(VP_COLOUR),
+            )
+
+            # Draw the text to the screen
+            text_rect = text.get_rect(center=(SCREEN_WIDTH - 80, 50))
+            screen.blit(text, text_rect)
+
             # Write up the resource texts
             resource_texts = [
                 (f"Lumber: {num_lumber}"),
@@ -598,12 +587,21 @@ while running is True and games_played != EPISODES:
                 (f"Brick: {num_brick}"),
             ]
 
+            # List the opponent resource texts
+            opponent_resources = [
+                str(opp_game_state["num_lumber"]),
+                str(opp_game_state["num_grain"]),
+                str(opp_game_state["num_ore"]),
+                str(opp_game_state["num_wool"]),
+                str(opp_game_state["num_brick"]),
+            ]
+
             # Load each of the resource icons
-            lumber_icon = pygame.image.load("wood.png").convert_alpha()
-            brick_icon = pygame.image.load("wall.png").convert_alpha()
-            wool_icon = pygame.image.load("sheep.png").convert_alpha()
-            grain_icon = pygame.image.load("wheat.png").convert_alpha()
-            ore_icon = pygame.image.load("stone.png").convert_alpha()
+            lumber_icon = pygame.image.load("assets/wood.png").convert_alpha()
+            brick_icon = pygame.image.load("assets/wall.png").convert_alpha()
+            wool_icon = pygame.image.load("assets/sheep.png").convert_alpha()
+            grain_icon = pygame.image.load("assets/wheat.png").convert_alpha()
+            ore_icon = pygame.image.load("assets/stone.png").convert_alpha()
 
             # List the icons
             icons = [lumber_icon, grain_icon, ore_icon, wool_icon, brick_icon]
@@ -653,84 +651,29 @@ while running is True and games_played != EPISODES:
             for text_surface, text_rect in text_surfaces:
                 screen.blit(text_surface, text_rect)
 
+            # Loop through the opponent's resource texts
+            for i in range(len(opponent_resources)):
+                # Create the surface
+                text_surface = opp_res_font.render(
+                    opponent_resources[i], True, "#675df2"
+                )
+                text_rect = text_surface.get_rect()
+                # Set the x position
+                text_rect.x = box_rect.x + text_spacing + (font_size + text_spacing) * i
+                # Set the y position
+                text_rect.y = box_y + (box_height - font_size) // 2 + 20
+                # Add the surface and rect to the list
+                text_surfaces.append((text_surface, text_rect))
+
+            # Blit the text surfaces onto the window
+            for text_surface, text_rect in text_surfaces:
+                screen.blit(text_surface, text_rect)
+
             # Write the agent's name to the screen in the bottom left corner
-            text = sm_font.render(agent.name, True, pygame.Color(BORDER_COLOUR))
+            text = sm_font.render(agent_to_set, True, pygame.Color(BORDER_COLOUR))
             # Draw the text to the screen
             text_rect = text.get_rect(center=(25, SCREEN_HEIGHT - 15))
             screen.blit(text, text_rect)
 
             # Update the display using flip
             pygame.display.flip()
-
-            # Game over?
-            game_over_flag = game_instance.get_game_over_flag()
-
-            if game_over_flag == True:
-                # Append the CSV data to the arrays
-                total_illegal_actions_attempted_list.append(
-                    total_illegal_actions_attempted
-                )
-                total_steps_taken_list.append(total_steps_taken)
-                total_reward_points_earned_list.append(total_reward_points_earned)
-                total_roads_built_list.append(total_roads_built)
-                game_numbers_list.append(games_played)
-
-                games_played += 1  # Increment the number of games played
-                if games_played == EPISODES:
-                    replay_memory.save_buffer(AGENT_SELECTED)
-
-                    data = zip(
-                        game_numbers_list,
-                        total_illegal_actions_attempted_list,
-                        total_steps_taken_list,
-                        total_reward_points_earned_list,
-                        total_roads_built_list,
-                    )
-
-                    # Get current date and time for file name
-                    now = datetime.now()
-                    filename = (
-                        "training_session_data/"
-                        + AGENT_SELECTED
-                        + now.strftime("-%Y-%m-%d-%H-%M")
-                        + ".csv"
-                    )
-
-                    # Open a file for writing
-                    with open(filename, "w", newline="") as csvfile:
-                        writer = csv.writer(csvfile)
-
-                        # Write the header row containing the array names
-                        writer.writerow(
-                            [
-                                "Game number",
-                                "Total illegal actions attempted",
-                                "Total steps taken",
-                                "Total reward points",
-                                "Roads built",
-                            ]
-                        )
-
-                        # Write the data rows
-                        for row in data:
-                            writer.writerow(row)
-
-                # Reset the game
-                game_instance.reset()
-
-                # Reset other data about the current session
-                total_illegal_actions_attempted = 0
-                total_steps_taken = 0
-                total_reward_points_earned = 0
-                total_roads_built = 0
-
-                # Start the game
-                game_instance.start_game()
-
-                # Agent saving
-                if AGENT_SELECTED == "Adam":
-                    # Save the model
-                    agent.save_model(MODEL_PATH)
-                elif AGENT_SELECTED == "Redmond":
-                    # Save the model
-                    agent.save_model(MODEL_PATH)

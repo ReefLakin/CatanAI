@@ -18,16 +18,41 @@ import torch
 
 # Define the Redmond class
 class Redmond(Agent):
-    def __init__(self, exploration_rate=0.1):
-        # Set the exploration rate to the exploration rate passed to the constructor
-        self.exploration_rate = exploration_rate
-        # Set the model (use the default values for now)
-        self.model = CatanModel()
-        # Name this lovely gentleman
+    def __init__(self, exploration_rate=1.0):
+        super().__init__(exploration_rate)
         self.name = "Redmond"
 
     # Method for selecting an action via exploitation
     def select_action_exploit(self, observation, all_possible_actions, legal_actions):
+        # Preprocess the state information
+        observation_processed = self.preprocess_state(observation)
+        # # Normalise the states in the states list
+        # observation_processed = self.normalise_state(observation_processed)
+        # Convert the observation to a tensor
+        observation_processed = torch.tensor(observation_processed, dtype=torch.float32)
+        # Pass the observation through the model
+        action_options = self.model.forward(observation_processed)
+        # Get the indices of legal actions
+        legal_action_indices = [
+            i
+            for i in range(len(all_possible_actions))
+            if all_possible_actions[i] in legal_actions
+        ]
+        # Convert action_options from a tensor to a list
+        action_options = action_options.tolist()
+        # Loop through all the action options
+        # If the action is not legal, set its value to -50
+        # Otherwise, leave it alone
+        for i in range(len(action_options)):
+            if i not in legal_action_indices:
+                action_options[i] = -50
+        # Get the index of the highest value in the action options list
+        action_as_idx = action_options.index(max(action_options))
+        # Get the actual action from the action index
+        action = all_possible_actions[action_as_idx]
+        # Return the legal action
+        return action
+
         # Preprocess the state information
         observation_processed = self.preprocess_state(observation)
         # Convert the observation to a tensor
@@ -42,22 +67,27 @@ class Redmond(Agent):
         return action
 
     # Method for learning
-    def learn(self, memory):
-        self.model.learn(memory, batch_size=32)
+    def learn(self):
+        self.model.learn(self.memory, batch_size=32)
 
     # Reward function
     def reward(self, reward_information):
-        # Redmond gets rewarded for: building a settlement or city on red tiles (6 and 8)
+        # Redmond gets rewarded for: building a settlement or city on red tiles (6 and 8), winning the game
         # Redmond gets a small reward for: generating resources
         # Redmond gets slightly less reward for: building settlements and cities on non-red tiles
-        # Remond is not rewarded for: winning the game, or building roads
+        # Remond is not rewarded for: building roads
         # Remond is punished for: making illegal moves
         legal_actions = reward_information["legal_actions"]
         resource_bonus = reward_information["recent_resources_generated"]
         action = reward_information["current_action"]
         red_tiles = reward_information["red_tiles"]
+        done = reward_information["game_over"]
 
         split_action_parts = action.split("_")
+
+        # Game over reward
+        if done:
+            return 60
 
         # Illegal move penalty
         if action not in legal_actions:

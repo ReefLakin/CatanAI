@@ -26,6 +26,10 @@ It will have the following methods:
 - an 'is_neighbouring_side' method which takes two ints and returns a bool
 """
 
+# Imports
+from Township import Township
+from Road import Road
+
 
 class Tile:
     # Constructor
@@ -253,36 +257,36 @@ class Tile:
             return None
 
     # Set the value of a specified vertex to 1 (settlement)
-    def build_settlement(self, direction):
+    def build_settlement(self, direction, player=0):
         if direction == "northwest":
-            self.vert_northwest = 1
+            self.vert_northwest = Township(owner=player)
         elif direction == "north":
-            self.vert_north = 1
+            self.vert_north = Township(owner=player)
         elif direction == "northeast":
-            self.vert_northeast = 1
+            self.vert_northeast = Township(owner=player)
         elif direction == "southeast":
-            self.vert_southeast = 1
+            self.vert_southeast = Township(owner=player)
         elif direction == "south":
-            self.vert_south = 1
+            self.vert_south = Township(owner=player)
         elif direction == "southwest":
-            self.vert_southwest = 1
+            self.vert_southwest = Township(owner=player)
         else:
             return None
 
     # Set the value of a specified vertex to 2 (city)
-    def build_city(self, direction):
+    def build_city(self, direction, player=0):
         if direction == "northwest":
-            self.vert_northwest = 2
+            self.vert_northwest = Township(type=2, owner=player)
         elif direction == "north":
-            self.vert_north = 2
+            self.vert_north = Township(type=2, owner=player)
         elif direction == "northeast":
-            self.vert_northeast = 2
+            self.vert_northeast = Township(type=2, owner=player)
         elif direction == "southeast":
-            self.vert_southeast = 2
+            self.vert_southeast = Township(type=2, owner=player)
         elif direction == "south":
-            self.vert_south = 2
+            self.vert_south = Township(type=2, owner=player)
         elif direction == "southwest":
-            self.vert_southwest = 2
+            self.vert_southwest = Township(type=2, owner=player)
         else:
             return None
 
@@ -304,19 +308,19 @@ class Tile:
             return None
 
     # Set the value of a specified side to 1 (road)
-    def build_road(self, direction):
+    def build_road(self, direction, player=0):
         if direction == "northwest":
-            self.side_northwest = 1
+            self.side_northwest = Road(owner=player)
         elif direction == "northeast":
-            self.side_northeast = 1
+            self.side_northeast = Road(owner=player)
         elif direction == "east":
-            self.side_east = 1
+            self.side_east = Road(owner=player)
         elif direction == "southeast":
-            self.side_southeast = 1
+            self.side_southeast = Road(owner=player)
         elif direction == "southwest":
-            self.side_southwest = 1
+            self.side_southwest = Road(owner=player)
         elif direction == "west":
-            self.side_west = 1
+            self.side_west = Road(owner=player)
 
     # Return the neighbouring verticies of a specified vertex
     def get_neighbouring_verticies(self, direction):
@@ -336,21 +340,94 @@ class Tile:
             return None
 
     # Return the neighbouring sides of a specified side
-    def get_neighbouring_sides(self, direction):
-        if direction == "northwest":
-            return [self.side_northeast, self.side_west]
-        elif direction == "northeast":
-            return [self.side_northwest, self.side_east]
-        elif direction == "east":
-            return [self.side_northeast, self.side_southeast]
-        elif direction == "southeast":
-            return [self.side_east, self.side_southwest]
-        elif direction == "southwest":
-            return [self.side_southeast, self.side_west]
-        elif direction == "west":
-            return [self.side_southwest, self.side_northwest]
+    # If opp_blocking is True, return the neighbouring sides that are not blocked by a settlement/city
+    def get_neighbouring_sides(self, direction, opp_blocking=False, player=0):
+        if opp_blocking == False:
+            if direction == "northwest":
+                return [self.side_northeast, self.side_west]
+            elif direction == "northeast":
+                return [self.side_northwest, self.side_east]
+            elif direction == "east":
+                return [self.side_northeast, self.side_southeast]
+            elif direction == "southeast":
+                return [self.side_east, self.side_southwest]
+            elif direction == "southwest":
+                return [self.side_southeast, self.side_west]
+            elif direction == "west":
+                return [self.side_southwest, self.side_northwest]
+            else:
+                return None
         else:
-            return None
+            sides_to_return = []
+            if direction == "northwest":
+                if self.vert_north == None:
+                    sides_to_return.append(self.side_northeast)
+                else:
+                    if self.vert_north.get_owner() == player:
+                        sides_to_return.append(self.side_northeast)
+                if self.vert_northwest == None:
+                    sides_to_return.append(self.side_west)
+                else:
+                    if self.vert_northwest.get_owner() == player:
+                        sides_to_return.append(self.side_west)
+            elif direction == "northeast":
+                if self.vert_north == None:
+                    sides_to_return.append(self.side_northwest)
+                else:
+                    if self.vert_north.get_owner() == player:
+                        sides_to_return.append(self.side_northwest)
+                if self.vert_northeast == None:
+                    sides_to_return.append(self.side_east)
+                else:
+                    if self.vert_northeast.get_owner() == player:
+                        sides_to_return.append(self.side_east)
+            elif direction == "east":
+                if self.vert_northeast == None:
+                    sides_to_return.append(self.side_northeast)
+                else:
+                    if self.vert_northeast.get_owner() == player:
+                        sides_to_return.append(self.side_northeast)
+                if self.vert_southeast == None:
+                    sides_to_return.append(self.side_southeast)
+                else:
+                    if self.vert_southeast.get_owner() == player:
+                        sides_to_return.append(self.side_southeast)
+            elif direction == "southeast":
+                if self.vert_southeast == None:
+                    sides_to_return.append(self.side_east)
+                else:
+                    if self.vert_southeast.get_owner() == player:
+                        sides_to_return.append(self.side_east)
+                if self.vert_south == None:
+                    sides_to_return.append(self.side_southwest)
+                else:
+                    if self.vert_south.get_owner() == player:
+                        sides_to_return.append(self.side_southwest)
+            elif direction == "southwest":
+                if self.vert_south == None:
+                    sides_to_return.append(self.side_southeast)
+                else:
+                    if self.vert_south.get_owner() == player:
+                        sides_to_return.append(self.side_southeast)
+                if self.vert_southwest == None:
+                    sides_to_return.append(self.side_west)
+                else:
+                    if self.vert_southwest.get_owner() == player:
+                        sides_to_return.append(self.side_west)
+            elif direction == "west":
+                if self.vert_southwest == None:
+                    sides_to_return.append(self.side_southwest)
+                else:
+                    if self.vert_southwest.get_owner() == player:
+                        sides_to_return.append(self.side_southwest)
+                if self.vert_northwest == None:
+                    sides_to_return.append(self.side_northwest)
+                else:
+                    if self.vert_northwest.get_owner() == player:
+                        sides_to_return.append(self.side_northwest)
+            else:
+                return None
+            return sides_to_return
 
     # Return a bool indicating whether or not placing on a specific vertex satisfies the distance rule
     def satisfies_distance_rule(self, direction):
@@ -361,6 +438,7 @@ class Tile:
         return True
 
     # Return the opposite side direction of a specified direction
+    # NOTE: Not opposite on the same tile, but opposite on the board (adjacent tiles)
     def get_opposite_side_direction(self, direction):
         if direction == "northwest":
             return "southeast"
@@ -378,6 +456,7 @@ class Tile:
             return None
 
     # Return the 2 opposite vertex directions of a specified direction
+    # NOTE: Not opposite on the same tile, but opposite on the board (adjacent tiles)
     # This needs to be in a clockwise order to work with higher level functions; possibly change this later
     def get_opposite_vertex_directions(self, direction):
         if direction == "northwest":
@@ -413,11 +492,23 @@ class Tile:
             return None
 
     # Check if a specified vertex is adjacent to a road
-    def is_vertex_adjacent_to_road(self, direction):
+    def is_vertex_adjacent_to_road(self, direction, player=0):
         adjacent_sides = self.get_adjacent_sides_of_vertex(direction)
         for side in adjacent_sides:
             if self.get_side_from_direction(side) == 1:
-                return True
+                if self.get_side_from_direction(side).get_owner() == player:
+                    return True
+                else:
+                    return False
+        return False
+
+    # Check if a specified side is adjacent to a settlement
+    def is_side_adjacent_to_settlement(self, direction, player=0):
+        adjacent_vertices = self.get_neighbouring_verticies_of_side(direction)
+        for vertex in adjacent_vertices:
+            if vertex == 1:
+                if vertex.get_owner() == player:
+                    return True
         return False
 
     # Return a list of all the side values of this tile
@@ -442,6 +533,46 @@ class Tile:
             self.vert_northwest,
             self.vert_north,
         ]
+
+    # Return a list of all the side owners of this tile
+    # Should start from east and go clockwise
+    def get_all_side_owners_as_list(self):
+        return [
+            self.side_east.get_owner() if self.side_east != None else None,
+            self.side_southeast.get_owner() if self.side_southeast != None else None,
+            self.side_southwest.get_owner() if self.side_southwest != None else None,
+            self.side_west.get_owner() if self.side_west != None else None,
+            self.side_northwest.get_owner() if self.side_northwest != None else None,
+            self.side_northeast.get_owner() if self.side_northeast != None else None,
+        ]
+
+    # Return a list of all the vertex owners of this tile
+    def get_all_vertex_owners_as_list(self):
+        return [
+            self.vert_northeast.get_owner() if self.vert_northeast != None else None,
+            self.vert_southeast.get_owner() if self.vert_southeast != None else None,
+            self.vert_south.get_owner() if self.vert_south != None else None,
+            self.vert_southwest.get_owner() if self.vert_southwest != None else None,
+            self.vert_northwest.get_owner() if self.vert_northwest != None else None,
+            self.vert_north.get_owner() if self.vert_north != None else None,
+        ]
+
+    # Return the contents of the two verticies neighbouring a specified side
+    def get_neighbouring_verticies_of_side(self, direction):
+        if direction == "northwest":
+            return [self.vert_north, self.vert_northwest]
+        elif direction == "northeast":
+            return [self.vert_northeast, self.vert_north]
+        elif direction == "east":
+            return [self.vert_northeast, self.vert_southeast]
+        elif direction == "southeast":
+            return [self.vert_south, self.vert_southeast]
+        elif direction == "southwest":
+            return [self.vert_southwest, self.vert_south]
+        elif direction == "west":
+            return [self.vert_southwest, self.vert_northwest]
+        else:
+            return None
 
 
 # To do: Add type hints to getters and setters

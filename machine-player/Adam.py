@@ -1,70 +1,102 @@
-# This class inherits from Agent
-# Adam is a one Agent who is able to play Catan
-# He is the first Agent I've created who is able to learn
-# His name is inspired by the Adam optimizer, but also the story of Creation in the Bible
-# Perhaps a bit cliché, but I like it
-# Adam can select any action, even if it is not legal
-# He is able to learn from his mistakes
-# By default, he will explore 10% of the time
+# Adam inherits from the Agent class
+# Adam is a machine player that uses a neural network to learn how to play Catan
+# His name is inspired by the Adam optimiser and Adam from The Bible
+# Cliché? Yes. But it's a good name
+# Unlike Randy, Adam can learn from his mistakes
 
-# Import the Agent class
+# Imports
 from Agent import Agent
-
-# Import the CatanModel class
-from Model import CatanModel
-
-# Import the torch library
 import torch
 
-# Define the Adam class
+# High-level settings
+NORMALISE_STATES = False
+LEGAL_ACTIONS_ONLY = True
+
+# Class definition
 class Adam(Agent):
-    def __init__(self, exploration_rate=0.2):
-        # Set the exploration rate to the exploration rate passed to the constructor
-        self.exploration_rate = exploration_rate
-        # Set the model (use the default values for now)
-        self.model = CatanModel()
-        # Name this fool
+    def __init__(self, exploration_rate=1):
+        super().__init__(exploration_rate)
         self.name = "Adam"
 
-    # Method for selecting an action via exploitation
+    # Overwrite the select_action_exploit method with Adam's own
     def select_action_exploit(self, observation, all_possible_actions, legal_actions):
-        # Preprocess the state information
+
+        # State preprocessing
         observation_processed = self.preprocess_state(observation)
-        # Convert the observation to a tensor
+
+        # Normalising
+        if NORMALISE_STATES:
+            observation_processed = self.normalise_state(observation_processed)
+
+        # Tensor conversion
         observation_processed = torch.tensor(observation_processed, dtype=torch.float32)
-        # Pass the observation through the model
+
+        # Forward pass
         action_options = self.model.forward(observation_processed)
-        # Acquire the singular action with the highest value
-        action_as_idx = torch.argmax(action_options).item()
-        # Get the actual action from the action index
-        action = all_possible_actions[action_as_idx]
-        # Return the action
+
+        # Adam has the option to only choose legal actions
+        if LEGAL_ACTIONS_ONLY:
+
+            # Create a list of legal action indices
+            legal_action_indices = []
+            for i in range(len(all_possible_actions)):
+                if all_possible_actions[i] in legal_actions:
+                    legal_action_indices.append(i)
+
+            # Acquire the legal action with the highest value
+            # Skip over the illegal actions
+            current_best = -50
+            for i in range(len(action_options)):
+                if i in legal_action_indices:
+                    if action_options[i] > current_best:
+                        action_as_idx = i
+                        current_best = action_options[i]
+
+            # Get the actual action from the action index
+            action = all_possible_actions[action_as_idx]
+
+        else:
+
+            # Acquire the singular action with the highest value
+            action_as_idx = torch.argmax(action_options).item()
+            # Get the actual action from the action index
+            action = all_possible_actions[action_as_idx]
+
+        # Action return
         return action
 
     # Method for learning
-    def learn(self, memory):
-        self.model.learn(memory, batch_size=32)
+    def learn(self):
+        loss = self.model.learn(self.memory, batch_size=64)
+        return loss
 
     # Reward function
     def reward(self, reward_information):
-        # Adam gets rewarded more for: reaching 10 VPs
-        # Adam gets moderately rewarded for: building roads, settlements, cities
-        # Adam gets mildly punished for: making illegal moves
+        # These reward values tend to get adjusted during training
+        reward_victory = 16
+        reward_illegal_move = 0
+        reward_road_building = 0
+        reward_settlement_building = 4
+        reward_city_building = 4
+        reward_other = 0
+
+        # Extract information from the reward information dictionary
         legal_actions = reward_information["legal_actions"]
         done = reward_information["game_over"]
         action = reward_information["current_action"]
 
+        # Reward assignment
         if done == True:
-            return 60  # Victory reward
+            return reward_victory
         elif action not in legal_actions:
-            return 0  # Illegal move punishment
+            return reward_illegal_move
         else:
             split_action = action.split("_")
             if split_action[0] == "build" and split_action[1] == "road":
-                return 1  # Road building reward
+                return reward_road_building
             elif split_action[0] == "build" and split_action[1] == "settlement":
-                return 10  # Settlement building reward
+                return reward_settlement_building
             elif split_action[0] == "build" and split_action[1] == "city":
-                return 16  # City building reward
+                return reward_city_building
             else:
-                return 0  # Else, no reward
+                return reward_other

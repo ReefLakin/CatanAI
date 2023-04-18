@@ -9,6 +9,7 @@ It will have the following methods:
 """
 
 import Tile
+import random
 
 
 class Board:
@@ -97,7 +98,7 @@ class Board:
             ]
 
     # Can a player place a road on a given side location?
-    def check_road_placement_legal(self, q, r, s, direction):
+    def check_road_placement_legal(self, q, r, s, direction, player=0, starting=False):
         # Grab the tile
         tile = self.get_tile(q, r, s)
         # Check if the tile exists
@@ -106,27 +107,48 @@ class Board:
         # Check if a road already exists on the side
         if tile.get_side_from_direction(direction) is not None:
             return False
-        # Check that the side has at least one neighbouring road
-        neighbouring_roads = tile.get_neighbouring_sides(direction)
-        if 1 in neighbouring_roads:
-            return True
-        else:
-            # Check that the tile which shares the side has at least one neighbouring road
-            neighbour_tile = self.shared_side_location(q, r, s, direction)
-            if neighbour_tile == None:
-                return False
+        # If this is normal gameplay, following the following rules
+        if starting == False:
+            # Check that the side has at least one neighbouring road
+            neighbouring_roads = tile.get_neighbouring_sides(
+                direction, opp_blocking=True, player=player
+            )
+            for road in neighbouring_roads:
+                if road == 1:
+                    # Check that the road belongs to the player specified
+                    if road.get_owner() == player:
+                        return True
             else:
-                opposite_direction = tile.get_opposite_side_direction(direction)
-                neighbour_tile_neighbouring_roads = (
-                    neighbour_tile.get_neighbouring_sides(opposite_direction)
-                )
-                if 1 in neighbour_tile_neighbouring_roads:
-                    return True
-                else:
+                # Check that the tile which shares the side has at least one neighbouring road
+                neighbour_tile = self.shared_side_location(q, r, s, direction)
+                if neighbour_tile == None:
                     return False
+                else:
+                    opposite_direction = tile.get_opposite_side_direction(direction)
+                    neighbour_tile_neighbouring_roads = (
+                        neighbour_tile.get_neighbouring_sides(
+                            opposite_direction, opp_blocking=True, player=player
+                        )
+                    )
+                    for road in neighbour_tile_neighbouring_roads:
+                        if road == 1:
+                            # Check that the road belongs to the player specified
+                            if road.get_owner() == player:
+                                return True
+                    else:
+                        return False
+        # If this is the initial placement of roads, following the following rules
+        else:
+            # Check that the side has at least one neighbouring settlement
+            if tile.is_side_adjacent_to_settlement(direction, player):
+                return True
+            else:
+                return False
 
     # Can a player place a settlement on a given vertex location?
-    def check_settlement_placement_legal(self, q, r, s, direction):
+    def check_settlement_placement_legal(
+        self, q, r, s, direction, player=0, starting=False
+    ):
         # Grab the tile
         tile = self.get_tile(q, r, s)
         # Check if the tile exists
@@ -150,21 +172,27 @@ class Board:
                     == False
                 ):
                     return False
+        # If 'starting' is true, we don't need to check that the settlement is connected to a road
+        if starting == True:
+            return True
         # Next, we have to check that the proposed settlement location is connected to a road. First, check the tile in question
-        if tile.is_vertex_adjacent_to_road(direction) == True:
+        if tile.is_vertex_adjacent_to_road(direction, player) == True:
             return True
         # If that didn't come up true, all hope is not lost. Check the neighbouring tiles
         i = 0
         for tile in neighbouring_tiles:
             if tile != None:
-                if tile.is_vertex_adjacent_to_road(opposite_directions[i]) == True:
+                if (
+                    tile.is_vertex_adjacent_to_road(opposite_directions[i], player)
+                    == True
+                ):
                     return True
             i += 1
         # If we've made it this far, the settlement is not connected to a road so it cannot be placed
         return False
 
     # Can a player place a city on a given vertex location?
-    def check_city_placement_legal(self, q, r, s, direction):
+    def check_city_placement_legal(self, q, r, s, direction, player=0):
         # Get the tile to start
         tile = self.get_tile(q, r, s)
         # Check if the tile exists
@@ -175,44 +203,48 @@ class Board:
             return False
         # Check if a settlement exists on the vertex
         elif tile.get_vertex_from_direction(direction) == 1:
-            return True
+            # Check that the settlement belongs to the player specified
+            if tile.get_vertex_from_direction(direction).get_owner() == player:
+                return True
+            else:
+                return False
         else:
             return False
 
     # Build a road at a location, given the q, r, s coordinates and the direction
-    def build_road(self, q, r, s, direction):
+    def build_road(self, q, r, s, direction, player=0):
         # Build the road on the specified tile
         tile = self.get_tile(q, r, s)
-        tile.build_road(direction)
+        tile.build_road(direction, player)
         # Build a road on the neighbouring tile, if it exists
         neighbour_tile = self.shared_side_location(q, r, s, direction)
         if neighbour_tile != None:
             opposite_direction = tile.get_opposite_side_direction(direction)
-            neighbour_tile.build_road(opposite_direction)
+            neighbour_tile.build_road(opposite_direction, player)
 
     # Build a settlement at a location, given the q, r, s coordinates and the direction
-    def build_settlement(self, q, r, s, direction):
+    def build_settlement(self, q, r, s, direction, player=0):
         # Build the settlement on the specified tile
         tile = self.get_tile(q, r, s)
-        tile.build_settlement(direction)
+        tile.build_settlement(direction, player)
         # Build a settlement on the neighbouring tiles, if they exist
         neighbour_tiles = self.shared_vertex_location(q, r, s, direction)
         direction_array = tile.get_opposite_vertex_directions(direction)
         for i in range(0, len(neighbour_tiles)):
             if neighbour_tiles[i] != None:
-                neighbour_tiles[i].build_settlement(direction_array[i])
+                neighbour_tiles[i].build_settlement(direction_array[i], player)
 
     # Build a city at a location, given the q, r, s coordinates and the direction
-    def build_city(self, q, r, s, direction):
+    def build_city(self, q, r, s, direction, player=0):
         # Build the city on the specified tile
         tile = self.get_tile(q, r, s)
-        tile.build_city(direction)
+        tile.build_city(direction, player)
         # Build a city on the neighbouring tiles, if they exist
         neighbour_tiles = self.shared_vertex_location(q, r, s, direction)
         direction_array = tile.get_opposite_vertex_directions(direction)
         for i in range(0, len(neighbour_tiles)):
             if neighbour_tiles[i] != None:
-                neighbour_tiles[i].build_city(direction_array[i])
+                neighbour_tiles[i].build_city(direction_array[i], player)
 
     # Get the tile types of all tiles
     def get_tile_types_in_a_list(self):
@@ -229,7 +261,7 @@ class Board:
         return tile_values
 
     # Get the state of all edges on the board
-    # 0 = no road, 1 = road
+    # None = no road, 1 = road
     # Edges that are shared by two tiles are listed twice
     def get_side_states(self):
         side_states = []
@@ -238,13 +270,31 @@ class Board:
         return side_states
 
     # Get the state of all vertices on the board
-    # 0 = no settlement, 1 = settlement
+    # None = no settlement, 1 = settlement
     # Vertices that are shared by two or more tiles are listed possibly two or three times
     def get_vertex_states(self):
         vertex_states = []
         for tile in self.board_tiles:
             vertex_states.append(tile.get_all_vertex_values_as_list())
         return vertex_states
+
+    # Get the owners of all the edges (roads) on the board
+    # None = no road, 1 = player 1, 2 = player 2, etc.
+    # Edges that are shared by two tiles are listed twice
+    def get_side_owners(self):
+        side_owners = []
+        for tile in self.board_tiles:
+            side_owners.append(tile.get_all_side_owners_as_list())
+        return side_owners
+
+    # Get the owners of all the vertices (settlements and cities) on the board
+    # None = no settlement, 1 = player 1, 2 = player 2, etc.
+    # Vertices that are shared by two or more tiles are listed possibly two or three times
+    def get_vertex_owners(self):
+        vertex_owners = []
+        for tile in self.board_tiles:
+            vertex_owners.append(tile.get_all_vertex_owners_as_list())
+        return vertex_owners
 
     # Get the tile currently holding the robber
     def get_robber_tile(self):
@@ -283,3 +333,58 @@ class Board:
                     [tile.get_q_coord(), tile.get_r_coord(), tile.get_s_coord()]
                 )
         return red_tile_coords
+
+    # Given a tile and a direction, return if that tile is occupied already
+    def is_vertex_occupied(self, q, r, s, direction):
+        tile = self.get_tile(q, r, s)
+        if tile.get_vertex_from_direction(direction) != None:
+            return True
+        else:
+            return False
+
+    # Make a distance rule check
+    def validate_distance_rule(self, q, r, s, direction):
+
+        # Get the tile
+        tile = self.get_tile(q, r, s)
+
+        # Check if the tile exists
+        if tile == None:
+            return False
+
+        # Check on the immediately tile if the distance rule is violated
+        if tile.satisfies_distance_rule(direction) == False:
+            return False
+
+        # Then check on the neighbouring tiles
+        opposite_directions = tile.get_opposite_vertex_directions(direction)
+        neighbouring_tiles = self.shared_vertex_location(q, r, s, direction)
+        for i in range(2):
+            if neighbouring_tiles[i] != None:
+                if (
+                    neighbouring_tiles[i].satisfies_distance_rule(
+                        opposite_directions[i]
+                    )
+                    == False
+                ):
+                    return False
+
+        # If we get here, the distance rule is satisfied
+        return True
+
+    # Build a road randomly adjacent to a vertex location
+    def build_random_adjacent_road(self, q, r, s, direction, player):
+
+        # Get the tile
+        tile = self.get_tile(q, r, s)
+
+        # Get the adjacent sides
+        direction_possible = tile.get_adjacent_sides_of_vertex(direction)
+
+        # Shuffle the direction possibilities
+        random.shuffle(direction_possible)
+
+        if tile.get_side_from_direction(direction_possible[0]) == None:
+            self.build_road(q, r, s, direction_possible[0], player)
+        else:
+            self.build_road(q, r, s, direction_possible[1], player)

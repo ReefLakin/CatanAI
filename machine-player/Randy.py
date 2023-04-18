@@ -8,8 +8,9 @@ from Agent import Agent
 
 # Define the Randy class
 class Randy(Agent):
-    def __init__(self):
-        # Set the exploration rate to 1
-        self.exploration_rate = 1
-        # Set the man's name, go on
+    def __init__(self, exploration_rate=1):
+        super().__init__(exploration_rate)
         self.name = "Randy"
+
+    def feed_memory(self, observation):
+        return
