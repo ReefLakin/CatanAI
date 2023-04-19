@@ -8,7 +8,7 @@ from TrainingSession import TrainingSession
 
 # # Training Session Options
 agent_to_set = "Adam"
-oppoent_to_set = "Adam"
+oppoent_to_set = "Randy"
 
 # Create a training session (with default parameters)
 training_session = TrainingSession(agent=agent_to_set, opponent=oppoent_to_set)
