@@ -309,7 +309,6 @@ PLEASE_LORD_GIVE_ME_A_BREAK = False
 
 # While the training session is running
 while running is True:
-
     # If PLEASE_LORD_GIVE_ME_A_BREAK is true, make a small time delay
     if PLEASE_LORD_GIVE_ME_A_BREAK:
         time.sleep(0.01)
@@ -320,13 +319,11 @@ while running is True:
 
     # Loop over the event queue
     for event in pygame.event.get():
-
         # Check for QUIT event
         if event.type == pygame.QUIT:
             running = False
 
         if event.type == pygame.KEYDOWN:
-
             # Check for S key press (STEP)
             if event.key == pygame.K_s:
                 # Take action, then update the board
@@ -342,7 +339,6 @@ while running is True:
 
         # Check for the custom event that we set up to take action
         if event.type == TAKE_ACTION:
-
             (
                 running,
                 legal_actions,
@@ -353,7 +349,6 @@ while running is True:
 
         # Check for the custom event that we set up to update the game board
         if event.type == UPDATE_GAME_BOARD_EVENT:
-
             # Update the game state on the GUI
             screen.fill(pygame.Color(WATER_TILE_COLOUR))
 

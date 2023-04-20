@@ -12,6 +12,7 @@ import torch
 NORMALISE_STATES = False
 LEGAL_ACTIONS_ONLY = True
 
+
 # Class definition
 class Adam(Agent):
     def __init__(self, exploration_rate=1):
@@ -20,7 +21,6 @@ class Adam(Agent):
 
     # Overwrite the select_action_exploit method with Adam's own
     def select_action_exploit(self, observation, all_possible_actions, legal_actions):
-
         # State preprocessing
         observation_processed = self.preprocess_state(observation)
 
@@ -36,7 +36,6 @@ class Adam(Agent):
 
         # Adam has the option to only choose legal actions
         if LEGAL_ACTIONS_ONLY:
-
             # Create a list of legal action indices
             legal_action_indices = []
             for i in range(len(all_possible_actions)):
@@ -56,7 +55,6 @@ class Adam(Agent):
             action = all_possible_actions[action_as_idx]
 
         else:
-
             # Acquire the singular action with the highest value
             action_as_idx = torch.argmax(action_options).item()
             # Get the actual action from the action index

@@ -21,7 +21,6 @@ running = training_session.start(players=2)
 
 # While the training session is running
 while running is True:
-
     (
         running,
         legal_actions,

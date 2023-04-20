@@ -10,6 +10,7 @@ from Randy import Randy
 from Adam import Adam
 from Redmond import Redmond
 
+
 # Define the TrainingSession class
 class TrainingSession:
     # Define the constructor
@@ -23,7 +24,6 @@ class TrainingSession:
         board_dims=[3, 4, 5, 4, 3],
         opponent="Randy",
     ):
-
         self.AGENT_SELECTED = agent
         self.OPPONENT_SELECTED = opponent
         self.EPISODES = games
@@ -99,7 +99,6 @@ class TrainingSession:
             game_over = self.GAME_INSTANCE.get_game_over_flag()
 
             if self.player_turn_pointer == 0:
-
                 # Get reward information from the game instance
                 reward_information = self.GAME_INSTANCE.reward_information_request(
                     chosen_action, legal_actions

@@ -30,7 +30,6 @@ class ReplayMemory:
 
     # Save the buffer to a file
     def save_buffer(self, agent_name="Agent"):
-
         # Convert list of tuples to JSON
         json_data = json.dumps(self.buffer)
 

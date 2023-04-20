@@ -9,6 +9,7 @@ import numpy as np
 from ReplayMemory import ReplayMemory
 from Model import CatanModel
 
+
 # Agent class definition
 class Agent:
     def __init__(self, exploration_rate=0.1):

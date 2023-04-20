@@ -16,6 +16,7 @@ from Model import CatanModel
 # Import the torch library
 import torch
 
+
 # Define the Redmond class
 class Redmond(Agent):
     def __init__(self, exploration_rate=1.0):

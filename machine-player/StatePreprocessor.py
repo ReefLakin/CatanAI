@@ -1,10 +1,10 @@
 # This class is used to preprocess the state information passed to the select_action method.
 # It takes the complex lists of state information and converts them into a list of integers.
 
+
 # Class definition
 class StatePreprocessor:
     def preprocess_state(self, state):
-
         # Create a new list to hold the new state information
         new_state_list = []
 
