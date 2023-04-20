@@ -683,7 +683,7 @@ class CatanGame:
         # Build a settlement at [0, -1, +1] southwest
         self.board.build_settlement(0, -1, 1, "southwest")
         # Build a settlement at [-1, 1, 0] northwest
-        self.board.build_settlement(-1, 1, 0, "northwest")
+        self.board.build_city(-1, 1, 0, "northwest")
         # Build a settlement at [0, -2, +2] southwest
         self.board.build_settlement(0, -2, 2, "southwest")
         # Build a road at [0, -1, +1] west

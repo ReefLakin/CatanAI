@@ -40,8 +40,7 @@ STARTING_HEX_CENTRE_X = 330
 STARTING_HEX_CENTRE_Y = 140
 HEX_RADIUS = 60
 SETTLEMENT_RADIUS = HEX_RADIUS / 7
-CITY_RADIUS_OUTER = HEX_RADIUS / 5
-CITY_RADIUS_INNER = HEX_RADIUS / 6
+CITY_RADIUS = HEX_RADIUS / 8
 
 
 # Helper Functions
@@ -481,26 +480,39 @@ while running is True:
             for hex in all_city_points:
                 # Then, loop through each vertex in the hex
                 for vertex in hex:
-                    # Calculate x and y of the top left corner (outer gold square)
-                    x = vertex[0] - CITY_RADIUS_OUTER
-                    y = vertex[1] - CITY_RADIUS_OUTER
-                    # Draw the city (outer gold square)
-                    pygame.draw.rect(
-                        screen,
-                        pygame.Color(CITY_GOLD_COLOUR),
-                        (x, y, CITY_RADIUS_OUTER * 2, CITY_RADIUS_OUTER * 2),
-                        0,
-                    )
+                    city_col = get_player_colour_from_id(all_city_owners.pop(0))
+                    city_diameter = CITY_RADIUS * 2
                     # Calculate x and y of the top left corner (inner white square)
-                    x = vertex[0] - CITY_RADIUS_INNER
-                    y = vertex[1] - CITY_RADIUS_INNER
+                    x = vertex[0] - CITY_RADIUS
+                    y = vertex[1] - CITY_RADIUS * 2
                     # Draw the city (outer gold square)
                     pygame.draw.rect(
                         screen,
-                        pygame.Color(get_player_colour_from_id(all_city_owners.pop(0))),
-                        (x, y, CITY_RADIUS_INNER * 2, CITY_RADIUS_INNER * 2),
+                        pygame.Color(city_col),
+                        (x, y, city_diameter, city_diameter * 1.6),
                         0,
                     )
+
+                    # Calculate x and y of the top left corner (inner white square)
+                    x = vertex[0] - CITY_RADIUS
+                    y = vertex[1]
+                    # Draw the city (outer gold square)
+                    pygame.draw.rect(
+                        screen,
+                        pygame.Color(city_col),
+                        (x, y, city_diameter * 1.8, city_diameter),
+                        0,
+                    )
+
+                    # draw the triangle on top
+                    x = vertex[0] - CITY_RADIUS
+                    y = vertex[1] - CITY_RADIUS * 2
+                    triangle_points = [
+                        (x, y),
+                        (x + city_diameter, y),
+                        (x + CITY_RADIUS, y - 10),
+                    ]
+                    pygame.draw.polygon(screen, city_col, triangle_points)
 
             # Draw the roads
             # First, loop through each hex
