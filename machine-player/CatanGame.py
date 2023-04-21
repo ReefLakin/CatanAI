@@ -18,7 +18,7 @@ class CatanGame:
         self.pregame_build_turn_tracker = 0
         self.number_of_players = number_of_players
         # Get tile values
-        tile_value_mode = "balanced"
+        tile_value_mode = "vanilla"
         tile_values = self.generate_tile_values(tile_value_mode)
         tile_types = [
             "ore",
@@ -322,26 +322,30 @@ class CatanGame:
 
             # Road Building
             elif action_parts[0] == "build" and action_parts[1] == "road":
-                # The player must have enough resources to build a road
-                if (
-                    self.resource_pool[player_id]["brick"] >= 1
-                    and self.resource_pool[player_id]["lumber"] >= 1
-                ):
-                    # The proposed location must be empty
-                    direction = action_parts[2]
-                    q_coord = int(action_parts[3])
-                    r_coord = int(action_parts[4])
-                    s_coord = int(action_parts[5])
-                    tile = self.board.get_tile(q_coord, r_coord, s_coord)
-                    side_val = tile.get_side_from_direction(direction)
-                    if side_val is None:
-                        # The build must be legal
-                        road_legal = self.board.check_road_placement_legal(
-                            q_coord, r_coord, s_coord, direction, player_id
-                        )
 
-                        if road_legal == True:
-                            self.legal_actions[player_id].append(action)
+                # The player must still have roads to build
+                if self.road_total[player_id] < 15:
+
+                    # The player must have enough resources to build a road
+                    if (
+                        self.resource_pool[player_id]["brick"] >= 1
+                        and self.resource_pool[player_id]["lumber"] >= 1
+                    ):
+                        # The proposed location must be empty
+                        direction = action_parts[2]
+                        q_coord = int(action_parts[3])
+                        r_coord = int(action_parts[4])
+                        s_coord = int(action_parts[5])
+                        tile = self.board.get_tile(q_coord, r_coord, s_coord)
+                        side_val = tile.get_side_from_direction(direction)
+                        if side_val is None:
+                            # The build must be legal
+                            road_legal = self.board.check_road_placement_legal(
+                                q_coord, r_coord, s_coord, direction, player_id
+                            )
+
+                            if road_legal == True:
+                                self.legal_actions[player_id].append(action)
 
             # City Building
             elif action_parts[0] == "build" and action_parts[1] == "city":
@@ -698,7 +702,7 @@ class CatanGame:
 
         # Switch this on or off: settlements placed randomly at the start of the game
         PLACE_RANDOMLY = False
-        NO_CHOICE_ALLOWED = False
+        NO_CHOICE_ALLOWED = True
         if PLACE_RANDOMLY:
             # Randomly build settlements and roads for all players
             for player in range(self.number_of_players):
