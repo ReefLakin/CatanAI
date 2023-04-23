@@ -257,11 +257,16 @@ def get_player_colour_from_id(id):
 # !! Main Program
 
 # # Training Session Options
-agent_to_set = "Randy"
+agent_to_set = "Chromie"
 opponent_to_set = "Randy"
+use_pixel_data_instead_of_state = True
 
 # Create a training session (with default parameters)
-training_session = TrainingSession(agent=agent_to_set, opponent=opponent_to_set)
+training_session = TrainingSession(
+    agent=agent_to_set,
+    opponent=opponent_to_set,
+    use_pixels=use_pixel_data_instead_of_state,
+)
 
 
 # # Pygame Window Setup
@@ -311,7 +316,7 @@ PLEASE_LORD_GIVE_ME_A_BREAK = False
 while running is True:
     # If PLEASE_LORD_GIVE_ME_A_BREAK is true, make a small time delay
     if PLEASE_LORD_GIVE_ME_A_BREAK:
-        time.sleep(0.01)
+        time.sleep(0.00001)
         PLEASE_LORD_GIVE_ME_A_BREAK = False
         pygame.event.post(take_action)
         pygame.event.post(update_game_board)
@@ -684,3 +689,11 @@ while running is True:
 
             # Update the display using flip
             pygame.display.flip()
+
+            if use_pixel_data_instead_of_state:
+
+                # Collect the pixel data
+                pixel_data = pygame.surfarray.array3d(pygame.display.get_surface())
+
+                # Feed pixel data to the training session object
+                training_session.feed_pixel_data(pixel_data)

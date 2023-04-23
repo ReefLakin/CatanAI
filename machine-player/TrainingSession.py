@@ -9,6 +9,8 @@ from CatanGame import CatanGame
 from Randy import Randy
 from Adam import Adam
 from Redmond import Redmond
+from Chromie import Chromie
+from errors import AgentCompatibilityError
 
 
 # Define the TrainingSession class
@@ -23,7 +25,9 @@ class TrainingSession:
         learning_interval=3,
         board_dims=[3, 4, 5, 4, 3],
         opponent="Randy",
+        use_pixels=False,
     ):
+        self.use_pixels = use_pixels
         self.AGENT_SELECTED = agent
         self.OPPONENT_SELECTED = opponent
         self.EPISODES = games
@@ -54,6 +58,9 @@ class TrainingSession:
         self.games_played = 0
         self.wins_recorded_this_session = 0
 
+        self.pixel_data = None
+        self.pixel_data_previous = None
+
     # Method for continuing the game loop
     def time_step(self):
         if self.running:
@@ -66,10 +73,16 @@ class TrainingSession:
             # Get the current state of the game instance
             game_state = self.GAME_INSTANCE.get_state(self.player_turn_pointer)
 
-            # Agent selects an action
-            chosen_action = self.PLAYER_QUEUE[self.player_turn_pointer].select_action(
-                game_state, all_actions, legal_actions
-            )
+            # Agent action selection
+            # Slightly different when using pixels (in this case we use the pixel data instead of the game state)
+            if self.PLAYER_QUEUE[self.player_turn_pointer].get_pixel_compatible():
+                chosen_action = self.PLAYER_QUEUE[
+                    self.player_turn_pointer
+                ].select_action(self.pixel_data, all_actions, legal_actions)
+            else:
+                chosen_action = self.PLAYER_QUEUE[
+                    self.player_turn_pointer
+                ].select_action(game_state, all_actions, legal_actions)
 
             # If the action is illegal, increment the illegal action counter, else check if we need to increment the road counter
             # This is only if the AGENT is taking a turn, not any of the opponents
@@ -116,7 +129,23 @@ class TrainingSession:
                     done = 1
 
                 # Create a memory tuple
-                memory_tuple = (game_state, action_index, reward, new_game_state, done)
+                # Slightly different when using pixels (in this case we use the pixel data instead of the game state)
+                if self.PLAYER_QUEUE[self.player_turn_pointer].get_pixel_compatible():
+                    memory_tuple = (
+                        self.pixel_data_previous,
+                        action_index,
+                        reward,
+                        self.pixel_data,
+                        done,
+                    )
+                else:
+                    memory_tuple = (
+                        game_state,
+                        action_index,
+                        reward,
+                        new_game_state,
+                        done,
+                    )
 
                 # Feed the memory tuple to the agent
                 self.AGENT.feed_memory(memory_tuple)
@@ -208,7 +237,7 @@ class TrainingSession:
                 if (
                     self.AGENT_SELECTED == "Adam"
                     or self.AGENT_SELECTED == "Redmond"
-                    or self.AGENT_SELECTED == "Eugene"
+                    or self.AGENT_SELECTED == "Chromie"
                 ):
                     self.AGENT.save_model(self.MODEL_PATH)
 
@@ -272,11 +301,29 @@ class TrainingSession:
                 print("So, you've awoken me again...\nRedmond reporting for duty!")
                 self.AGENT.load_model(self.MODEL_PATH)
                 agent_already_exists = True
+        elif self.AGENT_SELECTED == "Chromie":
+            self.AGENT = Chromie(exploration_rate=0.0)
+            self.MODEL_PATH = "chromie.pth"
+            # Check if the "chromie.pth" file exists
+            if os.path.exists(self.MODEL_PATH):
+                print(
+                    "I'm Chromie, and I'm your homie!\nSorry, I was forced to say that."
+                )
+                self.AGENT.load_model(self.MODEL_PATH)
+                agent_already_exists = True
+            else:
+                print("Creating agent Chromie for the first time.")
         else:
             self.AGENT = Randy()
 
         if agent_already_exists:
             self.AGENT.set_exploration_rate(self.MIN_EPSILON)
+
+        # Raise an error if an agent has been loaded that isn't compatible with input data
+        if self.AGENT.get_pixel_compatible() != self.use_pixels:
+            raise AgentCompatibilityError(
+                "Agent selected not compatible with input data."
+            )
 
     # Method for loading an opponent into the training session
     def set_opponent(self, opponent):
@@ -393,3 +440,8 @@ class TrainingSession:
     # Method for getting the game instance
     def get_game_instance(self):
         return self.GAME_INSTANCE
+
+    # Method for feeding pixel data
+    def feed_pixel_data(self, pixel_data):
+        self.pixel_data_previous = self.pixel_data
+        self.pixel_data = pixel_data
