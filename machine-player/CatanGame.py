@@ -77,6 +77,8 @@ class CatanGame:
         self.victory_points = [0 for i in range(number_of_players)]
         # Keep a count of the road total for each player
         self.road_total = [0 for i in range(number_of_players)]
+        # Keep a count of the city total for each player
+        self.city_total = [0 for i in range(number_of_players)]
         # Set up the turn number
         self.turn_number = 0
         # Set the game over flag
@@ -197,6 +199,9 @@ class CatanGame:
                 action_parts[2],
                 player_id,
             )
+
+            # Increase the player's city total
+            self.city_total[player_id] += 1
 
             # Update the player's VP count
             self.victory_points[player_id] += 1
@@ -347,23 +352,25 @@ class CatanGame:
 
             # City Building
             elif action_parts[0] == "build" and action_parts[1] == "city":
-                # The player must have enough resources to build a city
-                if (
-                    self.resource_pool[player_id]["ore"] >= 3
-                    and self.resource_pool[player_id]["grain"] >= 2
-                ):
-                    # The build must be legal
-                    direction = action_parts[2]
-                    q_coord = int(action_parts[3])
-                    r_coord = int(action_parts[4])
-                    s_coord = int(action_parts[5])
+                # The player must still have cities to build
+                if self.city_total[player_id] < 4:
+                    # The player must have enough resources to build a city
+                    if (
+                        self.resource_pool[player_id]["ore"] >= 3
+                        and self.resource_pool[player_id]["grain"] >= 2
+                    ):
+                        # The build must be legal
+                        direction = action_parts[2]
+                        q_coord = int(action_parts[3])
+                        r_coord = int(action_parts[4])
+                        s_coord = int(action_parts[5])
 
-                    city_legal = self.board.check_city_placement_legal(
-                        q_coord, r_coord, s_coord, direction, player_id
-                    )
+                        city_legal = self.board.check_city_placement_legal(
+                            q_coord, r_coord, s_coord, direction, player_id
+                        )
 
-                    if city_legal == True:
-                        self.legal_actions[player_id].append(action)
+                        if city_legal == True:
+                            self.legal_actions[player_id].append(action)
 
             # 4:1 Trade with the Bank
             elif (
