@@ -11,6 +11,7 @@ from Adam import Adam
 from Redmond import Redmond
 from Chromie import Chromie
 from errors import AgentCompatibilityError
+import random
 
 
 # Define the TrainingSession class
@@ -46,6 +47,7 @@ class TrainingSession:
         self.set_opponent(self.OPPONENT_SELECTED)
         self.NUMBER_OF_PLAYERS = 1
         self.PLAYER_QUEUE = [self.AGENT, self.OPPONENT]
+        self.agent_index = 0
 
         self.player_turn_pointer = 0
 
@@ -86,7 +88,7 @@ class TrainingSession:
 
             # If the action is illegal, increment the illegal action counter, else check if we need to increment the road counter
             # This is only if the AGENT is taking a turn, not any of the opponents
-            if self.player_turn_pointer == 0:
+            if self.player_turn_pointer == self.agent_index:
                 if chosen_action not in legal_actions:
                     self.game_data_dict["total_illegal_actions_attempted"] += 1
                 else:
@@ -102,7 +104,7 @@ class TrainingSession:
 
             # Increment the total number of steps taken
             # This is only if the AGENT is taking a turn, not any of the opponents
-            if self.player_turn_pointer == 0:
+            if self.player_turn_pointer == self.agent_index:
                 self.game_data_dict["total_steps_taken"] += 1
 
             # Get the new game state
@@ -111,7 +113,7 @@ class TrainingSession:
             # Get the game over flag
             game_over = self.GAME_INSTANCE.get_game_over_flag()
 
-            if self.player_turn_pointer == 0:
+            if self.player_turn_pointer == self.agent_index:
                 # Get reward information from the game instance
                 reward_information = self.GAME_INSTANCE.reward_information_request(
                     chosen_action, legal_actions
@@ -174,7 +176,7 @@ class TrainingSession:
                 winner = self.GAME_INSTANCE.get_player_id_of_current_winner()
 
                 # If the winner is the agent, increment the wins recorded this session
-                if winner == 0:
+                if winner == self.agent_index:
                     self.wins_recorded_this_session += 1
 
                 # Calculate the average loss for the last game
@@ -241,6 +243,9 @@ class TrainingSession:
                 ):
                     self.AGENT.save_model(self.MODEL_PATH)
 
+                # Shuffle the turn order in preparation for the next game
+                self.shuffle_turn_order()
+
             # Increment the player turn pointer if the action selected is to end the turn
             # If the player turn pointer is greater than the number of players, reset it to 0
             if chosen_action == "end_turn":
@@ -265,6 +270,9 @@ class TrainingSession:
         # Set the number of players
         self.NUMBER_OF_PLAYERS = players
         self.player_turn_pointer = 0
+
+        # Shuffle the turn order straight away
+        self.shuffle_turn_order()
 
         # Set the filename for the data analysis file
         self.set_data_analysis_filename()
@@ -445,3 +453,12 @@ class TrainingSession:
     def feed_pixel_data(self, pixel_data):
         self.pixel_data_previous = self.pixel_data
         self.pixel_data = pixel_data
+
+    # Method for shuffling the turn order
+    def shuffle_turn_order(self):
+        # Shuffle the PLAYER_QUEUE
+        random.shuffle(self.PLAYER_QUEUE)
+        # Get the index of the agent
+        self.agent_index = self.PLAYER_QUEUE.index(self.AGENT)
+        # Print the index of the agent
+        print("Agent index: " + str(self.agent_index))

@@ -322,10 +322,8 @@ class CatanGame:
 
             # Road Building
             elif action_parts[0] == "build" and action_parts[1] == "road":
-
                 # The player must still have roads to build
                 if self.road_total[player_id] < 15:
-
                     # The player must have enough resources to build a road
                     if (
                         self.resource_pool[player_id]["brick"] >= 1
@@ -702,7 +700,7 @@ class CatanGame:
 
         # Switch this on or off: settlements placed randomly at the start of the game
         PLACE_RANDOMLY = False
-        NO_CHOICE_ALLOWED = True
+        NO_CHOICE_ALLOWED = False
         if PLACE_RANDOMLY:
             # Randomly build settlements and roads for all players
             for player in range(self.number_of_players):

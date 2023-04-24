@@ -9,7 +9,7 @@ from Agent import Agent
 import torch
 
 # High-level settings
-NORMALISE_STATES = False
+NORMALISE_STATES = True
 LEGAL_ACTIONS_ONLY = True
 
 

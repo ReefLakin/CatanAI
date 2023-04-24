@@ -18,7 +18,6 @@ class Chromie(Agent):
 
     # Overwrite the select_action_exploit method with Chromie's own
     def select_action_exploit(self, observation, all_possible_actions, legal_actions):
-
         # Pixel preprocessing
         preprocessor = PixelPreprocessor()
         observation_processed = preprocessor.normalise_pixel_array(observation)
