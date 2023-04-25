@@ -5,11 +5,11 @@ import random
 
 
 class CatanGame:
-    def __init__(self):
+    def __init__(self, number_of_players=1, tile_value_mode="vanilla"):
         # Initialize the game board and other necessary variables here
-        self.reset()
+        self.reset(number_of_players=number_of_players, tile_value_mode=tile_value_mode)
 
-    def reset(self, number_of_players=1):
+    def reset(self, number_of_players=1, tile_value_mode="vanilla"):
         # Reset the game board to its starting state
         # For now, we will use the default board
         # Later, we will add the ability to specify a custom board
@@ -18,7 +18,7 @@ class CatanGame:
         self.pregame_build_turn_tracker = 0
         self.number_of_players = number_of_players
         # Get tile values
-        tile_value_mode = "vanilla"
+        tile_value_mode = tile_value_mode
         tile_values = self.generate_tile_values(tile_value_mode)
         tile_types = [
             "ore",
@@ -118,7 +118,7 @@ class CatanGame:
 
         # Is the action even legal?
         if action not in self.legal_actions[player_id]:
-            pass
+            print("Illegal action; no changes made to the game state.")
 
         # If the action is legal, is the action a 4:1 trade?
         elif action_parts[0] == "trade":
@@ -691,6 +691,10 @@ class CatanGame:
         self.board.build_road(0, 1, -1, "southeast", 1)
         self.victory_points[1] = 2
 
+        self.set_all_possible_actions()
+        self.set_legal_actions()
+        self.game_phase = "main"
+
     def get_game_over_flag(self):
         # Return the game over flag
         return self.game_over
@@ -707,7 +711,7 @@ class CatanGame:
 
         # Switch this on or off: settlements placed randomly at the start of the game
         PLACE_RANDOMLY = False
-        NO_CHOICE_ALLOWED = False
+        NO_CHOICE_ALLOWED = True
         if PLACE_RANDOMLY:
             # Randomly build settlements and roads for all players
             for player in range(self.number_of_players):

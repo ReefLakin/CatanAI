@@ -101,3 +101,7 @@ class Agent:
     # Method for checking if the agent is compatible with the environment
     def get_pixel_compatible(self):
         return self.is_pixel_compatible
+
+    # Method for getting the agent's name
+    def get_name(self):
+        return self.name
