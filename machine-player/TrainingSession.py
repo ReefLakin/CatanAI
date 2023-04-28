@@ -23,7 +23,7 @@ class TrainingSession:
         games=10000,
         epsilon_dec=0.0003,
         min_epsilon=0.1,
-        learning_interval=3,
+        learning_interval=4,
         board_dims=[3, 4, 5, 4, 3],
         opponent="Randy",
         use_pixels=False,

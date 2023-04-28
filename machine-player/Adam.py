@@ -15,7 +15,7 @@ LEGAL_ACTIONS_ONLY = True
 
 # Class definition
 class Adam(Agent):
-    def __init__(self, exploration_rate=1):
+    def __init__(self, exploration_rate=1.0):
         super().__init__(exploration_rate)
         self.name = "Adam"
 
@@ -45,6 +45,7 @@ class Adam(Agent):
             # Acquire the legal action with the highest value
             # Skip over the illegal actions
             current_best = -50
+            action_as_idx = 0
             for i in range(len(action_options)):
                 if i in legal_action_indices:
                     if action_options[i] > current_best:
@@ -65,17 +66,17 @@ class Adam(Agent):
 
     # Method for learning
     def learn(self):
-        loss = self.model.learn(self.memory, batch_size=64)
+        loss = self.model.learn(self.memory, batch_size=32)
         return loss
 
     # Reward function
     def reward(self, reward_information):
         # These reward values tend to get adjusted during training
-        reward_victory = 16
+        reward_victory = 10
         reward_illegal_move = 0
-        reward_road_building = 0
-        reward_settlement_building = 4
-        reward_city_building = 4
+        reward_road_building = 0.1
+        reward_settlement_building = 0.5
+        reward_city_building = 0.5
         reward_other = 0
 
         # Extract information from the reward information dictionary

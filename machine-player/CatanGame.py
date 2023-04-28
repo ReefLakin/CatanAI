@@ -328,7 +328,7 @@ class CatanGame:
             # Road Building
             elif action_parts[0] == "build" and action_parts[1] == "road":
                 # The player must still have roads to build
-                if self.road_total[player_id] < 15:
+                if self.road_total[player_id] < 30:
                     # The player must have enough resources to build a road
                     if (
                         self.resource_pool[player_id]["brick"] >= 1
