@@ -39,7 +39,7 @@ class CatanModel(nn.Module):
                 nn.init.zeros_(m.bias)
 
         # Initialise the optimiser
-        self.optimiser = torch.optim.Adam(self.parameters(), lr=0.002)
+        self.optimiser = torch.optim.Adam(self.parameters(), lr=0.002, amsgrad=True)
 
     def forward(self, x):
         # Pass the input tensor through each of our operations
@@ -65,9 +65,6 @@ class CatanModel(nn.Module):
         # If the buffer if not full enough, return
         if memory.get_buffer_size() < batch_size:
             return
-
-        # Zero the gradients
-        self.optimiser.zero_grad()
 
         # Sample from the replay memory
         # This is a list of tuples in the format (state, action, reward, next_state)
@@ -116,10 +113,17 @@ class CatanModel(nn.Module):
         target_q_values = rewards + gamma * max_next_q_values * (1 - dones)
 
         # Calculate the loss
-        loss = nn.MSELoss()(q_values_for_actions_taken, target_q_values)
+        loss = nn.SmoothL1Loss()(q_values_for_actions_taken, target_q_values)
+
+        # Zero the gradients
+        self.optimiser.zero_grad()
 
         # Backpropagate the loss
         loss.backward()
+
+        # Clip the gradients in-place (prevents exploding gradients)
+        for param in self.parameters():
+            param.grad.data.clamp_(-1, 1)
 
         # Update the weights
         self.optimiser.step()

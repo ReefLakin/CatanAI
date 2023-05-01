@@ -66,17 +66,17 @@ class Adam(Agent):
 
     # Method for learning
     def learn(self):
-        loss = self.model.learn(self.memory, batch_size=32)
+        loss = self.model.learn(self.memory, batch_size=45)
         return loss
 
     # Reward function
     def reward(self, reward_information):
         # These reward values tend to get adjusted during training
-        reward_victory = 10
+        reward_victory = 1
         reward_illegal_move = 0
-        reward_road_building = 0.1
-        reward_settlement_building = 0.5
-        reward_city_building = 0.5
+        reward_road_building = 0
+        reward_settlement_building = 0
+        reward_city_building = 0
         reward_other = 0
 
         # Extract information from the reward information dictionary

@@ -29,7 +29,7 @@ class CatanPixelModel(nn.Module):
                 nn.init.zeros_(m.bias)
 
         # Initialise the optimiser
-        self.optimiser = torch.optim.Adam(self.parameters(), lr=0.005)
+        self.optimiser = torch.optim.AdamW(self.parameters(), lr=0.005)
 
     def forward(self, x):
         x = self.pool(nn.functional.relu(self.conv1(x)))
