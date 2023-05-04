@@ -10,6 +10,7 @@ from Randy import Randy
 from Adam import Adam
 from Redmond import Redmond
 from Chromie import Chromie
+from Davish import Davish
 from errors import AgentCompatibilityError
 import random
 
@@ -21,9 +22,9 @@ class TrainingSession:
         self,
         agent="Randy",
         games=10000,
-        epsilon_dec=0.0003,
+        epsilon_dec=0.0005,
         min_epsilon=0.1,
-        learning_interval=4,
+        learning_interval=6,
         board_dims=[3, 4, 5, 4, 3],
         opponent="Randy",
         use_pixels=False,
@@ -240,6 +241,7 @@ class TrainingSession:
                     self.AGENT_SELECTED == "Adam"
                     or self.AGENT_SELECTED == "Redmond"
                     or self.AGENT_SELECTED == "Chromie"
+                    or self.AGENT_SELECTED == "Davish"
                 ):
                     self.AGENT.save_model(self.MODEL_PATH)
 
@@ -321,6 +323,16 @@ class TrainingSession:
                 agent_already_exists = True
             else:
                 print("Creating agent Chromie for the first time.")
+        elif self.AGENT_SELECTED == "Davish":
+            self.AGENT = Davish(exploration_rate=1.0)
+            self.MODEL_PATH = "davish.pth"
+            # Check if the "davish.pth" file exists
+            if os.path.exists(self.MODEL_PATH):
+                print("Gold Five, standing by. Stay on target!")
+                self.AGENT.load_model(self.MODEL_PATH)
+                agent_already_exists = True
+            else:
+                print("Creating agent Davish for the first time.")
         else:
             self.AGENT = Randy()
 
