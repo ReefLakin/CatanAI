@@ -353,7 +353,7 @@ class CatanGame:
             # City Building
             elif action_parts[0] == "build" and action_parts[1] == "city":
                 # The player must still have cities to build
-                if self.city_total[player_id] < 4:
+                if self.city_total[player_id] < 5:
                     # The player must have enough resources to build a city
                     if (
                         self.resource_pool[player_id]["ore"] >= 3
@@ -755,6 +755,29 @@ class CatanGame:
 
                 # Set the victory points to 2
                 self.victory_points[1] = 2
+
+                if number_of_players > 2:
+                    # Build a settlement at [2, 0, -2] southwest
+                    self.board.build_settlement(2, 0, -2, "southwest", 2)
+                    # Build a road at [2, 0, -2] southwest
+                    self.board.build_road(2, 0, -2, "southwest", 2)
+                    # Build a settlement at [-2, 1, 1] south
+                    self.board.build_settlement(-2, 1, 1, "south", 2)
+                    # Build a road at [-2, 1, 1] southeast
+                    self.board.build_road(-2, 1, 1, "southeast", 2)
+
+                    # Set the victory points to 2
+                    self.victory_points[2] = 2
+
+                if number_of_players > 3:
+                    # Build a settlement at [0, 1, -1] south
+                    self.board.build_settlement(0, 1, -1, "south", 3)
+                    # Build a road at [0, 1, -1] southeast
+                    self.board.build_road(0, 1, -1, "southeast", 3)
+                    # Build a settlement at [0, -1, 1] southwest
+                    self.board.build_settlement(0, -1, 1, "southwest", 3)
+                    # Build a road at [0, -1, 1] west
+                    self.board.build_road(0, -1, 1, "west", 3)
 
             # Set the game phase to "main"
             self.game_phase = "main"

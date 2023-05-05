@@ -24,14 +24,14 @@ class TrainingSession:
         games=10000,
         epsilon_dec=0.0005,
         min_epsilon=0.1,
-        learning_interval=6,
+        learning_interval=9,
         board_dims=[3, 4, 5, 4, 3],
-        opponent="Randy",
+        opponents=["Randy"],
         use_pixels=False,
     ):
         self.use_pixels = use_pixels
         self.AGENT_SELECTED = agent
-        self.OPPONENT_SELECTED = opponent
+        self.OPPONENTS_SELECTED = opponents
         self.EPISODES = games
         self.EPSILON_DECAY = epsilon_dec
         self.MIN_EPSILON = min_epsilon
@@ -44,10 +44,11 @@ class TrainingSession:
         self.MODEL_PATH = None
         self.set_agent(self.AGENT_SELECTED)
 
-        self.OPPONENT = None
-        self.set_opponent(self.OPPONENT_SELECTED)
+        self.OPPONENTS = []
+        self.set_opponents()
         self.NUMBER_OF_PLAYERS = 1
-        self.PLAYER_QUEUE = [self.AGENT, self.OPPONENT]
+        self.PLAYER_QUEUE = []
+        self.set_player_queue()
         self.agent_index = 0
 
         self.player_turn_pointer = 0
@@ -346,26 +347,23 @@ class TrainingSession:
             )
 
     # Method for loading an opponent into the training session
-    def set_opponent(self, opponent):
-        self.OPPONENT_SELECTED = opponent
+    def set_opponents(self):
+        # Loop through all of the opponents and load them in
+        for opponent_name in self.OPPONENTS_SELECTED:
+            if opponent_name == "Adam":
+                new_opponent = Adam(exploration_rate=0.1)
+                path = "adam.pth"
+                # Check if the "adam.pth" file exists
+                if os.path.exists(path):
+                    print("I am Adam, and I am your opponent!")
+                    # Load the model, and set it to evaluation mode
+                    new_opponent.load_model(path)
+                    new_opponent.model.eval()
+            else:
+                new_opponent = Randy()
 
-        opp_already_exists = False
-
-        if self.OPPONENT_SELECTED == "Adam":
-            self.OPPONENT = Adam(exploration_rate=1.0)
-            self.MODEL_PATH = "adam.pth"
-            # Check if the "adam.pth" file exists
-            if os.path.exists(self.MODEL_PATH):
-                print("Adam's opponent here! Ready to rumble!")
-                self.OPPONENT.load_model(self.MODEL_PATH)
-                opp_already_exists = True
-        else:
-            self.OPPONENT = Randy()
-
-        if opp_already_exists:
-            self.OPPONENT.set_exploration_rate(0.0)
-            # Set the opponent's model to evaluation mode
-            self.OPPONENT.model.eval()
+            # Add the new opponent to the list of opponents
+            self.OPPONENTS.append(new_opponent)
 
     # Method for setting the filename for the data analysis file
     def set_data_analysis_filename(self):
@@ -474,3 +472,8 @@ class TrainingSession:
         self.agent_index = self.PLAYER_QUEUE.index(self.AGENT)
         # Print the index of the agent
         print("Agent index: " + str(self.agent_index))
+
+    # Method for setting the player queue
+    def set_player_queue(self):
+        # Set the player queue
+        self.PLAYER_QUEUE = [self.AGENT] + self.OPPONENTS

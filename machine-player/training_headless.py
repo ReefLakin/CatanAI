@@ -8,16 +8,17 @@ from TrainingSession import TrainingSession
 
 # # Training Session Options
 agent_to_set = "Adam"
-opponent_to_set = "Randy"
+opponents_to_set = ["Randy", "Randy", "Randy"]
+player_count = len(opponents_to_set) + 1
 
 # Create a training session (with default parameters)
-training_session = TrainingSession(agent=agent_to_set, opponent=opponent_to_set)
+training_session = TrainingSession(agent=agent_to_set, opponents=opponents_to_set)
 
 
 # # Game Loop
 
 # Start the training session
-running = training_session.start(players=2)
+running = training_session.start(players=player_count)
 
 # While the training session is running
 while running is True:

@@ -28,8 +28,10 @@ CITY_GOLD_COLOUR = "#FFD700"
 ROBBER_COLOUR = "#C4BCA9"
 
 # PLAYER COLOURS
-PLAYER_0_COLOUR = "#FFFFFF"
-PLAYER_1_COLOUR = "#675df2"
+PLAYER_0_COLOUR = "#FFFFFF"  # White
+PLAYER_1_COLOUR = "#FFBB00"  # Orange
+PLAYER_2_COLOUR = "#FF0000"  # Red
+PLAYER_3_COLOUR = "#0000FF"  # Blue
 
 # SCREEN INFORMATION
 SCREEN_WIDTH = 880
@@ -252,19 +254,24 @@ def get_player_colour_from_id(id):
             return PLAYER_0_COLOUR
         case 1:
             return PLAYER_1_COLOUR
+        case 2:
+            return PLAYER_2_COLOUR
+        case 3:
+            return PLAYER_3_COLOUR
 
 
 # !! Main Program
 
 # # Training Session Options
 agent_to_set = "Adam"
-opponent_to_set = "Randy"
+opponents_to_set = ["Randy", "Randy", "Randy"]
+player_count = len(opponents_to_set) + 1
 use_pixel_data_instead_of_state = False
 
 # Create a training session (with default parameters)
 training_session = TrainingSession(
     agent=agent_to_set,
-    opponent=opponent_to_set,
+    opponents=opponents_to_set,
     use_pixels=use_pixel_data_instead_of_state,
 )
 
@@ -309,7 +316,7 @@ current_player = 0
 # # Game Loop
 
 # Start the training session
-running = training_session.start(players=2)
+running = training_session.start(players=player_count)
 PLEASE_LORD_GIVE_ME_A_BREAK = False
 
 # While the training session is running

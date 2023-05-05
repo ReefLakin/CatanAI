@@ -4,9 +4,11 @@ import torch
 from StatePreprocessor import StatePreprocessor
 import numpy as np
 
+NORMALISE_STATES = False
+
 
 class CatanModel(nn.Module):
-    def __init__(self, input_size=272, output_size=382, hidden_size=42):
+    def __init__(self, input_size=272, output_size=382, hidden_size=512):
         super(CatanModel, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.relu1 = nn.LeakyReLU()
@@ -39,7 +41,7 @@ class CatanModel(nn.Module):
                 nn.init.zeros_(m.bias)
 
         # Initialise the optimiser
-        self.optimiser = torch.optim.Adam(self.parameters(), lr=0.002, amsgrad=True)
+        self.optimiser = torch.optim.Adam(self.parameters(), lr=0.001, amsgrad=True)
 
     def forward(self, x):
         # Pass the input tensor through each of our operations
@@ -84,11 +86,13 @@ class CatanModel(nn.Module):
             state_preprocessor.preprocess_state(state) for state in next_states
         ]
 
-        # Normalise the states in the states list
-        states = [self.normalise_state(state) for state in states]
+        if NORMALISE_STATES:
 
-        # Normalise the next states in the next_states list
-        next_states = [self.normalise_state(state) for state in next_states]
+            # Normalise the states in the states list
+            states = [self.normalise_state(state) for state in states]
+
+            # Normalise the next states in the next_states list
+            next_states = [self.normalise_state(state) for state in next_states]
 
         # Convert the lists into tensors
         states = torch.tensor(states, dtype=torch.float32)

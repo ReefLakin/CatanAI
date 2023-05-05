@@ -9,7 +9,7 @@ from Agent import Agent
 import torch
 
 # High-level settings
-NORMALISE_STATES = True
+NORMALISE_STATES = False
 LEGAL_ACTIONS_ONLY = True
 
 
@@ -74,9 +74,9 @@ class Adam(Agent):
         # These reward values tend to get adjusted during training
         reward_victory = 1
         reward_illegal_move = 0
-        reward_road_building = 0
-        reward_settlement_building = 0
-        reward_city_building = 0
+        reward_road_building = 0.05
+        reward_settlement_building = 0.1
+        reward_city_building = 0.1
         reward_other = 0
 
         # Extract information from the reward information dictionary
