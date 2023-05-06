@@ -8,7 +8,7 @@ from TrainingSession import TrainingSession
 
 # # Training Session Options
 agent_to_set = "Adam"
-opponents_to_set = ["Randy", "Randy", "Randy"]
+opponents_to_set = ["Adam", "Randy", "Randy"]
 player_count = len(opponents_to_set) + 1
 
 # Create a training session (with default parameters)
@@ -28,5 +28,6 @@ while running is True:
         chosen_action,
         games_played,
         current_player,
+        other_information,
     ) = training_session.time_step()
     print(f"Game Number: {games_played} / Recent Action: {chosen_action}")

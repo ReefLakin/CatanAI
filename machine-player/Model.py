@@ -87,7 +87,6 @@ class CatanModel(nn.Module):
         ]
 
         if NORMALISE_STATES:
-
             # Normalise the states in the states list
             states = [self.normalise_state(state) for state in states]
 

@@ -13,6 +13,7 @@ DEFAULT_INPUT_SIZE = 272
 DEFAULT_OUTPUT_SIZE = 382
 DEFAULT_HIDDEN_SIZE = 42
 
+
 # Class definition
 class Brain:
     def __init__(

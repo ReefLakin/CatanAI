@@ -19,7 +19,6 @@ class Redmond(Agent):
 
     # Overwrite the select_action_exploit method with Redmond's own
     def select_action_exploit(self, observation, all_possible_actions, legal_actions):
-
         # State preprocessing
         observation_processed = self.preprocess_state(observation)
 
@@ -68,7 +67,6 @@ class Redmond(Agent):
 
     # Reward function
     def reward(self, reward_information):
-
         # These reward values tend tend to get adjusted during training
         reward_victory = 1
         reward_illegal_move = 0

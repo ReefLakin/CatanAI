@@ -17,6 +17,8 @@ FOREST_TILE_COLOUR = "#3d4e26"
 DESERT_TILE_COLOUR = "#bf9b61"
 WATER_TILE_COLOUR = "#039cdd"
 
+other_information = {"agent_index": 0}
+
 # OTHER COLOURS
 BORDER_COLOUR = "#000000"
 SETTLEMENT_COLOUR = "#FFFFFF"
@@ -209,6 +211,19 @@ def get_all_hex_points(
     )
 
 
+# Return the player colour associated with a given player index
+def get_colour_name_from_index(index):
+    match index:
+        case 0:
+            return "White"
+        case 1:
+            return "Orange"
+        case 2:
+            return "Red"
+        case 3:
+            return "Blue"
+
+
 # Return the colour value associated with a given tile type id
 def get_colour_value_from_id(id):
     match id:
@@ -263,7 +278,7 @@ def get_player_colour_from_id(id):
 # !! Main Program
 
 # # Training Session Options
-agent_to_set = "Adam"
+agent_to_set = "Gonzales"
 opponents_to_set = ["Randy", "Randy", "Randy"]
 player_count = len(opponents_to_set) + 1
 use_pixel_data_instead_of_state = False
@@ -323,7 +338,7 @@ PLEASE_LORD_GIVE_ME_A_BREAK = False
 while running is True:
     # If PLEASE_LORD_GIVE_ME_A_BREAK is true, make a small time delay
     if PLEASE_LORD_GIVE_ME_A_BREAK:
-        time.sleep(0.000003)
+        time.sleep(0.03)
         PLEASE_LORD_GIVE_ME_A_BREAK = False
         pygame.event.post(take_action)
         pygame.event.post(update_game_board)
@@ -357,6 +372,7 @@ while running is True:
                 chosen_action,
                 games_played,
                 current_player,
+                other_information,
             ) = training_session.time_step()
 
         # Check for the custom event that we set up to update the game board
@@ -689,9 +705,13 @@ while running is True:
                 screen.blit(text_surface, text_rect)
 
             # Write the agent's name to the screen in the bottom left corner
-            text = sm_font.render(agent_to_set, True, pygame.Color(BORDER_COLOUR))
+            agent_index = other_information["agent_index"]
+            text_to_display = (
+                f"{agent_to_set} ({get_colour_name_from_index(agent_index)})"
+            )
+            text = sm_font.render(text_to_display, True, pygame.Color(BORDER_COLOUR))
             # Draw the text to the screen
-            text_rect = text.get_rect(center=(25, SCREEN_HEIGHT - 15))
+            text_rect = text.get_rect(center=(45, SCREEN_HEIGHT - 15))
             screen.blit(text, text_rect)
 
             # Update the display using flip

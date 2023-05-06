@@ -11,6 +11,7 @@ from Adam import Adam
 from Redmond import Redmond
 from Chromie import Chromie
 from Davish import Davish
+from Gonzales import Gonzales
 from errors import AgentCompatibilityError
 import random
 
@@ -243,6 +244,7 @@ class TrainingSession:
                     or self.AGENT_SELECTED == "Redmond"
                     or self.AGENT_SELECTED == "Chromie"
                     or self.AGENT_SELECTED == "Davish"
+                    or self.AGENT_SELECTED == "Gonzales"
                 ):
                     self.AGENT.save_model(self.MODEL_PATH)
 
@@ -256,12 +258,17 @@ class TrainingSession:
                 if self.player_turn_pointer >= self.NUMBER_OF_PLAYERS:
                     self.player_turn_pointer = 0
 
+            other_information = {
+                "agent_index": self.agent_index,
+            }
+
             return (
                 self.running,
                 legal_actions,
                 chosen_action,
                 self.games_played,
                 self.player_turn_pointer,
+                other_information,
             )
 
     # Method for starting the game loop
@@ -334,6 +341,16 @@ class TrainingSession:
                 agent_already_exists = True
             else:
                 print("Creating agent Davish for the first time.")
+        elif self.AGENT_SELECTED == "Gonzales":
+            self.AGENT = Gonzales(exploration_rate=1.0)
+            self.MODEL_PATH = "gonzales.pth"
+            # Check if the "gonzales.pth" file exists
+            if os.path.exists(self.MODEL_PATH):
+                print("Speedy Gonzales, reporting for duty!")
+                self.AGENT.load_model(self.MODEL_PATH)
+                agent_already_exists = True
+            else:
+                print("Creating agent Gonzales for the first time.")
         else:
             self.AGENT = Randy()
 

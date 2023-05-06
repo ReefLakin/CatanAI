@@ -795,6 +795,7 @@ class CatanGame:
             "game_over": self.game_over,
             "red_tiles": self.get_list_of_red_tile_coords(),
             "recent_resources_generated": self.most_recent_resources_generated,
+            "turn_number": self.turn_number,
         }
 
         return information
