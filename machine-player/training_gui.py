@@ -278,7 +278,7 @@ def get_player_colour_from_id(id):
 # !! Main Program
 
 # # Training Session Options
-agent_to_set = "Gonzales"
+agent_to_set = "Adam"
 opponents_to_set = ["Randy", "Randy", "Randy"]
 player_count = len(opponents_to_set) + 1
 use_pixel_data_instead_of_state = False

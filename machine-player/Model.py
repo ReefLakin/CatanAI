@@ -8,7 +8,7 @@ NORMALISE_STATES = False
 
 
 class CatanModel(nn.Module):
-    def __init__(self, input_size=272, output_size=382, hidden_size=512):
+    def __init__(self, input_size=272, output_size=382, hidden_size=64):
         super(CatanModel, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.relu1 = nn.LeakyReLU()
@@ -16,16 +16,7 @@ class CatanModel(nn.Module):
         self.fc2 = nn.Linear(hidden_size, hidden_size)
         self.relu2 = nn.LeakyReLU()
         self.drop2 = nn.Dropout(p=0.2)
-        self.fc3 = nn.Linear(hidden_size, hidden_size)
-        self.relu3 = nn.LeakyReLU()
-        self.drop3 = nn.Dropout(p=0.2)
-        self.fc4 = nn.Linear(hidden_size, hidden_size)
-        self.relu4 = nn.LeakyReLU()
-        self.drop4 = nn.Dropout(p=0.2)
-        self.fc5 = nn.Linear(hidden_size, hidden_size)
-        self.relu5 = nn.LeakyReLU()
-        self.drop5 = nn.Dropout(p=0.2)
-        self.fc6 = nn.Linear(hidden_size, output_size)
+        self.fc3 = nn.Linear(hidden_size, output_size)
 
         # Initialise weights with the He uniform method
         # Loop through all layers and initialise the weights
@@ -52,15 +43,6 @@ class CatanModel(nn.Module):
         x = self.relu2(x)
         x = self.drop2(x)
         x = self.fc3(x)
-        x = self.relu3(x)
-        x = self.drop3(x)
-        x = self.fc4(x)
-        x = self.relu4(x)
-        x = self.drop4(x)
-        x = self.fc5(x)
-        x = self.relu5(x)
-        x = self.drop5(x)
-        x = self.fc6(x)
         return x
 
     def learn(self, memory, batch_size=128, gamma=0.99):
