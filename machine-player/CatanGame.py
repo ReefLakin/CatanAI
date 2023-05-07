@@ -779,6 +779,9 @@ class CatanGame:
                     # Build a road at [0, -1, 1] west
                     self.board.build_road(0, -1, 1, "west", 3)
 
+                    # Set the victory points to 2
+                    self.victory_points[3] = 2
+
             # Set the game phase to "main"
             self.game_phase = "main"
 

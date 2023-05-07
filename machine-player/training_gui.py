@@ -333,12 +333,13 @@ current_player = 0
 # Start the training session
 running = training_session.start(players=player_count)
 PLEASE_LORD_GIVE_ME_A_BREAK = False
+sleep_time = 0.03
 
 # While the training session is running
 while running is True:
     # If PLEASE_LORD_GIVE_ME_A_BREAK is true, make a small time delay
     if PLEASE_LORD_GIVE_ME_A_BREAK:
-        time.sleep(0.03)
+        time.sleep(sleep_time)
         PLEASE_LORD_GIVE_ME_A_BREAK = False
         pygame.event.post(take_action)
         pygame.event.post(update_game_board)
@@ -356,6 +357,46 @@ while running is True:
                 # Take action, then update the board
                 pygame.event.post(take_action)
                 pygame.event.post(update_game_board)
+
+            # Check for 1 key press (SPEED 1)
+            if event.key == pygame.K_1:
+                sleep_time = 0.5
+
+            # Check for 2 key press (SPEED 2)
+            if event.key == pygame.K_2:
+                sleep_time = 0.1
+
+            # Check for 3 key press (SPEED 3)
+            if event.key == pygame.K_3:
+                sleep_time = 0.05
+
+            # Check for 4 key press (SPEED 4)
+            if event.key == pygame.K_4:
+                sleep_time = 0.03
+
+            # Check for 5 key press (SPEED 5)
+            if event.key == pygame.K_5:
+                sleep_time = 0.01
+
+            # Check for 6 key press (SPEED 6)
+            if event.key == pygame.K_6:
+                sleep_time = 0.005
+
+            # Check for 7 key press (SPEED 7)
+            if event.key == pygame.K_7:
+                sleep_time = 0.001
+
+            # Check for 8 key press (SPEED 8)
+            if event.key == pygame.K_8:
+                sleep_time = 0.0005
+
+            # Check for 9 key press (SPEED 9)
+            if event.key == pygame.K_9:
+                sleep_time = 0.0001
+
+            # Check for 0 key press (SPEED 0)
+            if event.key == pygame.K_0:
+                sleep_time = 0.00001
 
             # Check for T key press (TRAIN)
             if event.key == pygame.K_t:
@@ -413,8 +454,10 @@ while running is True:
             # Get the robber states
             robber_states = game_state["robber_states"]
 
-            # Get the game state from the opponent's point of view
-            opp_game_state = game_instance.get_state(player_id=1)
+            # Get the game state for each opponent
+            opp_game_state_1 = game_instance.get_state(player_id=1)
+            opp_game_state_2 = game_instance.get_state(player_id=2)
+            opp_game_state_3 = game_instance.get_state(player_id=3)
 
             # Draw the Board
 
@@ -570,13 +613,37 @@ while running is True:
             # Write the opponent's victory points to the screen
             # Draw the text with font.render()
             text = vp_font.render(
-                " / " + str(opp_game_state["victory_points"]),
+                " / " + str(opp_game_state_1["victory_points"]),
                 True,
                 pygame.Color(PLAYER_1_COLOUR),
             )
             # Draw the text to the screen
             text_rect = text.get_rect(center=(185, 25))
             screen.blit(text, text_rect)
+
+            # If there are more than 2 players, write the third player's victory points to the screen
+            if player_count > 2:
+                # Draw the text with font.render()
+                text = vp_font.render(
+                    " / " + str(opp_game_state_2["victory_points"]),
+                    True,
+                    pygame.Color(PLAYER_2_COLOUR),
+                )
+                # Draw the text to the screen
+                text_rect = text.get_rect(center=(215, 25))
+                screen.blit(text, text_rect)
+
+            # If there are more than 3 players, write the fourth player's victory points to the screen
+            if player_count > 3:
+                # Draw the text with font.render()
+                text = vp_font.render(
+                    " / " + str(opp_game_state_3["victory_points"]),
+                    True,
+                    pygame.Color(PLAYER_3_COLOUR),
+                )
+                # Draw the text to the screen
+                text_rect = text.get_rect(center=(245, 25))
+                screen.blit(text, text_rect)
 
             # Write the turn number just below the victory points
             text = font.render(
@@ -623,13 +690,33 @@ while running is True:
             ]
 
             # List the opponent resource texts
-            opponent_resources = [
-                str(opp_game_state["num_lumber"]),
-                str(opp_game_state["num_grain"]),
-                str(opp_game_state["num_ore"]),
-                str(opp_game_state["num_wool"]),
-                str(opp_game_state["num_brick"]),
+            opponent_resources_1 = [
+                str(opp_game_state_1["num_lumber"]),
+                str(opp_game_state_1["num_grain"]),
+                str(opp_game_state_1["num_ore"]),
+                str(opp_game_state_1["num_wool"]),
+                str(opp_game_state_1["num_brick"]),
             ]
+
+            # If there are more than 2 players, list the second opponent resource texts
+            if player_count > 2:
+                opponent_resources_2 = [
+                    str(opp_game_state_2["num_lumber"]),
+                    str(opp_game_state_2["num_grain"]),
+                    str(opp_game_state_2["num_ore"]),
+                    str(opp_game_state_2["num_wool"]),
+                    str(opp_game_state_2["num_brick"]),
+                ]
+
+            # If there are more than 3 players, list the third opponent resource texts
+            if player_count > 3:
+                opponent_resources_3 = [
+                    str(opp_game_state_3["num_lumber"]),
+                    str(opp_game_state_3["num_grain"]),
+                    str(opp_game_state_3["num_ore"]),
+                    str(opp_game_state_3["num_wool"]),
+                    str(opp_game_state_3["num_brick"]),
+                ]
 
             # Load each of the resource icons
             lumber_icon = pygame.image.load("assets/wood.png").convert_alpha()
@@ -687,11 +774,17 @@ while running is True:
                 screen.blit(text_surface, text_rect)
 
             # Loop through the opponent's resource texts
-            for i in range(len(opponent_resources)):
-                # Create the surface
-                text_surface = opp_res_font.render(
-                    opponent_resources[i], True, "#675df2"
+            for i in range(len(opponent_resources_1)):
+                # Create resource text
+                opp_res_txt = (
+                    opponent_resources_1[i]
+                    + " / "
+                    + opponent_resources_2[i]
+                    + " / "
+                    + opponent_resources_3[i]
                 )
+                # Create the surface
+                text_surface = opp_res_font.render(opp_res_txt, True, "#675df2")
                 text_rect = text_surface.get_rect()
                 # Set the x position
                 text_rect.x = box_rect.x + text_spacing + (font_size + text_spacing) * i
