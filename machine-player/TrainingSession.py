@@ -9,7 +9,6 @@ from CatanGame import CatanGame
 from Randy import Randy
 from Adam import Adam
 from Redmond import Redmond
-from Chromie import Chromie
 from Davish import Davish
 from Gonzales import Gonzales
 from errors import AgentCompatibilityError
@@ -242,7 +241,6 @@ class TrainingSession:
                 if (
                     self.AGENT_SELECTED == "Adam"
                     or self.AGENT_SELECTED == "Redmond"
-                    or self.AGENT_SELECTED == "Chromie"
                     or self.AGENT_SELECTED == "Davish"
                     or self.AGENT_SELECTED == "Gonzales"
                 ):
@@ -319,18 +317,6 @@ class TrainingSession:
                 print("So, you've awoken me again...\nRedmond reporting for duty!")
                 self.AGENT.load_model(self.MODEL_PATH)
                 agent_already_exists = True
-        elif self.AGENT_SELECTED == "Chromie":
-            self.AGENT = Chromie(exploration_rate=0.0)
-            self.MODEL_PATH = "chromie.pth"
-            # Check if the "chromie.pth" file exists
-            if os.path.exists(self.MODEL_PATH):
-                print(
-                    "I'm Chromie, and I'm your homie!\nSorry, I was forced to say that."
-                )
-                self.AGENT.load_model(self.MODEL_PATH)
-                agent_already_exists = True
-            else:
-                print("Creating agent Chromie for the first time.")
         elif self.AGENT_SELECTED == "Davish":
             self.AGENT = Davish(exploration_rate=1.0)
             self.MODEL_PATH = "davish.pth"

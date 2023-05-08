@@ -4,7 +4,7 @@ import torch
 from StatePreprocessor import StatePreprocessor
 import numpy as np
 
-NORMALISE_STATES = False
+NORMALISE_STATES = True
 
 
 class CatanModel(nn.Module):

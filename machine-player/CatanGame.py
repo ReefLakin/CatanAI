@@ -19,7 +19,7 @@ class CatanGame:
         self.number_of_players = number_of_players
         # Get tile values
         tile_value_mode = tile_value_mode
-        tile_values = self.generate_tile_values(tile_value_mode)
+        tile_values = self.generate_tile_values("balanced")
         tile_types = [
             "ore",
             "wool",

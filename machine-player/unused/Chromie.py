@@ -1,5 +1,13 @@
-# Chromie Agent
-# Chromie uses pixel data as input and a neural network to learn the game
+"""
+Chromie Agent
+NOTE: This agent is not yet implemented and still a work in progress.
+Chromie is intended to be a pixel agent, and will be trained on the raw pixel data of the game.
+As such, it will use a CNN to process the pixel data.
+This is an advanced machine learning technique, but it hasn't been implemented yet due to time constraints.
+Hopefully, it will be added in the future.
+References to Chromie in the codebase have been temporarily removed to avoid confusion.
+This .py file has been moved to the unused directory for the time being.
+"""
 
 # Imports
 from Agent import Agent
