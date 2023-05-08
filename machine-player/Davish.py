@@ -1,12 +1,9 @@
-# Adam inherits from the Agent class
-# Adam is a machine player that uses a neural network to learn how to play Catan
-# His name is inspired by the Adam optimiser and Adam from The Bible
-# Cliché? Yes. But it's a good name
-# Unlike Randy, Adam can learn from his mistakes
+# Davish information here
 
 # Imports
 from Agent import Agent
 import torch
+from Brain import Brain
 
 # High-level settings
 NORMALISE_STATES = True
@@ -14,12 +11,13 @@ LEGAL_ACTIONS_ONLY = True
 
 
 # Class definition
-class Adam(Agent):
+class Davish(Agent):
     def __init__(self, exploration_rate=1.0):
         super().__init__(exploration_rate)
-        self.name = "Adam"
+        self.name = "Davish"
+        self.brain = Brain()
 
-    # Overwrite the select_action_exploit method with Adam's own
+    # Overwrite the select_action_exploit method with Davish's own
     def select_action_exploit(self, observation, all_possible_actions, legal_actions):
         # State preprocessing
         observation_processed = self.preprocess_state(observation)
@@ -31,11 +29,12 @@ class Adam(Agent):
         # Tensor conversion
         observation_processed = torch.tensor(observation_processed, dtype=torch.float32)
 
-        # Forward pass
-        action_options = self.model.forward(observation_processed)
-
-        # Adam has the option to only choose legal actions
+        # Davush has the option to only choose legal actions
         if LEGAL_ACTIONS_ONLY:
+            # Forward pass
+            with torch.no_grad():
+                action_options = self.brain.policy_network(observation_processed)
+
             # Create a list of legal action indices
             legal_action_indices = []
             for i in range(len(all_possible_actions)):
@@ -56,27 +55,25 @@ class Adam(Agent):
             action = all_possible_actions[action_as_idx]
 
         else:
-            # Acquire the singular action with the highest value
-            action_as_idx = torch.argmax(action_options).item()
-            # Get the actual action from the action index
-            action = all_possible_actions[action_as_idx]
+            action_index = self.brain.select_best_action(observation_processed)
+            action = all_possible_actions[action_index]
 
         # Action return
         return action
 
     # Method for learning
     def learn(self):
-        loss = self.model.learn(self.memory, batch_size=45)
+        loss = self.brain.train_policy_network(self.memory)
         return loss
 
     # Reward function
     def reward(self, reward_information):
         # These reward values tend to get adjusted during training
-        reward_victory = 2
+        reward_victory = 1
         reward_illegal_move = 0
-        reward_road_building = 0.05
-        reward_settlement_building = 0.1
-        reward_city_building = 0.1
+        reward_road_building = 0
+        reward_settlement_building = 0
+        reward_city_building = 0
         reward_other = 0
 
         # Extract information from the reward information dictionary

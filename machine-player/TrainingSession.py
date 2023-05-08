@@ -9,6 +9,11 @@ from CatanGame import CatanGame
 from Randy import Randy
 from Adam import Adam
 from Redmond import Redmond
+from Davish import Davish
+from Gonzales import Gonzales
+from errors import AgentCompatibilityError
+import random
+
 
 # Define the TrainingSession class
 class TrainingSession:
@@ -19,13 +24,14 @@ class TrainingSession:
         games=10000,
         epsilon_dec=0.0003,
         min_epsilon=0.1,
-        learning_interval=3,
+        learning_interval=9,
         board_dims=[3, 4, 5, 4, 3],
-        opponent="Randy",
+        opponents=["Randy"],
+        use_pixels=False,
     ):
-
+        self.use_pixels = use_pixels
         self.AGENT_SELECTED = agent
-        self.OPPONENT_SELECTED = opponent
+        self.OPPONENTS_SELECTED = opponents
         self.EPISODES = games
         self.EPSILON_DECAY = epsilon_dec
         self.MIN_EPSILON = min_epsilon
@@ -38,10 +44,12 @@ class TrainingSession:
         self.MODEL_PATH = None
         self.set_agent(self.AGENT_SELECTED)
 
-        self.OPPONENT = None
-        self.set_opponent(self.OPPONENT_SELECTED)
+        self.OPPONENTS = []
+        self.set_opponents()
         self.NUMBER_OF_PLAYERS = 1
-        self.PLAYER_QUEUE = [self.AGENT, self.OPPONENT]
+        self.PLAYER_QUEUE = []
+        self.set_player_queue()
+        self.agent_index = 0
 
         self.player_turn_pointer = 0
 
@@ -53,6 +61,9 @@ class TrainingSession:
         self.learning_steps = 0
         self.games_played = 0
         self.wins_recorded_this_session = 0
+
+        self.pixel_data = None
+        self.pixel_data_previous = None
 
     # Method for continuing the game loop
     def time_step(self):
@@ -66,14 +77,20 @@ class TrainingSession:
             # Get the current state of the game instance
             game_state = self.GAME_INSTANCE.get_state(self.player_turn_pointer)
 
-            # Agent selects an action
-            chosen_action = self.PLAYER_QUEUE[self.player_turn_pointer].select_action(
-                game_state, all_actions, legal_actions
-            )
+            # Agent action selection
+            # Slightly different when using pixels (in this case we use the pixel data instead of the game state)
+            if self.PLAYER_QUEUE[self.player_turn_pointer].get_pixel_compatible():
+                chosen_action = self.PLAYER_QUEUE[
+                    self.player_turn_pointer
+                ].select_action(self.pixel_data, all_actions, legal_actions)
+            else:
+                chosen_action = self.PLAYER_QUEUE[
+                    self.player_turn_pointer
+                ].select_action(game_state, all_actions, legal_actions)
 
             # If the action is illegal, increment the illegal action counter, else check if we need to increment the road counter
             # This is only if the AGENT is taking a turn, not any of the opponents
-            if self.player_turn_pointer == 0:
+            if self.player_turn_pointer == self.agent_index:
                 if chosen_action not in legal_actions:
                     self.game_data_dict["total_illegal_actions_attempted"] += 1
                 else:
@@ -89,7 +106,7 @@ class TrainingSession:
 
             # Increment the total number of steps taken
             # This is only if the AGENT is taking a turn, not any of the opponents
-            if self.player_turn_pointer == 0:
+            if self.player_turn_pointer == self.agent_index:
                 self.game_data_dict["total_steps_taken"] += 1
 
             # Get the new game state
@@ -98,8 +115,7 @@ class TrainingSession:
             # Get the game over flag
             game_over = self.GAME_INSTANCE.get_game_over_flag()
 
-            if self.player_turn_pointer == 0:
-
+            if self.player_turn_pointer == self.agent_index:
                 # Get reward information from the game instance
                 reward_information = self.GAME_INSTANCE.reward_information_request(
                     chosen_action, legal_actions
@@ -117,7 +133,23 @@ class TrainingSession:
                     done = 1
 
                 # Create a memory tuple
-                memory_tuple = (game_state, action_index, reward, new_game_state, done)
+                # Slightly different when using pixels (in this case we use the pixel data instead of the game state)
+                if self.PLAYER_QUEUE[self.player_turn_pointer].get_pixel_compatible():
+                    memory_tuple = (
+                        self.pixel_data_previous,
+                        action_index,
+                        reward,
+                        self.pixel_data,
+                        done,
+                    )
+                else:
+                    memory_tuple = (
+                        game_state,
+                        action_index,
+                        reward,
+                        new_game_state,
+                        done,
+                    )
 
                 # Feed the memory tuple to the agent
                 self.AGENT.feed_memory(memory_tuple)
@@ -146,7 +178,7 @@ class TrainingSession:
                 winner = self.GAME_INSTANCE.get_player_id_of_current_winner()
 
                 # If the winner is the agent, increment the wins recorded this session
-                if winner == 0:
+                if winner == self.agent_index:
                     self.wins_recorded_this_session += 1
 
                 # Calculate the average loss for the last game
@@ -209,9 +241,13 @@ class TrainingSession:
                 if (
                     self.AGENT_SELECTED == "Adam"
                     or self.AGENT_SELECTED == "Redmond"
-                    or self.AGENT_SELECTED == "Eugene"
+                    or self.AGENT_SELECTED == "Davish"
+                    or self.AGENT_SELECTED == "Gonzales"
                 ):
                     self.AGENT.save_model(self.MODEL_PATH)
+
+                # Shuffle the turn order in preparation for the next game
+                self.shuffle_turn_order()
 
             # Increment the player turn pointer if the action selected is to end the turn
             # If the player turn pointer is greater than the number of players, reset it to 0
@@ -220,12 +256,17 @@ class TrainingSession:
                 if self.player_turn_pointer >= self.NUMBER_OF_PLAYERS:
                     self.player_turn_pointer = 0
 
+            other_information = {
+                "agent_index": self.agent_index,
+            }
+
             return (
                 self.running,
                 legal_actions,
                 chosen_action,
                 self.games_played,
                 self.player_turn_pointer,
+                other_information,
             )
 
     # Method for starting the game loop
@@ -237,6 +278,9 @@ class TrainingSession:
         # Set the number of players
         self.NUMBER_OF_PLAYERS = players
         self.player_turn_pointer = 0
+
+        # Shuffle the turn order straight away
+        self.shuffle_turn_order()
 
         # Set the filename for the data analysis file
         self.set_data_analysis_filename()
@@ -273,33 +317,56 @@ class TrainingSession:
                 print("So, you've awoken me again...\nRedmond reporting for duty!")
                 self.AGENT.load_model(self.MODEL_PATH)
                 agent_already_exists = True
+        elif self.AGENT_SELECTED == "Davish":
+            self.AGENT = Davish(exploration_rate=1.0)
+            self.MODEL_PATH = "davish.pth"
+            # Check if the "davish.pth" file exists
+            if os.path.exists(self.MODEL_PATH):
+                print("Gold Five, standing by. Stay on target!")
+                self.AGENT.load_model(self.MODEL_PATH)
+                agent_already_exists = True
+            else:
+                print("Creating agent Davish for the first time.")
+        elif self.AGENT_SELECTED == "Gonzales":
+            self.AGENT = Gonzales(exploration_rate=1.0)
+            self.MODEL_PATH = "gonzales.pth"
+            # Check if the "gonzales.pth" file exists
+            if os.path.exists(self.MODEL_PATH):
+                print("Speedy Gonzales, reporting for duty!")
+                self.AGENT.load_model(self.MODEL_PATH)
+                agent_already_exists = True
+            else:
+                print("Creating agent Gonzales for the first time.")
         else:
             self.AGENT = Randy()
 
         if agent_already_exists:
             self.AGENT.set_exploration_rate(self.MIN_EPSILON)
 
+        # Raise an error if an agent has been loaded that isn't compatible with input data
+        if self.AGENT.get_pixel_compatible() != self.use_pixels:
+            raise AgentCompatibilityError(
+                "Agent selected not compatible with input data."
+            )
+
     # Method for loading an opponent into the training session
-    def set_opponent(self, opponent):
-        self.OPPONENT_SELECTED = opponent
+    def set_opponents(self):
+        # Loop through all of the opponents and load them in
+        for opponent_name in self.OPPONENTS_SELECTED:
+            if opponent_name == "Adam":
+                new_opponent = Adam(exploration_rate=0.1)
+                path = "adam.pth"
+                # Check if the "adam.pth" file exists
+                if os.path.exists(path):
+                    print("I am Adam, and I am your opponent!")
+                    # Load the model, and set it to evaluation mode
+                    new_opponent.load_model(path)
+                    new_opponent.model.eval()
+            else:
+                new_opponent = Randy()
 
-        opp_already_exists = False
-
-        if self.OPPONENT_SELECTED == "Adam":
-            self.OPPONENT = Adam(exploration_rate=1.0)
-            self.MODEL_PATH = "adam.pth"
-            # Check if the "adam.pth" file exists
-            if os.path.exists(self.MODEL_PATH):
-                print("Adam's opponent here! Ready to rumble!")
-                self.OPPONENT.load_model(self.MODEL_PATH)
-                opp_already_exists = True
-        else:
-            self.OPPONENT = Randy()
-
-        if opp_already_exists:
-            self.OPPONENT.set_exploration_rate(0.0)
-            # Set the opponent's model to evaluation mode
-            self.OPPONENT.model.eval()
+            # Add the new opponent to the list of opponents
+            self.OPPONENTS.append(new_opponent)
 
     # Method for setting the filename for the data analysis file
     def set_data_analysis_filename(self):
@@ -394,3 +461,22 @@ class TrainingSession:
     # Method for getting the game instance
     def get_game_instance(self):
         return self.GAME_INSTANCE
+
+    # Method for feeding pixel data
+    def feed_pixel_data(self, pixel_data):
+        self.pixel_data_previous = self.pixel_data
+        self.pixel_data = pixel_data
+
+    # Method for shuffling the turn order
+    def shuffle_turn_order(self):
+        # Shuffle the PLAYER_QUEUE
+        random.shuffle(self.PLAYER_QUEUE)
+        # Get the index of the agent
+        self.agent_index = self.PLAYER_QUEUE.index(self.AGENT)
+        # Print the index of the agent
+        print("Agent index: " + str(self.agent_index))
+
+    # Method for setting the player queue
+    def set_player_queue(self):
+        # Set the player queue
+        self.PLAYER_QUEUE = [self.AGENT] + self.OPPONENTS

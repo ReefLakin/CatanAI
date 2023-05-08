@@ -5,17 +5,24 @@
 # Imports
 import random
 from StatePreprocessor import StatePreprocessor
+from PixelPreprocessor import PixelPreprocessor
 import numpy as np
 from ReplayMemory import ReplayMemory
+from PixelModel import CatanPixelModel
 from Model import CatanModel
+
 
 # Agent class definition
 class Agent:
-    def __init__(self, exploration_rate=0.1):
+    def __init__(self, exploration_rate=0.1, pixel_agent=False):
         self.exploration_rate = exploration_rate
-        self.model = CatanModel()
+        if pixel_agent:
+            self.model = CatanPixelModel()
+        else:
+            self.model = CatanModel()
         self.name = "Agent"
         self.memory = ReplayMemory(100000)
+        self.is_pixel_compatible = pixel_agent
 
     # Method for selecting an action
     def select_action(self, observation, all_possible_actions, legal_actions):
@@ -79,3 +86,22 @@ class Agent:
     # Method for feeding the agent memory
     def feed_memory(self, observation):
         self.memory.add(observation)
+
+    # Method for normalising the pixel arrays
+    def normalise_pixel_array(pixel_array):
+        # Create a new pixel preprocessor
+        pixel_preprocessor = PixelPreprocessor()
+
+        # Normalise the pixel array
+        pixel_array = pixel_preprocessor.normalise_pixel_array(pixel_array)
+
+        # Return the normalised pixel array
+        return pixel_array
+
+    # Method for checking if the agent is compatible with the environment
+    def get_pixel_compatible(self):
+        return self.is_pixel_compatible
+
+    # Method for getting the agent's name
+    def get_name(self):
+        return self.name

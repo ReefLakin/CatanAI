@@ -1,40 +1,42 @@
-# Adam inherits from the Agent class
-# Adam is a machine player that uses a neural network to learn how to play Catan
-# His name is inspired by the Adam optimiser and Adam from The Bible
-# Cliché? Yes. But it's a good name
-# Unlike Randy, Adam can learn from his mistakes
+"""
+Chromie Agent
+NOTE: This agent is not yet implemented and still a work in progress.
+Chromie is intended to be a pixel agent, and will be trained on the raw pixel data of the game.
+As such, it will use a CNN to process the pixel data.
+This is an advanced machine learning technique, but it hasn't been implemented yet due to time constraints.
+Hopefully, it will be added in the future.
+References to Chromie in the codebase have been temporarily removed to avoid confusion.
+This .py file has been moved to the unused directory for the time being.
+"""
 
 # Imports
 from Agent import Agent
 import torch
+from PixelPreprocessor import PixelPreprocessor
 
-# High-level settings
-NORMALISE_STATES = True
 LEGAL_ACTIONS_ONLY = True
 
 
 # Class definition
-class Adam(Agent):
-    def __init__(self, exploration_rate=1.0):
-        super().__init__(exploration_rate)
-        self.name = "Adam"
+class Chromie(Agent):
+    def __init__(self, exploration_rate=1):
+        super().__init__(exploration_rate, pixel_agent=True)
+        self.name = "Chromie"
+        self.is_pixel_compatible = True
 
-    # Overwrite the select_action_exploit method with Adam's own
+    # Overwrite the select_action_exploit method with Chromie's own
     def select_action_exploit(self, observation, all_possible_actions, legal_actions):
-        # State preprocessing
-        observation_processed = self.preprocess_state(observation)
-
-        # Normalising
-        if NORMALISE_STATES:
-            observation_processed = self.normalise_state(observation_processed)
+        # Pixel preprocessing
+        preprocessor = PixelPreprocessor()
+        observation_processed = preprocessor.normalise_pixel_array(observation)
 
         # Tensor conversion
-        observation_processed = torch.tensor(observation_processed, dtype=torch.float32)
+        observation_processed = torch.FloatTensor(observation_processed).unsqueeze(0)
 
         # Forward pass
         action_options = self.model.forward(observation_processed)
 
-        # Adam has the option to only choose legal actions
+        # Chromie has the option to only choose legal actions
         if LEGAL_ACTIONS_ONLY:
             # Create a list of legal action indices
             legal_action_indices = []
@@ -45,7 +47,6 @@ class Adam(Agent):
             # Acquire the legal action with the highest value
             # Skip over the illegal actions
             current_best = -50
-            action_as_idx = 0
             for i in range(len(action_options)):
                 if i in legal_action_indices:
                     if action_options[i] > current_best:
@@ -66,17 +67,17 @@ class Adam(Agent):
 
     # Method for learning
     def learn(self):
-        loss = self.model.learn(self.memory, batch_size=45)
+        loss = self.model.learn(self.memory, batch_size=64)
         return loss
 
     # Reward function
     def reward(self, reward_information):
         # These reward values tend to get adjusted during training
-        reward_victory = 2
+        reward_victory = 16
         reward_illegal_move = 0
-        reward_road_building = 0.05
-        reward_settlement_building = 0.1
-        reward_city_building = 0.1
+        reward_road_building = 0
+        reward_settlement_building = 4
+        reward_city_building = 4
         reward_other = 0
 
         # Extract information from the reward information dictionary

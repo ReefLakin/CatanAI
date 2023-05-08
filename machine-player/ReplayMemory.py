@@ -13,7 +13,8 @@ class ReplayMemory:
     # Add an experience to the buffer
     def add(self, experience):
         if len(self.buffer) + 1 >= self.buffer_max_size:
-            self.buffer.pop(0)
+            # Remove a random experience from the buffer
+            self.buffer.pop(random.randint(0, len(self.buffer) - 1))
         self.buffer.append(experience)
 
     # Sample a batch of experiences from the buffer
@@ -30,7 +31,6 @@ class ReplayMemory:
 
     # Save the buffer to a file
     def save_buffer(self, agent_name="Agent"):
-
         # Convert list of tuples to JSON
         json_data = json.dumps(self.buffer)
 

@@ -6,6 +6,7 @@
 # Import the Agent class
 from Agent import Agent
 
+
 # Define the Randy class
 class Randy(Agent):
     def __init__(self, exploration_rate=1):

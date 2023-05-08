@@ -221,7 +221,6 @@ class Tile:
 
     # Return a list of all the tiles that are not equal to None
     def get_occupied_verticies(self):
-
         occupied_veriticies = []
 
         if self.vert_northwest != None:

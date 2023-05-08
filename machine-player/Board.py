@@ -344,7 +344,6 @@ class Board:
 
     # Make a distance rule check
     def validate_distance_rule(self, q, r, s, direction):
-
         # Get the tile
         tile = self.get_tile(q, r, s)
 
@@ -374,7 +373,6 @@ class Board:
 
     # Build a road randomly adjacent to a vertex location
     def build_random_adjacent_road(self, q, r, s, direction, player):
-
         # Get the tile
         tile = self.get_tile(q, r, s)
 

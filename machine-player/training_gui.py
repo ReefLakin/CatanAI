@@ -17,6 +17,8 @@ FOREST_TILE_COLOUR = "#3d4e26"
 DESERT_TILE_COLOUR = "#bf9b61"
 WATER_TILE_COLOUR = "#039cdd"
 
+other_information = {"agent_index": 0}
+
 # OTHER COLOURS
 BORDER_COLOUR = "#000000"
 SETTLEMENT_COLOUR = "#FFFFFF"
@@ -28,8 +30,10 @@ CITY_GOLD_COLOUR = "#FFD700"
 ROBBER_COLOUR = "#C4BCA9"
 
 # PLAYER COLOURS
-PLAYER_0_COLOUR = "#FFFFFF"
-PLAYER_1_COLOUR = "#675df2"
+PLAYER_0_COLOUR = "#FFFFFF"  # White
+PLAYER_1_COLOUR = "#FFBB00"  # Orange
+PLAYER_2_COLOUR = "#FF0000"  # Red
+PLAYER_3_COLOUR = "#0000FF"  # Blue
 
 # SCREEN INFORMATION
 SCREEN_WIDTH = 880
@@ -40,8 +44,7 @@ STARTING_HEX_CENTRE_X = 330
 STARTING_HEX_CENTRE_Y = 140
 HEX_RADIUS = 60
 SETTLEMENT_RADIUS = HEX_RADIUS / 7
-CITY_RADIUS_OUTER = HEX_RADIUS / 5
-CITY_RADIUS_INNER = HEX_RADIUS / 6
+CITY_RADIUS = HEX_RADIUS / 8
 
 
 # Helper Functions
@@ -208,6 +211,19 @@ def get_all_hex_points(
     )
 
 
+# Return the player colour associated with a given player index
+def get_colour_name_from_index(index):
+    match index:
+        case 0:
+            return "White"
+        case 1:
+            return "Orange"
+        case 2:
+            return "Red"
+        case 3:
+            return "Blue"
+
+
 # Return the colour value associated with a given tile type id
 def get_colour_value_from_id(id):
     match id:
@@ -253,16 +269,26 @@ def get_player_colour_from_id(id):
             return PLAYER_0_COLOUR
         case 1:
             return PLAYER_1_COLOUR
+        case 2:
+            return PLAYER_2_COLOUR
+        case 3:
+            return PLAYER_3_COLOUR
 
 
 # !! Main Program
 
 # # Training Session Options
 agent_to_set = "Adam"
-opponent_to_set = "Adam"
+opponents_to_set = ["Randy", "Randy", "Randy"]
+player_count = len(opponents_to_set) + 1
+use_pixel_data_instead_of_state = False
 
 # Create a training session (with default parameters)
-training_session = TrainingSession(agent=agent_to_set, opponent=opponent_to_set)
+training_session = TrainingSession(
+    agent=agent_to_set,
+    opponents=opponents_to_set,
+    use_pixels=use_pixel_data_instead_of_state,
+)
 
 
 # # Pygame Window Setup
@@ -305,15 +331,15 @@ current_player = 0
 # # Game Loop
 
 # Start the training session
-running = training_session.start(players=2)
+running = training_session.start(players=player_count)
 PLEASE_LORD_GIVE_ME_A_BREAK = False
+sleep_time = 0.03
 
 # While the training session is running
 while running is True:
-
     # If PLEASE_LORD_GIVE_ME_A_BREAK is true, make a small time delay
     if PLEASE_LORD_GIVE_ME_A_BREAK:
-        time.sleep(0.01)
+        time.sleep(sleep_time)
         PLEASE_LORD_GIVE_ME_A_BREAK = False
         pygame.event.post(take_action)
         pygame.event.post(update_game_board)
@@ -321,18 +347,56 @@ while running is True:
 
     # Loop over the event queue
     for event in pygame.event.get():
-
         # Check for QUIT event
         if event.type == pygame.QUIT:
             running = False
 
         if event.type == pygame.KEYDOWN:
-
             # Check for S key press (STEP)
             if event.key == pygame.K_s:
                 # Take action, then update the board
                 pygame.event.post(take_action)
                 pygame.event.post(update_game_board)
+
+            # Check for 1 key press (SPEED 1)
+            if event.key == pygame.K_1:
+                sleep_time = 0.5
+
+            # Check for 2 key press (SPEED 2)
+            if event.key == pygame.K_2:
+                sleep_time = 0.1
+
+            # Check for 3 key press (SPEED 3)
+            if event.key == pygame.K_3:
+                sleep_time = 0.05
+
+            # Check for 4 key press (SPEED 4)
+            if event.key == pygame.K_4:
+                sleep_time = 0.03
+
+            # Check for 5 key press (SPEED 5)
+            if event.key == pygame.K_5:
+                sleep_time = 0.01
+
+            # Check for 6 key press (SPEED 6)
+            if event.key == pygame.K_6:
+                sleep_time = 0.005
+
+            # Check for 7 key press (SPEED 7)
+            if event.key == pygame.K_7:
+                sleep_time = 0.001
+
+            # Check for 8 key press (SPEED 8)
+            if event.key == pygame.K_8:
+                sleep_time = 0.0005
+
+            # Check for 9 key press (SPEED 9)
+            if event.key == pygame.K_9:
+                sleep_time = 0.0001
+
+            # Check for 0 key press (SPEED 0)
+            if event.key == pygame.K_0:
+                sleep_time = 0.00001
 
             # Check for T key press (TRAIN)
             if event.key == pygame.K_t:
@@ -343,18 +407,17 @@ while running is True:
 
         # Check for the custom event that we set up to take action
         if event.type == TAKE_ACTION:
-
             (
                 running,
                 legal_actions,
                 chosen_action,
                 games_played,
                 current_player,
+                other_information,
             ) = training_session.time_step()
 
         # Check for the custom event that we set up to update the game board
         if event.type == UPDATE_GAME_BOARD_EVENT:
-
             # Update the game state on the GUI
             screen.fill(pygame.Color(WATER_TILE_COLOUR))
 
@@ -391,8 +454,10 @@ while running is True:
             # Get the robber states
             robber_states = game_state["robber_states"]
 
-            # Get the game state from the opponent's point of view
-            opp_game_state = game_instance.get_state(player_id=1)
+            # Get the game state for each opponent
+            opp_game_state_1 = game_instance.get_state(player_id=1)
+            opp_game_state_2 = game_instance.get_state(player_id=2)
+            opp_game_state_3 = game_instance.get_state(player_id=3)
 
             # Draw the Board
 
@@ -481,26 +546,39 @@ while running is True:
             for hex in all_city_points:
                 # Then, loop through each vertex in the hex
                 for vertex in hex:
-                    # Calculate x and y of the top left corner (outer gold square)
-                    x = vertex[0] - CITY_RADIUS_OUTER
-                    y = vertex[1] - CITY_RADIUS_OUTER
-                    # Draw the city (outer gold square)
-                    pygame.draw.rect(
-                        screen,
-                        pygame.Color(CITY_GOLD_COLOUR),
-                        (x, y, CITY_RADIUS_OUTER * 2, CITY_RADIUS_OUTER * 2),
-                        0,
-                    )
+                    city_col = get_player_colour_from_id(all_city_owners.pop(0))
+                    city_diameter = CITY_RADIUS * 2
                     # Calculate x and y of the top left corner (inner white square)
-                    x = vertex[0] - CITY_RADIUS_INNER
-                    y = vertex[1] - CITY_RADIUS_INNER
+                    x = vertex[0] - CITY_RADIUS
+                    y = vertex[1] - CITY_RADIUS * 2
                     # Draw the city (outer gold square)
                     pygame.draw.rect(
                         screen,
-                        pygame.Color(get_player_colour_from_id(all_city_owners.pop(0))),
-                        (x, y, CITY_RADIUS_INNER * 2, CITY_RADIUS_INNER * 2),
+                        pygame.Color(city_col),
+                        (x, y, city_diameter, city_diameter * 1.6),
                         0,
                     )
+
+                    # Calculate x and y of the top left corner (inner white square)
+                    x = vertex[0] - CITY_RADIUS
+                    y = vertex[1]
+                    # Draw the city (outer gold square)
+                    pygame.draw.rect(
+                        screen,
+                        pygame.Color(city_col),
+                        (x, y, city_diameter * 1.8, city_diameter),
+                        0,
+                    )
+
+                    # draw the triangle on top
+                    x = vertex[0] - CITY_RADIUS
+                    y = vertex[1] - CITY_RADIUS * 2
+                    triangle_points = [
+                        (x, y),
+                        (x + city_diameter, y),
+                        (x + CITY_RADIUS, y - 10),
+                    ]
+                    pygame.draw.polygon(screen, city_col, triangle_points)
 
             # Draw the roads
             # First, loop through each hex
@@ -535,13 +613,37 @@ while running is True:
             # Write the opponent's victory points to the screen
             # Draw the text with font.render()
             text = vp_font.render(
-                " / " + str(opp_game_state["victory_points"]),
+                " / " + str(opp_game_state_1["victory_points"]),
                 True,
                 pygame.Color(PLAYER_1_COLOUR),
             )
             # Draw the text to the screen
             text_rect = text.get_rect(center=(185, 25))
             screen.blit(text, text_rect)
+
+            # If there are more than 2 players, write the third player's victory points to the screen
+            if player_count > 2:
+                # Draw the text with font.render()
+                text = vp_font.render(
+                    " / " + str(opp_game_state_2["victory_points"]),
+                    True,
+                    pygame.Color(PLAYER_2_COLOUR),
+                )
+                # Draw the text to the screen
+                text_rect = text.get_rect(center=(215, 25))
+                screen.blit(text, text_rect)
+
+            # If there are more than 3 players, write the fourth player's victory points to the screen
+            if player_count > 3:
+                # Draw the text with font.render()
+                text = vp_font.render(
+                    " / " + str(opp_game_state_3["victory_points"]),
+                    True,
+                    pygame.Color(PLAYER_3_COLOUR),
+                )
+                # Draw the text to the screen
+                text_rect = text.get_rect(center=(245, 25))
+                screen.blit(text, text_rect)
 
             # Write the turn number just below the victory points
             text = font.render(
@@ -588,13 +690,33 @@ while running is True:
             ]
 
             # List the opponent resource texts
-            opponent_resources = [
-                str(opp_game_state["num_lumber"]),
-                str(opp_game_state["num_grain"]),
-                str(opp_game_state["num_ore"]),
-                str(opp_game_state["num_wool"]),
-                str(opp_game_state["num_brick"]),
+            opponent_resources_1 = [
+                str(opp_game_state_1["num_lumber"]),
+                str(opp_game_state_1["num_grain"]),
+                str(opp_game_state_1["num_ore"]),
+                str(opp_game_state_1["num_wool"]),
+                str(opp_game_state_1["num_brick"]),
             ]
+
+            # If there are more than 2 players, list the second opponent resource texts
+            if player_count > 2:
+                opponent_resources_2 = [
+                    str(opp_game_state_2["num_lumber"]),
+                    str(opp_game_state_2["num_grain"]),
+                    str(opp_game_state_2["num_ore"]),
+                    str(opp_game_state_2["num_wool"]),
+                    str(opp_game_state_2["num_brick"]),
+                ]
+
+            # If there are more than 3 players, list the third opponent resource texts
+            if player_count > 3:
+                opponent_resources_3 = [
+                    str(opp_game_state_3["num_lumber"]),
+                    str(opp_game_state_3["num_grain"]),
+                    str(opp_game_state_3["num_ore"]),
+                    str(opp_game_state_3["num_wool"]),
+                    str(opp_game_state_3["num_brick"]),
+                ]
 
             # Load each of the resource icons
             lumber_icon = pygame.image.load("assets/wood.png").convert_alpha()
@@ -652,11 +774,17 @@ while running is True:
                 screen.blit(text_surface, text_rect)
 
             # Loop through the opponent's resource texts
-            for i in range(len(opponent_resources)):
-                # Create the surface
-                text_surface = opp_res_font.render(
-                    opponent_resources[i], True, "#675df2"
+            for i in range(len(opponent_resources_1)):
+                # Create resource text
+                opp_res_txt = (
+                    opponent_resources_1[i]
+                    + " / "
+                    + opponent_resources_2[i]
+                    + " / "
+                    + opponent_resources_3[i]
                 )
+                # Create the surface
+                text_surface = opp_res_font.render(opp_res_txt, True, "#675df2")
                 text_rect = text_surface.get_rect()
                 # Set the x position
                 text_rect.x = box_rect.x + text_spacing + (font_size + text_spacing) * i
@@ -670,10 +798,21 @@ while running is True:
                 screen.blit(text_surface, text_rect)
 
             # Write the agent's name to the screen in the bottom left corner
-            text = sm_font.render(agent_to_set, True, pygame.Color(BORDER_COLOUR))
+            agent_index = other_information["agent_index"]
+            text_to_display = (
+                f"{agent_to_set} ({get_colour_name_from_index(agent_index)})"
+            )
+            text = sm_font.render(text_to_display, True, pygame.Color(BORDER_COLOUR))
             # Draw the text to the screen
-            text_rect = text.get_rect(center=(25, SCREEN_HEIGHT - 15))
+            text_rect = text.get_rect(center=(45, SCREEN_HEIGHT - 15))
             screen.blit(text, text_rect)
 
             # Update the display using flip
             pygame.display.flip()
+
+            if use_pixel_data_instead_of_state:
+                # Collect the pixel data
+                pixel_data = pygame.surfarray.array3d(pygame.display.get_surface())
+
+                # Feed pixel data to the training session object
+                training_session.feed_pixel_data(pixel_data)
