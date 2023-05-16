@@ -3,6 +3,8 @@ from Board import Board
 from Tile import Tile
 import random
 
+CONSOLE_OUTPUT = False
+
 
 class CatanGame:
     def __init__(self, number_of_players=1, tile_value_mode="vanilla"):
@@ -99,16 +101,17 @@ class CatanGame:
         return self.board
 
     def step(self, action, player_id=0):
-        # Print the action taken to the console along with turn number
-        print(
-            "Turn "
-            + str(self.turn_number)
-            + ": "
-            + action
-            + "\nPlayer "
-            + str(player_id)
-            + "'s turn"
-        )
+        # Print the action taken to the console along with turn number if CONSOLE_OUTPUT is True
+        if CONSOLE_OUTPUT:
+            print(
+                "Turn "
+                + str(self.turn_number)
+                + ": "
+                + action
+                + "\nPlayer "
+                + str(player_id)
+                + "'s turn"
+            )
 
         # Set the most recent action
         self.most_recent_action = action
@@ -633,8 +636,6 @@ class CatanGame:
         # Roll the dice and return the result
         dice_1 = random.randint(1, 6)
         dice_2 = random.randint(1, 6)
-        # Print the roll to the console (let's turn that off for now)
-        # print(f"Rolled a {dice_1} and a {dice_2} for a total of {dice_1 + dice_2}")
         # Store the roll in the game state
         self.most_recent_roll = (
             dice_1,
