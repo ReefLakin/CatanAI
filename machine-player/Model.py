@@ -75,6 +75,14 @@ class CatanModel(nn.Module):
             # Normalise the next states in the next_states list
             next_states = [self.normalise_state(state) for state in next_states]
 
+        # Creating a tensor from a list of numpy.ndarrays is very slow
+        # Convert the lists into numpy.ndarrays
+        states = np.array(states)
+        actions = np.array(actions)
+        rewards = np.array(rewards)
+        next_states = np.array(next_states)
+        dones = np.array(dones)
+
         # Convert the lists into tensors
         states = torch.tensor(states, dtype=torch.float32)
         actions = torch.tensor(actions, dtype=torch.long)

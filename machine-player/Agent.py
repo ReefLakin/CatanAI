@@ -27,7 +27,7 @@ class Agent:
     # Method for selecting an action
     def select_action(self, observation, all_possible_actions, legal_actions):
         # This line can be disabled; prints the legal actions (takes up a lot of console space)
-        print(legal_actions)
+        # print(legal_actions)
 
         # If the random number is less than the exploration rate, choose a random action
         if random.random() < self.exploration_rate:

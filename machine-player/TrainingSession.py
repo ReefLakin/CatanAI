@@ -474,7 +474,8 @@ class TrainingSession:
         # Get the index of the agent
         self.agent_index = self.PLAYER_QUEUE.index(self.AGENT)
         # Print the index of the agent
-        print("Agent index: " + str(self.agent_index))
+        # Can be disabled if desired
+        # print("Agent index: " + str(self.agent_index))
 
     # Method for setting the player queue
     def set_player_queue(self):
