@@ -14,15 +14,21 @@ from Model import CatanModel
 
 # Agent class definition
 class Agent:
-    def __init__(self, exploration_rate=0.1, pixel_agent=False):
+    def __init__(
+        self, exploration_rate=0.1, pixel_agent=False, override_nickname=False
+    ):
         self.exploration_rate = exploration_rate
         if pixel_agent:
             self.model = CatanPixelModel()
         else:
             self.model = CatanModel()
         self.name = "Agent"
+        self.nickname = "Agent"
         self.memory = ReplayMemory(100000)
         self.is_pixel_compatible = pixel_agent
+
+        if override_nickname != False:
+            self.nickname = override_nickname
 
     # Method for selecting an action
     def select_action(self, observation, all_possible_actions, legal_actions):
@@ -105,3 +111,11 @@ class Agent:
     # Method for getting the agent's name
     def get_name(self):
         return self.name
+
+    # Method for getting the agent's nickname
+    def get_nickname(self):
+        return self.nickname
+
+    # Method for setting the agent's nickname
+    def set_nickname(self, nickname):
+        self.nickname = nickname

@@ -22,12 +22,14 @@ class TrainingSession:
         self,
         agent="Randy",
         games=10000,
-        epsilon_dec=0.0003,
+        epsilon_dec=0.0005,
         min_epsilon=0.1,
-        learning_interval=9,
+        agent_learning_interval=12,
+        other_learning_interval=24,
         board_dims=[3, 4, 5, 4, 3],
         opponents=["Randy"],
         use_pixels=False,
+        number_of_players=1,
     ):
         self.use_pixels = use_pixels
         self.AGENT_SELECTED = agent
@@ -35,10 +37,13 @@ class TrainingSession:
         self.EPISODES = games
         self.EPSILON_DECAY = epsilon_dec
         self.MIN_EPSILON = min_epsilon
-        self.LEARNING_INTERVAL = learning_interval
+        self.AGENT_LEARNING_INTERVAL = agent_learning_interval
+        self.OTHER_LEARNING_INTERVAL = other_learning_interval
         self.BOARD_DIMS = board_dims
 
         self.GAME_INSTANCE = CatanGame()
+
+        self.ALL_ACTIONS = self.GAME_INSTANCE.get_all_possible_actions()
 
         self.AGENT = None
         self.MODEL_PATH = None
@@ -46,7 +51,7 @@ class TrainingSession:
 
         self.OPPONENTS = []
         self.set_opponents()
-        self.NUMBER_OF_PLAYERS = 1
+        self.NUMBER_OF_PLAYERS = number_of_players
         self.PLAYER_QUEUE = []
         self.set_player_queue()
         self.agent_index = 0
@@ -58,39 +63,40 @@ class TrainingSession:
         self.data_analysis_filename = None
 
         self.running = False
-        self.learning_steps = 0
+        self.agent_learning_steps = 0
+        self.other_learning_steps = 0
         self.games_played = 0
         self.wins_recorded_this_session = 0
 
         self.pixel_data = None
         self.pixel_data_previous = None
 
-    # Method for continuing the game loop
+    # Single step through the game (one action)
     def time_step(self):
         if self.running:
-            # Get a list of all possible actions from the game instance, even if they are illegal
-            all_actions = self.GAME_INSTANCE.get_all_possible_actions()
-            # Get a list of all legal actions from the game instance
-            legal_actions = self.GAME_INSTANCE.get_legal_actions(
-                player_id=self.player_turn_pointer
+
+            # Only get the list of all possible actions once
+            if self.games_played == 0:
+                self.ALL_ACTIONS = self.GAME_INSTANCE.get_all_possible_actions()
+
+            # Put the value of the player turn pointer into a variable for easier use
+            player = self.player_turn_pointer
+
+            # Get all the legal actions for the current player
+            legal_actions = self.GAME_INSTANCE.get_legal_actions(player)
+
+            # Get the game state for the current player
+            game_state = self.GAME_INSTANCE.get_state(player)
+
+            # Request the current player take an action
+            # Pixel players are no longer compatible with this version of the training session
+            chosen_action = self.PLAYER_QUEUE[player].select_action(
+                game_state, self.ALL_ACTIONS, legal_actions
             )
-            # Get the current state of the game instance
-            game_state = self.GAME_INSTANCE.get_state(self.player_turn_pointer)
 
-            # Agent action selection
-            # Slightly different when using pixels (in this case we use the pixel data instead of the game state)
-            if self.PLAYER_QUEUE[self.player_turn_pointer].get_pixel_compatible():
-                chosen_action = self.PLAYER_QUEUE[
-                    self.player_turn_pointer
-                ].select_action(self.pixel_data, all_actions, legal_actions)
-            else:
-                chosen_action = self.PLAYER_QUEUE[
-                    self.player_turn_pointer
-                ].select_action(game_state, all_actions, legal_actions)
-
-            # If the action is illegal, increment the illegal action counter, else check if we need to increment the road counter
-            # This is only if the AGENT is taking a turn, not any of the opponents
-            if self.player_turn_pointer == self.agent_index:
+            # Increment some counters depending on the action
+            # This is for the main AGENT only; will be updated for other players later in future versions
+            if player == self.agent_index:
                 if chosen_action not in legal_actions:
                     self.game_data_dict["total_illegal_actions_attempted"] += 1
                 else:
@@ -98,15 +104,14 @@ class TrainingSession:
                     if split_action[0] == "build" and split_action[1] == "road":
                         self.game_data_dict["total_roads_built"] += 1
 
-            # What is the index of the action when set against the entire list of actions?
-            action_index = all_actions.index(chosen_action)
+            # Get the index of the chosen action
+            action_index = self.ALL_ACTIONS.index(chosen_action)
 
             # Take a step in the game
-            self.GAME_INSTANCE.step(chosen_action, self.player_turn_pointer)
+            self.GAME_INSTANCE.step(chosen_action, player)
 
             # Increment the total number of steps taken
-            # This is only if the AGENT is taking a turn, not any of the opponents
-            if self.player_turn_pointer == self.agent_index:
+            if player == self.agent_index:
                 self.game_data_dict["total_steps_taken"] += 1
 
             # Get the new game state
@@ -115,62 +120,67 @@ class TrainingSession:
             # Get the game over flag
             game_over = self.GAME_INSTANCE.get_game_over_flag()
 
-            if self.player_turn_pointer == self.agent_index:
-                # Get reward information from the game instance
-                reward_information = self.GAME_INSTANCE.reward_information_request(
-                    chosen_action, legal_actions
-                )
+            # Get the reward information so we can pass it to the agent
+            reward_information = self.GAME_INSTANCE.reward_information_request(
+                chosen_action, legal_actions
+            )
 
-                # Get the reward from the Agent
-                reward = self.AGENT.reward(reward_information)
+            # Get the reward from the Agent
+            reward = self.PLAYER_QUEUE[player].reward(reward_information)
 
-                # Increment the total reward points earned
+            # Increment the total reward points earned if the player is the main AGENT
+            if player == self.agent_index:
                 self.game_data_dict["total_reward_points_earned"] += reward
 
-                # Set the value of 'done' for the memory tuple
-                done = 0
-                if game_over:
-                    done = 1
+            # Set the value of 'done' for the memory tuple
+            done = 0
+            if game_over:
+                done = 1
 
-                # Create a memory tuple
-                # Slightly different when using pixels (in this case we use the pixel data instead of the game state)
-                if self.PLAYER_QUEUE[self.player_turn_pointer].get_pixel_compatible():
-                    memory_tuple = (
-                        self.pixel_data_previous,
-                        action_index,
-                        reward,
-                        self.pixel_data,
-                        done,
-                    )
+            # Create a memory tuple
+            # No longer supports pixel players in this version of the training session
+            memory_tuple = (
+                game_state,
+                action_index,
+                reward,
+                new_game_state,
+                done,
+            )
+
+            # Feed the memory tuple to the agent
+            self.PLAYER_QUEUE[player].feed_memory(memory_tuple)
+
+            # Is it time to optimise the agent?
+            if player == self.agent_index:
+                if self.agent_learning_steps < self.AGENT_LEARNING_INTERVAL:
+
+                    # Increment counter if we are not ready to learn
+                    self.agent_learning_steps += 1
+
                 else:
-                    memory_tuple = (
-                        game_state,
-                        action_index,
-                        reward,
-                        new_game_state,
-                        done,
-                    )
 
-                # Feed the memory tuple to the agent
-                self.AGENT.feed_memory(memory_tuple)
-
-                # Increment the steps until call learning
-                self.steps_until_call_learning += 1
-
-                if self.learning_steps < self.LEARNING_INTERVAL:
-                    # Increment the learn steps if we are not ready to learn
-                    self.learning_steps += 1
-                else:
-                    # Reset the learn steps if we are ready to learn
-                    self.learning_steps = 0
-                    # Call the learn() method on the agent
+                    # Call the appropriate learning function if we are ready to learn
+                    self.agent_learning_steps = 0
                     loss = self.AGENT.learn()
-                    # Add the loss to the game data dictionary only if it is not None
                     if loss is not None:
                         self.game_data_dict["loss"].append(loss)
 
+            # Is it time to optimise the other players?
+            else:
+                if self.other_learning_steps < self.OTHER_LEARNING_INTERVAL:
+
+                    # Increment counter if we are not ready to learn
+                    self.other_learning_steps += 1
+
+                else:
+
+                    # Call the appropriate learning function if we are ready to learn
+                    self.other_learning_steps = 0
+                    self.PLAYER_QUEUE[player].learn()
+
             # Complete some post-game tasks if the game is over
             if game_over:
+
                 # Increment the number of games played
                 self.games_played += 1
 
@@ -185,7 +195,6 @@ class TrainingSession:
                 loss_list = self.game_data_dict["loss"]
                 if len(loss_list) > 0:
                     average_loss = sum(loss_list) / len(loss_list)
-
                 else:
                     average_loss = 0
 
@@ -220,24 +229,26 @@ class TrainingSession:
                 if self.games_played == self.EPISODES or self.games_played % 100 == 0:
                     self.save_data_analysis_file()
 
-                # Get the agents current epsilon value
-                epsilon = self.AGENT.get_exploration_rate()
+                # Reduce the epsilon value of each player
+                for player in self.PLAYER_QUEUE:
 
-                # If the epsilon value is greater than the minimum epsilon value, reduce it
-                if epsilon > self.MIN_EPSILON and self.AGENT_SELECTED != "Randy":
-                    epsilon -= self.EPSILON_DECAY
-                    self.AGENT.set_exploration_rate(epsilon)
+                    epsilon = player.get_exploration_rate()
+
+                    if epsilon > self.MIN_EPSILON and player.get_nickname != "Randy":
+                        epsilon -= self.EPSILON_DECAY
+                        player.set_exploration_rate(epsilon)
 
                 # Reset the game
                 self.GAME_INSTANCE.reset(number_of_players=self.NUMBER_OF_PLAYERS)
 
                 # Start the new game
                 self.GAME_INSTANCE.start_game(number_of_players=self.NUMBER_OF_PLAYERS)
+                self.ALL_ACTIONS = self.GAME_INSTANCE.get_all_possible_actions()
 
                 # Reset the game data dictionary
                 self.reset_game_data_dict()
 
-                # Save the model's state dict
+                # Save the agent's state dict
                 if (
                     self.AGENT_SELECTED == "Adam"
                     or self.AGENT_SELECTED == "Redmond"
@@ -245,6 +256,16 @@ class TrainingSession:
                     or self.AGENT_SELECTED == "Gonzales"
                 ):
                     self.AGENT.save_model(self.MODEL_PATH)
+
+                # Save the state dict of the other players
+                for player in self.PLAYER_QUEUE:
+                    if (
+                        player.get_nickname() != "Randy"
+                        and player.get_nickname() != "Agent"
+                        and player.get_nickname() != "Adam"
+                    ):
+                        file_name = player.get_nickname() + ".pth"
+                        player.save_model(file_name)
 
                 # Shuffle the turn order in preparation for the next game
                 self.shuffle_turn_order()
@@ -256,10 +277,12 @@ class TrainingSession:
                 if self.player_turn_pointer >= self.NUMBER_OF_PLAYERS:
                     self.player_turn_pointer = 0
 
+            # Return agent index (for GUI rendering)
             other_information = {
                 "agent_index": self.agent_index,
             }
 
+            # Return game state info
             return (
                 self.running,
                 legal_actions,
@@ -273,7 +296,6 @@ class TrainingSession:
     def start(self, game_in_progress=False, players=1):
         # Variable to keep our game loop running
         self.running = True
-        self.steps_until_call_learning = 0
 
         # Set the number of players
         self.NUMBER_OF_PLAYERS = players
@@ -362,8 +384,20 @@ class TrainingSession:
                     # Load the model, and set it to evaluation mode
                     new_opponent.load_model(path)
                     new_opponent.model.eval()
-            else:
+            elif opponent_name == "Randy":
                 new_opponent = Randy()
+
+            # Agent isn't Randy or Adam, so will be an Adam agent with a nickname
+            else:
+                new_opponent = Adam(exploration_rate=1, override_nickname=opponent_name)
+                path = opponent_name + ".pth"
+                # Check if the ".pth" file exists
+                if os.path.exists(path):
+                    print("Loading in opponent " + opponent_name + " from file.")
+                    # Load the model
+                    new_opponent.load_model(path)
+                    # Set the exploration rate to 0.1
+                    new_opponent.set_exploration_rate(0.1)
 
             # Add the new opponent to the list of opponents
             self.OPPONENTS.append(new_opponent)
