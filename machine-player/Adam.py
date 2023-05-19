@@ -15,8 +15,8 @@ LEGAL_ACTIONS_ONLY = True
 
 # Class definition
 class Adam(Agent):
-    def __init__(self, exploration_rate=1.0):
-        super().__init__(exploration_rate)
+    def __init__(self, exploration_rate=1.0, override_nickname=False):
+        super().__init__(exploration_rate, override_nickname=override_nickname)
         self.name = "Adam"
 
     # Overwrite the select_action_exploit method with Adam's own

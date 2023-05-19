@@ -10,7 +10,7 @@ from TrainingSession import TrainingSession
 
 # # Training Session Options
 agent_to_set = "Adam"
-opponents_to_set = ["Randy", "Randy", "Randy"]
+opponents_to_set = ["James", "Johnny", "Ethan"]
 player_count = len(opponents_to_set) + 1
 
 # Create a training session (with default parameters)
