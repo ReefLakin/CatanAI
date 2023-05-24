@@ -1,4 +1,4 @@
-torch==1.12.1
+torch==2.0.1
 pygame>=2.4.0
 numpy>=1.23.5
 ```
