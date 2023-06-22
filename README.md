@@ -6,10 +6,17 @@
 - [Training Modes](#training-modes)
   - [Headless](#headless)
   - [GUI](#gui)
+- [Requirements](#requirements)
+  - [PyTorch](#pytorch)
+  - [PyGame](#pygame)
+  - [NumPy](#numpy)
 - [Agents](#agents)
   - [Randy (Random Agent)](#randy-random-agent)
   - [Adam (Basic DQN Agent)](#adam-basic-dqn-agent)
   - [Redmond (DQN Agent with a Love for Red Tiles)](#redmond-dqn-agent-with-a-love-for-red-tiles)
+- [Version History](#version-history)
+  - [v1.1.0](#v110)
+  - [v1.0.0](#v100)
 
 ## Introduction
 
@@ -30,6 +37,50 @@ I also love Catan, so any excuse to engage with it through this dissertation is 
 
 \*because this was the working title of my project and it eventually just stuck.
 
+<br>
+
+## Requirements
+
+This project requires a select few pip packages to be installed. The following command will install all of the required packages:
+
+```bash
+pip install -r requirements.txt
+```
+
+It's recommended that you install these packages within a virtual environment, as that's good industry practice. Below is a breakdown of some of the most notable packages that are required.
+
+### PyTorch
+
+PyTorch is a Python library that provides a set of tools for building and training neural networks. It is the primary library used for training agents in CatanAI. It can be installed manually using the following command:
+
+```bash
+pip install torch
+```
+
+The recommended version is at least 2.0.1.
+
+### PyGame
+
+PyGame is a Python library that provides a set of tools for building games. It is the primary library used for rendering the game state to the screen. It can be installed manually using the following command:
+
+```bash
+pip install pygame
+```
+
+The recommended version is at least 2.4.0.
+
+### NumPy
+
+NumPy is a Python library that provides a set of tools for working with arrays. It gets used when handling large game state arrays. It can be installed manually using the following command:
+
+```bash
+pip install numpy
+```
+
+The recommended version is at least 1.25.0.
+
+<br>
+
 ## Training Modes
 
 CatanAI benefits from the flexibility to tune the training process to the user's needs. However, there are two primary modes of training: headless and GUI.
@@ -41,6 +92,8 @@ Headless training is the default mode of training. It is the most efficient way 
 ### GUI
 
 GUI training is the most visually appealing way to train an agent. It is also the slowest, as it requires the overhead of rendering the game state to the screen. With the GUI, one can see the game state being updated in real time, and can also see the agent's decision-making process as it plays the game. The game board is rendered using the PyGame library, and instead of relying on console output, much of the game state is displayed on the screen.
+
+<br>
 
 ## Agents
 
@@ -54,6 +107,23 @@ Randy is the most basic agent that comes packaged with CatanAI. It is a random a
 
 Adam learns with a DQN model, and is the primary agent I've used for training and testing as I've been developing CatanAI. It relies only on the game state as input, and is trained using a simple DQN model. The reward structure for Adam is also very simple, without much heuristic logic. It is a good agent to use for testing the game environment.
 
+Any agent with a name that isn't reserved for other specialist agents will be created as a clone of Adam, and will be trained using the same model and reward structure.
+
 ### Redmond (DQN Agent with a Love for Red Tiles)
 
 Redmond is an early alternative agent that sadly doesn't get as much use as he deserves. He works very similar to Adam, except that he has a love for red-numbered tiles and gets a bonus for building adjacent to them.
+
+<br>
+
+# Version History
+
+## v1.1.0
+
+- Updated the README to include version history and requirements
+
+## v1.0.0
+
+- Initial release
+- At a state where the game is playable, and agents can be trained
+- This is the version that was used for the dissertation
+- Technically not really "stable", as the code base is still very much in flux
