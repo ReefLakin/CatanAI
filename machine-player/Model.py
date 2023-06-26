@@ -3,19 +3,26 @@ import torch.nn as nn
 import torch
 from StatePreprocessor import StatePreprocessor
 import numpy as np
+import dotenv
 
-NORMALISE_STATES = True
+# Load necessary variables from the .env file
+hidden_size = int(dotenv.get_key(".env", "HIDDEN_SIZE"))
+dropout = float(dotenv.get_key(".env", "DROPOUT"))
+learning_rate = float(dotenv.get_key(".env", "LEARNING_RATE"))
+default_batch_size = int(dotenv.get_key(".env", "DEFAULT_BATCH_SIZE"))
+gamma = float(dotenv.get_key(".env", "GAMMA"))
+normalise_inputs = dotenv.get_key(".env", "NORMALISE_INPUTS")
 
 
 class CatanModel(nn.Module):
-    def __init__(self, input_size=272, output_size=382, hidden_size=64):
+    def __init__(self, input_size=272, output_size=382, hidden_size=hidden_size):
         super(CatanModel, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.relu1 = nn.LeakyReLU()
-        self.drop1 = nn.Dropout(p=0.2)
+        self.drop1 = nn.Dropout(p=dropout)
         self.fc2 = nn.Linear(hidden_size, hidden_size)
         self.relu2 = nn.LeakyReLU()
-        self.drop2 = nn.Dropout(p=0.2)
+        self.drop2 = nn.Dropout(p=dropout)
         self.fc3 = nn.Linear(hidden_size, output_size)
 
         # Initialise weights with the He uniform method
@@ -32,7 +39,9 @@ class CatanModel(nn.Module):
                 nn.init.zeros_(m.bias)
 
         # Initialise the optimiser
-        self.optimiser = torch.optim.Adam(self.parameters(), lr=0.001, amsgrad=True)
+        self.optimiser = torch.optim.Adam(
+            self.parameters(), lr=learning_rate, amsgrad=True
+        )
 
     def forward(self, x):
         # Pass the input tensor through each of our operations
@@ -45,7 +54,7 @@ class CatanModel(nn.Module):
         x = self.fc3(x)
         return x
 
-    def learn(self, memory, batch_size=128, gamma=0.99):
+    def learn(self, memory, batch_size=default_batch_size, gamma=gamma):
         # If the buffer if not full enough, return
         if memory.get_buffer_size() < batch_size:
             return
@@ -68,7 +77,7 @@ class CatanModel(nn.Module):
             state_preprocessor.preprocess_state(state) for state in next_states
         ]
 
-        if NORMALISE_STATES:
+        if normalise_inputs == "True":
             # Normalise the states in the states list
             states = [self.normalise_state(state) for state in states]
 

@@ -10,12 +10,20 @@ import numpy as np
 from ReplayMemory import ReplayMemory
 from PixelModel import CatanPixelModel
 from Model import CatanModel
+import dotenv
+
+# Load necessary variables from the .env file
+exploration_rate = float(dotenv.get_key(".env", "EXPLORATION_RATE"))
+default_replay_memory = int(dotenv.get_key(".env", "DEFAULT_REPLAY_MEMORY"))
 
 
 # Agent class definition
 class Agent:
     def __init__(
-        self, exploration_rate=0.1, pixel_agent=False, override_nickname=False
+        self,
+        exploration_rate=exploration_rate,
+        pixel_agent=False,
+        override_nickname=False,
     ):
         self.exploration_rate = exploration_rate
         if pixel_agent:
@@ -24,7 +32,7 @@ class Agent:
             self.model = CatanModel()
         self.name = "Agent"
         self.nickname = "Agent"
-        self.memory = ReplayMemory(100000)
+        self.memory = ReplayMemory(default_replay_memory)
         self.is_pixel_compatible = pixel_agent
 
         if override_nickname != False:

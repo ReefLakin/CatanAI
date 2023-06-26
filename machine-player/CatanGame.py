@@ -2,8 +2,13 @@
 from Board import Board
 from Tile import Tile
 import random
+import dotenv
 
-CONSOLE_OUTPUT = False
+# Load necessary variables from the .env file
+tile_value_generation = dotenv.get_key(".env", "TILE_VALUE_GENERATION")
+console_output = dotenv.get_key(".env", "CONSOLE_OUTPUT")
+force_random_placement = dotenv.get_key(".env", "FORCE_RANDOM_PLACEMENT")
+force_predictable_placement = dotenv.get_key(".env", "FORCE_PREDICTABLE_PLACEMENT")
 
 
 class CatanGame:
@@ -21,7 +26,7 @@ class CatanGame:
         self.number_of_players = number_of_players
         # Get tile values
         tile_value_mode = tile_value_mode
-        tile_values = self.generate_tile_values("balanced")
+        tile_values = self.generate_tile_values(tile_value_generation)
         tile_types = [
             "ore",
             "wool",
@@ -102,7 +107,7 @@ class CatanGame:
 
     def step(self, action, player_id=0):
         # Print the action taken to the console along with turn number if CONSOLE_OUTPUT is True
-        if CONSOLE_OUTPUT:
+        if console_output == "True":
             print(
                 "Turn "
                 + str(self.turn_number)
@@ -710,10 +715,7 @@ class CatanGame:
         # Move the robber to the central desert tile
         self.board.move_robber(0, 0, 0)
 
-        # Switch this on or off: settlements placed randomly at the start of the game
-        PLACE_RANDOMLY = False
-        NO_CHOICE_ALLOWED = True
-        if PLACE_RANDOMLY:
+        if force_random_placement == "True":
             # Randomly build settlements and roads for all players
             for player in range(self.number_of_players):
                 self.build_settlement_and_road_randomly(player)
@@ -723,7 +725,7 @@ class CatanGame:
             # Set the game phase to "main"
             self.game_phase = "main"
 
-        elif NO_CHOICE_ALLOWED:
+        elif force_predictable_placement == "True":
             # For now, we're going to build for the player to start the game
 
             # We build in a fairly good spot for the first player:

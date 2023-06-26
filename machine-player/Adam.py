@@ -7,10 +7,11 @@
 # Imports
 from Agent import Agent
 import torch
+import dotenv
 
-# High-level settings
-NORMALISE_STATES = True
-LEGAL_ACTIONS_ONLY = True
+# Load necessary variables from the .env file
+normalise_inputs = dotenv.get_key(".env", "NORMALISE_INPUTS")
+legal_actions_only = dotenv.get_key(".env", "LEGAL_ACTIONS_ONLY")
 
 
 # Class definition
@@ -25,7 +26,7 @@ class Adam(Agent):
         observation_processed = self.preprocess_state(observation)
 
         # Normalising
-        if NORMALISE_STATES:
+        if normalise_inputs == "True":
             observation_processed = self.normalise_state(observation_processed)
 
         # Tensor conversion
@@ -35,7 +36,7 @@ class Adam(Agent):
         action_options = self.model.forward(observation_processed)
 
         # Adam has the option to only choose legal actions
-        if LEGAL_ACTIONS_ONLY:
+        if legal_actions_only == "True":
             # Create a list of legal action indices
             legal_action_indices = []
             for i in range(len(all_possible_actions)):
