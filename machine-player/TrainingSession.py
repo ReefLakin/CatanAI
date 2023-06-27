@@ -13,6 +13,10 @@ from Davish import Davish
 from Gonzales import Gonzales
 from errors import AgentCompatibilityError
 import random
+import dotenv
+
+# Load necessary variables from the .env file
+human_player = dotenv.get_key(".env", "HUMAN_PLAYER")
 
 
 # Define the TrainingSession class
@@ -503,13 +507,14 @@ class TrainingSession:
 
     # Method for shuffling the turn order
     def shuffle_turn_order(self):
-        # Shuffle the PLAYER_QUEUE
-        random.shuffle(self.PLAYER_QUEUE)
-        # Get the index of the agent
-        self.agent_index = self.PLAYER_QUEUE.index(self.AGENT)
-        # Print the index of the agent
-        # Can be disabled if desired
-        # print("Agent index: " + str(self.agent_index))
+        if human_player == "False":
+            # Shuffle the PLAYER_QUEUE
+            random.shuffle(self.PLAYER_QUEUE)
+            # Get the index of the agent
+            self.agent_index = self.PLAYER_QUEUE.index(self.AGENT)
+            # Print the index of the agent
+            # Can be disabled if desired
+            # print("Agent index: " + str(self.agent_index))
 
     # Method for setting the player queue
     def set_player_queue(self):

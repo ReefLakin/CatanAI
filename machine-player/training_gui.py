@@ -6,6 +6,10 @@ import pygame
 import time
 import math
 import numpy as np
+import dotenv
+
+# Load necessary variables from the .env file
+human_player = dotenv.get_key(".env", "HUMAN_PLAYER")
 
 # Constants specific to the GUI version of the program
 # TILE COLOURS
@@ -332,18 +336,17 @@ current_player = 0
 
 # Start the training session
 running = training_session.start(players=player_count)
-PLEASE_LORD_GIVE_ME_A_BREAK = False
+fast_training_on = False
 sleep_time = 0.03
 
 # While the training session is running
 while running is True:
-    # If PLEASE_LORD_GIVE_ME_A_BREAK is true, make a small time delay
-    if PLEASE_LORD_GIVE_ME_A_BREAK:
+
+    # If quick training is on, then take an action and update the board
+    if fast_training_on:
         time.sleep(sleep_time)
-        PLEASE_LORD_GIVE_ME_A_BREAK = False
         pygame.event.post(take_action)
         pygame.event.post(update_game_board)
-        PLEASE_LORD_GIVE_ME_A_BREAK = True
 
     # Loop over the event queue
     for event in pygame.event.get():
@@ -400,10 +403,16 @@ while running is True:
 
             # Check for T key press (TRAIN)
             if event.key == pygame.K_t:
+                # Set the flag indicating fast training if it's not already on
+                if not fast_training_on:
+                    fast_training_on = True
+                # Otherwise, turn it off
+                else:
+                    fast_training_on = False
+
                 # Take action, then update the board
                 pygame.event.post(take_action)
                 pygame.event.post(update_game_board)
-                PLEASE_LORD_GIVE_ME_A_BREAK = True
 
         # Check for the custom event that we set up to take action
         if event.type == TAKE_ACTION:
