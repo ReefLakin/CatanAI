@@ -3,12 +3,14 @@ from Board import Board
 from Tile import Tile
 import random
 import dotenv
+import copy
 
 # Load necessary variables from the .env file
 tile_value_generation = dotenv.get_key(".env", "TILE_VALUE_GENERATION")
 console_output = dotenv.get_key(".env", "CONSOLE_OUTPUT")
 force_random_placement = dotenv.get_key(".env", "FORCE_RANDOM_PLACEMENT")
 force_predictable_placement = dotenv.get_key(".env", "FORCE_PREDICTABLE_PLACEMENT")
+phantom_player_id = dotenv.get_key(".env", "PHANTOM_PLAYER_ID")
 
 
 class CatanGame:
@@ -281,6 +283,61 @@ class CatanGame:
             "tile_values": self.board.get_tile_numbers_in_a_list(),
             "robber_states": self.board.get_robber_states(),
             "most_recent_roll": self.most_recent_roll[2],
+        }
+
+    def get_phantom_game_state(self, player_id=0):
+        # This is a special function that is going to essentially copy the board temporarily, without any pieces on it.
+        # Then, using the legal actions for the specified player, it's going to build everything the player could build.
+        # This will allow us to return "phantom" board pieces, so the human player can see what they CAN build in the GUI.
+
+        # First, copy the board
+        phantom_board = copy.deepcopy(self.board)
+
+        # Now, grab the legal actions for the specified player
+        legal_actions = self.legal_actions[player_id]
+
+        # Loop through the legal actions
+        for action in legal_actions:
+
+            # Split the action into parts
+            action = action.split(" ")
+
+            # If the action is a road build, build a road
+            if action[0] == "build" and action[1] == "road":
+                phantom_board.build_road(
+                    int(action[3]),
+                    int(action[4]),
+                    int(action[5]),
+                    action[2],
+                    phantom_player_id,
+                )
+
+            # If the action is a settlement build, build a settlement
+            elif action[0] == "build" and action[1] == "settlement":
+                phantom_board.build_settlement(
+                    int(action[3]),
+                    int(action[4]),
+                    int(action[5]),
+                    action[2],
+                    phantom_player_id,
+                )
+
+            # If the action is a city build, build a city
+            elif action[0] == "build" and action[1] == "city":
+                phantom_board.build_city(
+                    int(action[3]),
+                    int(action[4]),
+                    int(action[5]),
+                    action[2],
+                    phantom_player_id,
+                )
+
+        # Now, return a dictionary of state information for the phantom board
+        return {
+            "side_states": phantom_board.get_side_states(),
+            "side_owners": phantom_board.get_side_owners(),
+            "vertex_states": phantom_board.get_vertex_states(),
+            "vertex_owners": phantom_board.get_vertex_owners(),
         }
 
     def set_legal_actions(self):
