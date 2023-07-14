@@ -300,7 +300,7 @@ class CatanGame:
         for action in legal_actions:
 
             # Split the action into parts
-            action = action.split(" ")
+            action = action.split("_")
 
             # If the action is a road build, build a road
             if action[0] == "build" and action[1] == "road":

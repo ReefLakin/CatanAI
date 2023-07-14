@@ -10,6 +10,7 @@ import dotenv
 
 # Load necessary variables from the .env file
 human_player = dotenv.get_key(".env", "HUMAN_PLAYER")
+phantom_player_id = dotenv.get_key(".env", "PHANTOM_PLAYER_ID")
 
 # Constants specific to the GUI version of the program
 # TILE COLOURS
@@ -278,6 +279,8 @@ def get_player_colour_from_id(id):
             return PLAYER_2_COLOUR
         case 3:
             return PLAYER_3_COLOUR
+        case phantom_player_id:
+            return PHANTOM_PLAYER_COLOUR
 
 
 # !! Main Program
@@ -443,13 +446,26 @@ while running is True:
             # Get the values map from the game instance
             values_map = game_state["tile_values"]
 
-            # Get the vertex states from the game instance
-            vertex_states = game_state["vertex_states"]
-            vertex_owners = game_state["vertex_owners"]
+            # Get phantom game state if there is a human player and it is their turn
+            if human_player == "True" and current_player == 0:
+                phantom_game_state = game_instance.get_phantom_game_state(0)
 
-            # Get the side states from the game instance
-            side_states = game_state["side_states"]
-            side_owners = game_state["side_owners"]
+                # Use phantom game state in place of normal game state
+                vertex_states = phantom_game_state["vertex_states"]
+                vertex_owners = phantom_game_state["vertex_owners"]
+                side_states = phantom_game_state["side_states"]
+                side_owners = phantom_game_state["side_owners"]
+
+            # Otherwise, use the normal game state
+            else:
+
+                # Get the vertex states from the game instance
+                vertex_states = game_state["vertex_states"]
+                vertex_owners = game_state["vertex_owners"]
+
+                # Get the side states from the game instance
+                side_states = game_state["side_states"]
+                side_owners = game_state["side_owners"]
 
             # Get the number of current victory points from the game instance
             victory_points = game_state["victory_points"]
