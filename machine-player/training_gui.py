@@ -34,6 +34,11 @@ VP_COLOUR = "#1B152E"
 CITY_GOLD_COLOUR = "#FFD700"
 ROBBER_COLOUR = "#C4BCA9"
 
+# BUTTON COLOURS
+BUTTON_BG_LIGHT = "#FFFFFF"
+BUTTON_BG_DARK = "#000000"
+current_btn_colour = BUTTON_BG_LIGHT
+
 # PLAYER COLOURS
 PLAYER_0_COLOUR = "#FFFFFF"  # White
 PLAYER_1_COLOUR = "#FFBB00"  # Orange
@@ -51,6 +56,14 @@ STARTING_HEX_CENTRE_Y = 140
 HEX_RADIUS = 60
 SETTLEMENT_RADIUS = HEX_RADIUS / 7
 CITY_RADIUS = HEX_RADIUS / 8
+
+# BUTTON INFORMATION
+END_TURN_BTN = {
+    "x": 50,
+    "y": SCREEN_HEIGHT - 200,
+    "width": 100,
+    "height": 40,
+}
 
 
 # Helper Functions
@@ -281,6 +294,32 @@ def get_player_colour_from_id(id):
             return PLAYER_3_COLOUR
         case phantom_player_id:
             return PHANTOM_PLAYER_COLOUR
+
+            return (
+                button_x <= mouse_pos[0] <= button_x + button_width
+                and button_y <= mouse_pos[1] <= button_y + button_height
+            )
+
+
+# Check if the player's mouse cursor is hovering over the "End Turn" button
+def check_mouse_over_btn(mouse_position):
+
+    # Check if the mouse is within the x-bounds of the button
+    if (
+        END_TURN_BTN["x"]
+        <= mouse_position[0]
+        <= END_TURN_BTN["x"] + END_TURN_BTN["width"]
+    ):
+        # Check if the mouse is within the y-bounds of the button
+        if (
+            END_TURN_BTN["y"]
+            <= mouse_position[1]
+            <= END_TURN_BTN["y"] + END_TURN_BTN["height"]
+        ):
+            # Return True: the mouse is over the button
+            return True
+    # Return False: the mouse is not over the button
+    return False
 
 
 # !! Main Program
@@ -833,12 +872,26 @@ while running is True:
             text_rect = text.get_rect(center=(45, SCREEN_HEIGHT - 15))
             screen.blit(text, text_rect)
 
-            # Update the display using flip
-            pygame.display.flip()
+    # Get the current mouse position
+    mouse_pos = pygame.mouse.get_pos()
 
-            if use_pixel_data_instead_of_state:
-                # Collect the pixel data
-                pixel_data = pygame.surfarray.array3d(pygame.display.get_surface())
+    # Check if the mouse is over the "End Turn" button
+    if check_mouse_over_btn(mouse_pos):
+        current_btn_colour = BUTTON_BG_DARK
+    else:
+        current_btn_colour = BUTTON_BG_LIGHT
 
-                # Feed pixel data to the training session object
-                training_session.feed_pixel_data(pixel_data)
+    # Draw onto the screen the "End Turn" button
+    pygame.draw.rect(
+        screen,
+        current_btn_colour,
+        (
+            END_TURN_BTN["x"],
+            END_TURN_BTN["y"],
+            END_TURN_BTN["width"],
+            END_TURN_BTN["height"],
+        ),
+    )
+
+    # Update the display using flip
+    pygame.display.flip()
